@@ -100,7 +100,7 @@ function RootApp() {
                         window.location.href = '/dashboard';
                     }}
                 >
-                    RIA's Dashboard
+                    RIA's Login
                     <ArrowUpRight style={{ marginLeft: -2.6, width: 26, height: 26 }} width={50} height={50} />
                 </Button>
             )}
