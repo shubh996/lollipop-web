@@ -72,7 +72,7 @@ function RootApp() {
                         window.open('https://play.google.com/store', '_blank');
                     }}
                 >
-                    Download App
+                    Get Started
                     <ArrowUpRight style={{ marginLeft: -2.6, width: 26, height: 26 }} width={50} height={50} />
                 </Button>
             ) : (

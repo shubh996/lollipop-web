@@ -8,9 +8,14 @@ import { MoreHorizontal, Cpu, Banknote, BatteryCharging, Heart, ShoppingCart } f
 // Use Lucide icons only
 import { RefreshCcw, Gavel, Factory, Building, Activity } from 'lucide-react'
 import { Droplets, Droplet, Sun } from "lucide-react";
+import { ChartPie, Euro, Bitcoin, Repeat, FileText, Package, Laptop, Home, Landmark, Radio } from "lucide-react";
+import { Handshake, Settings2, Book, BookOpen, BookText, MessageSquare, Gauge, Leaf, Wallet, GripHorizontal, Grip, Ellipsis, ArrowLeftRight, X } from "lucide-react";
 import { AlertDialog, AlertDialogTrigger, AlertDialogContent, AlertDialogHeader, AlertDialogFooter, AlertDialogTitle, AlertDialogDescription, AlertDialogAction, AlertDialogCancel } from '@/components/ui/alert-dialog';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import supabase from '@/lib/supabaseClient';
+import LollipopSVG from '../assets/icons/lollipop.svg';
+import LollipopSVGWhite from '../assets/icons/lollipop-white.svg';
+
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -80,6 +85,108 @@ function timeAgo(dateString) {
   }
   return 'just now';
 }
+
+// Master filter configuration with icons and descriptions
+const MASTER_FILTERS = {
+  assets: [
+    { name: 'Equity', Icon: ChartPie, desc: 'Individual company stocks and shares' },
+    { name: 'Forex', Icon: Euro, desc: 'Foreign exchange currency pairs' },
+    { name: 'ETF', Icon: Handshake, desc: 'Exchange-traded funds tracking indexes or sectors' },
+    { name: 'Crypto', Icon: Bitcoin, desc: 'Digital currencies and blockchain tokens' },
+    { name: 'F&O', Icon: Repeat, desc: 'Futures and options derivatives' },
+    { name: 'Indexes', Icon: FileText, desc: 'Market index benchmarks and trackers' },
+    { name: 'Bonds', Icon: Cpu, desc: 'Government and corporate debt securities' },
+    { name: 'Commodities', Icon: Package, desc: 'Physical goods like gold, oil, agricultural products' },
+    { name: 'Mutual Funds', Icon: ChartPie, desc: 'Professionally managed investment pools' },
+    { name: 'REITs', Icon: Home, desc: 'Real estate investment trusts' },
+    { name: 'Options', Icon: Settings2, desc: 'Call and put option contracts' },
+    { name: 'Futures', Icon: ArrowRight, desc: 'Future delivery contracts for assets' },
+  ],
+  sectors: [
+    { name: 'Technology', Icon: Laptop, desc: 'Software, hardware, and tech services companies' },
+    { name: 'Finance', Icon: Cpu, desc: 'Banks, insurance, and financial services' },
+    { name: 'Healthcare', Icon: Heart, desc: 'Pharmaceuticals, medical devices, and healthcare providers' },
+    { name: 'Energy', Icon: Zap, desc: 'Oil, gas, renewable energy, and utilities' },
+    { name: 'Retail', Icon: ShoppingCart, desc: 'Consumer retail and e-commerce companies' },
+    { name: 'Industrials', Icon: Factory, desc: 'Manufacturing, aerospace, and industrial equipment' },
+    { name: 'Estate', Icon: Home, desc: 'Real estate development and property companies' },
+    { name: 'Infrastructure', Icon: Landmark, desc: 'Transportation, utilities, and infrastructure projects' },
+    { name: 'Consumer Staples', Icon: ShoppingCart, desc: 'Essential goods like food, beverages, household items' },
+    { name: 'Consumer Discretionary', Icon: Heart, desc: 'Non-essential goods like luxury items, entertainment' },
+    { name: 'Utilities', Icon: Zap, desc: 'Electric, gas, water, and waste management services' },
+    { name: 'Materials', Icon: Package, desc: 'Basic materials, chemicals, and mining companies' },
+    { name: 'Communication Services', Icon: Radio, desc: 'Telecom, media, and entertainment companies' },
+    { name: 'Telecommunications', Icon: Radio, desc: 'Phone, internet, and communication infrastructure' },
+  ],
+  sentiments: [
+    { name: 'Bullish', color: '#22c55e', Icon: TrendingUp, desc: 'Expect prices to rise, positive outlook' },
+    { name: 'Bearish', color: '#f87171', Icon: TrendingDown, desc: 'Expect prices to fall, negative outlook' },
+    { name: 'Neutral', color: '#EEE', Icon: Minus, desc: 'No strong directional bias, sideways movement' },
+    { name: 'Optimistic', color: '#22c55e', Icon: TrendingUp, desc: 'Generally positive about market conditions' },
+    { name: 'Pessimistic', color: '#f87171', Icon: TrendingDown, desc: 'Generally negative about market conditions' },
+    { name: 'Cautious', color: '#fbbf24', Icon: AlertTriangle, desc: 'Careful approach due to uncertainty' },
+  ],
+  strategies: [
+    { name: 'Momentum', color: '#6366f1', Icon: Gauge, desc: 'Buy assets showing strong price trends and momentum' },
+    { name: 'Growth', color: '#0ea5e9', Icon: Leaf, desc: 'Invest in companies with high growth potential' },
+    { name: 'Value', color: '#a855f7', Icon: DollarSign, desc: 'Buy undervalued assets trading below intrinsic value' },
+    { name: 'Income', color: '#eab308', Icon: Wallet, desc: 'Focus on dividend-paying assets for regular income' },
+    { name: 'Defensive', color: '#ef4444', Icon: Shield, desc: 'Conservative approach to preserve capital' },
+    { name: 'Speculative', color: '#ef4444', Icon: AlertTriangle, desc: 'High-risk, high-reward investment approach' },
+    { name: 'Contrarian', color: '#6366f1', Icon: ArrowLeftRight, desc: 'Go against popular market sentiment' },
+    { name: 'Swing Trading', color: '#0ea5e9', Icon: ArrowLeftRight, desc: 'Short-term trades lasting days to weeks' },
+    { name: 'Day Trading', color: '#fbbf24', Icon: Gauge, desc: 'Buy and sell within the same trading day' },
+    { name: 'Position Trading', color: '#a855f7', Icon: Leaf, desc: 'Long-term trades lasting months to years' },
+    { name: 'Scalping', color: '#6366f1', Icon: Zap, desc: 'Very short-term trades lasting minutes' },
+    { name: 'Trend Following', color: '#22c55e', Icon: TrendingUp, desc: 'Follow established market trends' },
+    { name: 'Mean Reversion', color: '#f87171', Icon: ArrowLeftRight, desc: 'Bet on prices returning to average levels' },
+  ],
+  risk: [
+    { name: 'Low', Icon: Ellipsis, desc: 'Conservative investments with minimal risk of loss' },
+    { name: 'Medium', Icon: GripHorizontal, desc: 'Moderate risk with balanced return potential' },
+    { name: 'High', Icon: Grip, desc: 'Aggressive investments with significant risk' },
+    { name: 'Very Low', Icon: Minus, desc: 'Extremely safe investments like government bonds' },
+    { name: 'Very High', Icon: AlertTriangle, desc: 'Speculative investments with potential for major losses' },
+  ],
+  expectedReturn: [
+    { label: '0-5%', min: 0, max: 5, icon: TrendingUp, desc: 'Conservative returns, capital preservation focused' },
+    { label: '5-10%', min: 5, max: 10, icon: TrendingUp, desc: 'Moderate returns, balanced risk-reward' },
+    { label: '10-15%', min: 10, max: 15, icon: TrendingUp, desc: 'Good returns above market average' },
+    { label: '15-20%', min: 15, max: 20, icon: TrendingUp, desc: 'Strong returns with higher risk' },
+    { label: '20-30%', min: 20, max: 30, icon: TrendingUp, desc: 'High returns, significant risk involved' },
+    { label: '30-40%', min: 30, max: 40, icon: TrendingUp, desc: 'Very high returns, substantial risk' },
+    { label: '40-50%', min: 40, max: 50, icon: TrendingUp, desc: 'Exceptional returns, major risk exposure' },
+    { label: '50%+', min: 50, max: Infinity, icon: TrendingUp, desc: 'Extreme returns, speculative investments' },
+  ],
+  holding: [
+    { name: 'Intraday', Icon: Zap, desc: 'Buy and sell within the same trading day' },
+    { name: '1W', Icon: Calendar, desc: 'Hold position for one week' },
+    { name: 'Short Term', Icon: Gauge, desc: 'Hold positions for short period (1-4 weeks)' },
+    { name: 'Swing', Icon: ArrowLeftRight, desc: 'Swing trading positions (few days to weeks)' },
+    { name: 'Long Term', Icon: Leaf, desc: 'Long-term investment (months to years)' },
+    { name: 'Position', Icon: Calendar, desc: 'Hold positions for months' },
+  ],
+  duration: [
+    { name: '1D', Icon: Zap, desc: 'One day duration' },
+    { name: '2D', Icon: Zap, desc: 'Two days duration' },
+    { name: '3D', Icon: Zap, desc: 'Three days duration' },
+    { name: '4-7D', Icon: Gauge, desc: 'Four to seven days duration' },
+    { name: '1W', Icon: Calendar, desc: 'One week duration' },
+    { name: '2W', Icon: Calendar, desc: 'Two weeks duration' },
+    { name: '1M', Icon: ArrowLeftRight, desc: 'One month duration' },
+    { name: '2-3M', Icon: ArrowLeftRight, desc: 'Two to three months duration' },
+    { name: '3-6M', Icon: Calendar, desc: 'Three to six months duration' },
+    { name: '6-12M', Icon: Calendar, desc: 'Six months to one year duration' },
+    { name: '1Y+', Icon: Leaf, desc: 'More than one year duration' },
+  ],
+  conviction: [
+    { name: 'Speculative', Icon: ArrowDown, desc: 'Weak conviction, just a hunch' },
+    { name: 'Low', Icon: ArrowDown, desc: 'Low conviction, not very confident' },
+    { name: 'Moderate', Icon: ArrowRight, desc: 'Moderate conviction, some confidence' },
+    { name: 'Strong', Icon: ArrowUp, desc: 'Strong conviction, confident' },
+    { name: 'Very Strong', Icon: ArrowUp, desc: 'Very strong conviction, highly confident' },
+  ]
+};
 
 
 
@@ -282,87 +389,18 @@ export function AppSidebar({ posts = [], onSelectPost, selectedPost, user, onNew
     if (onSubmitNewPostAndNew) onSubmitNewPostAndNew();
   }
 
-
-   // Helper function to get display text for selected value (main part only)
-  const getDisplayText = (value, options) => {
-    const option = options.find(opt => opt.toLowerCase().replace(/\s/g, '_') === value);
-    if (!option) return '';
-    return parseOption(option).main;
-  };
-
-  const parseOption = (option) => {
-    const match = option.match(/^(.+?)(?:\s*\((.+)\))?$/);
-    return {
-      main: match[1].trim(),
-      subheadline: match[2] ? match[2].trim() : null,
-    };
-  };
-
-  // Helper function to get display text for selected value (main part only)
-  
-
-
-const holdingOptions = [
-  '1D', '2-3D', '1W', '1-4W', '1-3M', '3-6M', '6-12M', '12+M', 
-  'Intraday', 'Short-Term', 'Swing', 'Mid-Term', 'Long-Term', 'Permanent'
-];
-const riskOptions = [
-  'Very Low', 'Low', 'Medium', 'High', 'Very High', 'Speculative'
-];
-const convictionOptions = [
-  'Speculative', 'Low', 'Moderate', 'Strong', 'Very Strong',
-];
-const strategyOptions = [
-
-  'Growth', 'Value', 'Momentum', 'Income', 'Index', 'Arbitrage', 
-  'Event-Driven', 'Contrarian', 'Quality', 'Blend', 'ESG', 'Thematic', 
-  'Distressed', 'Macro'
-];
-const sentimentOptions = [
-  'Very Bullish', 'Bullish', 'Neutral', 'Bearish', 'Very Bearish'
-];
-const sectorOptions = [
-  'Tech', 'Finance', 'Healthcare', 'Energy', 'Consumer', 'Industrials', 
-  'Real Estate', 'Utilities', 'Materials', 'Telecom', 'Staples', 
-  'Discretionary', 'Infrastructure', 'Biotech', 'Clean Energy', 'Aerospace', 'Retail'
-];
-const targetDurationOptions = [
-  '1W', '2W', '1M', '2M', '3M', '6M', '6-12M', '1-2Y', '2+Y', 'Indefinite'
-];
-const catalystOptions = [
-  'Earnings', 'Fed Policy', 'Mergers', 'Product Launch', 'Regulation', 
-  'Market Event', 'Analyst Upgrade', 'Buyback', 'Dividend Hike', 
-  'Sector Rotation', 'Geopolitical', 'Innovation', 'Litigation', 'Supply Chain'
-];
-const valuationOptions = [
-  'Low P/E (<15x)', 'Mid P/E (15–25x)', 'High P/E (>25x)', 
-  'Low EV/EBITDA (<10x)', 'Mid EV/EBITDA (10–15x)', 'High EV/EBITDA (>15x)', 
-  'Discounted Cash Flow (10%+ IRR)', 'PEG Ratio ~1.5', 
-  'Low Price/Book (<2x)', 'Low Price/Sales (<2x)', 
-  'High ROE (>15%)', 'Low Debt/Equity (<0.5)'
-];
-
-const technicalOptions = [
-  'RSI Overbought 70', 'RSI Oversold 30', 'MACD Bullish', 'MACD Bearish', 
-  'MA Crossover', 'ADX Trend 25', 'Bollinger Breakout', 'Fibonacci', 
-  'Support Break', 'Resistance Break', 'Volume Spike', 'Stochastic 80', 
-  'Stochastic 20', 'Ichimoku Buy', 'Ichimoku Sell', 'VWAP Bounce'
-];
-
-const diversificationOptions = [
-  'Core', 'Satellite', 'Hedge', 'Tactical', 'Diversifier', 'Opportunistic', 'Balanced'
-];
-const liquidityOptions = [
-  'High Large Cap', 'Medium Mid Cap', 'Low Small Cap', 'Micro Cap', 
-  'High Volume', 'Low Volume', 'Illiquid'
-];
-const expectedReturnOptions = [
-  '<5%', '5-10%', '10-20%', '20-30%', '30-50%', '50%+', 'Negative'
-];
-const performanceOptions = [
-  'Strong Underperform', 'Underperform', 'Market', 'Outperform', 
-  'Strong Outperform', 'Flat'
-];
+  // Function to add proper spacing to camelCase strings
+  function addSpacing(text) {
+    if (!text) return '';
+    return text
+      // Add space before numbers that follow letters
+      .replace(/([a-zA-Z])(\d)/g, '$1 $2')
+      // Add space before capital letters that follow lowercase letters
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      // Handle special cases for common patterns
+      .replace(/([a-zA-Z])([\/&])/g, '$1 $2')
+      .replace(/([\/&])([a-zA-Z])/g, '$1 $2');
+  }
 
   return (
     <Sidebar style={{backgroundColor: "#FFF", flexDirection: "column", width: '100%'}}
@@ -370,504 +408,347 @@ const performanceOptions = [
       className="overflow-hidden *:data-[sidebar=sidebar]:flex-row"
       {...props}
     >
-     
-    
-        <div className="flex items-center justify-center p-2" style={{ borderBottom: '1px solid #eee', background: '#EEE', marginTop: -100 }}>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon" aria-label="New Post">
-                <Plus className="w-6 h-6" />
-              </Button>
-            </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="start">
-            <DropdownMenuLabel style={{padding:5, backgroundColor:"#EEE", fontWeight:"bold", borderRadius:"5px", margin:5}}>Select Category</DropdownMenuLabel>
-            <DropdownMenuGroup>
-              <DropdownMenuItem onClick={() => handleTypeSelect('stocks')}>
-                <div className="flex items-center gap-2">
-                  <Inbox className="w-4 h-4" />
-                  <span>Stocks</span>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleTypeSelect('derivatives')}>
-                <div className="flex items-center gap-2">
-                  <Command className="w-4 h-4" />
-                  <span>Derivatives</span>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleTypeSelect('indexes')}>
-                <div className="flex items-center gap-2">
-                  <File className="w-4 h-4" />
-                  <span>Indexes</span>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleTypeSelect('bonds')}>
-                <div className="flex items-center gap-2">
-                  <ArchiveX className="w-4 h-4" />
-                  <span>Bonds</span>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleTypeSelect('commodities')}>
-                <div className="flex items-center gap-2">
-                  <ArchiveX className="w-4 h-4" />
-                  <span>Commodities</span>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleTypeSelect('forex')}>
-                <div className="flex items-center gap-2">
-                  <Send className="w-4 h-4" />
-                  <span>Forex</span>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleTypeSelect('equity')}>
-                <div className="flex items-center gap-2">
-                  <Inbox className="w-4 h-4" />
-                  <span>Equity</span>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleTypeSelect('mutualfunds')}>
-                <div className="flex items-center gap-2">
-                  <File className="w-4 h-4" />
-                  <span>Mutual Funds</span>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleTypeSelect('crypto')}>
-                <div className="flex items-center gap-2">
-                  <Command className="w-4 h-4" />
-                  <span>Crypto</span>
-                </div>
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        
-    
+      <div className="flex items-center justify-center p-2" style={{ borderBottom: '1px solid #eee', background: '#EEE', marginTop: -100 }}>
+        <Button 
+          variant="outline" 
+          size="icon" 
+          aria-label="New Post"
+          onClick={() => setDrawerOpen(true)}
+        >
+          <Plus className="w-6 h-6" />
+        </Button>
+      </div>
 
       {/* Drawer for new post form */}
-      {drawerOpen && <Drawer open={drawerOpen} onOpenChange={setDrawerOpen} direction="left">
-         <DrawerContent style={{ width: '30vw', height: '100%', overflowY: 'auto', background: '#fff', boxShadow: '2px 0 16px rgba(0,0,0,0.08)' }}>
-      <div style={{ display: 'flex', flexDirection: 'column', borderBottom: '1px solid #eee', padding: 20, paddingTop: 10, paddingBottom: 0, position: 'relative' }}>
-        <div style={{ fontWeight: 600, fontSize: 22, marginBottom: 4 }}>New Post</div>
-        <div style={{ fontSize: 14, color: '#666', marginBottom: 4 }}>Fill in the details to create a new post.</div>
-        {newPost.asset_type && (
-          <div style={{ fontSize: 13, color: '#1976d2', marginTop: 2, fontWeight: 500 }}>
-            Asset Type: {newPost.asset_type.charAt(0).toUpperCase() + newPost.asset_type.slice(1)}
-          </div>
-        )}
-      </div>
-      <div style={{ paddingLeft: 20, paddingRight: 20, paddingBottom: 20, marginTop: -20 }}>
-        <div style={{ marginTop: 40 }}>
-          <Label style={{ marginTop: 45, marginBottom: 10 }} htmlFor="tip">Investment Tip</Label>
-          <Textarea id="tip" placeholder="Investment Tip" value={newPost.tip} onChange={e => onNewPostChange('tip', e.target.value)} style={{ marginTop: 4, height: "100%" }} />
-        </div>
+      {drawerOpen && (
+        <Drawer open={drawerOpen} onOpenChange={setDrawerOpen} direction="left">
+          <DrawerContent className="w-[32vw] h-full overflow-y-auto bg-background border-none">
+            {/* Header */}
+            <div className="flex flex-col items-center justify-center py-6 bg-background border-b">
+              <img src={LollipopSVG} alt="Lollipop" className="w-12 h-12 mb-2" />
+              <div className="text-center">
+                <h1 className="text-xl font-bold text-foreground">LOLLIPOP</h1>
+                <p className="text-sm text-muted-foreground">Advisor Tip Upload</p>
+              </div>
+              {newPost.asset_type && (
+                <div className="text-sm text-primary font-medium mt-1">
+                  Asset Type: {newPost.asset_type.charAt(0).toUpperCase() + newPost.asset_type.slice(1)}
+                </div>
+              )}
+            </div>
 
+            {/* What You Get section */}
+            <div className="mx-6 mt-6 p-4 bg-muted/30 rounded-lg border">
+              <h3 className="font-semibold text-sm text-primary text-center mb-3">What You Get</h3>
+              <ul className="space-y-2">
+                <li className="flex items-center gap-3">
+                  <TrendingUp className="h-4 w-4 text-green-500" />
+                  <span className="font-medium text-sm">Share actionable investment insights</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <Shield className="h-4 w-4 text-blue-500" />
+                  <span className="font-medium text-sm">Reach thousands of investors</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <BarChart2 className="h-4 w-4 text-yellow-500" />
+                  <span className="font-medium text-sm">Track your tip performance</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <Leaf className="h-4 w-4 text-cyan-500" />
+                  <span className="font-medium text-sm">Build your advisor reputation</span>
+                </li>
+              </ul>
+            </div>
 
+            <div className="p-6 space-y-6">
+              {/* Investment Idea Section */}
+              <div className="bg-card border rounded-lg">
+                <div className="p-4 border-b">
+                  <h2 className="font-semibold text-base">Investment Idea</h2>
+                  <p className="text-sm text-muted-foreground">Describe your main investment thesis or recommendation.</p>
+                </div>
+                <div className="p-4">
+                  <Label htmlFor="tip">Investment Tip</Label>
+                  <Textarea id="tip" placeholder="Investment Tip" value={newPost.tip} onChange={e => onNewPostChange('tip', e.target.value)} className="mt-2" />
+                </div>
+                <div className="border-t p-3 text-xs text-muted-foreground">
+                  Be clear and concise. Investors rely on your expertise.
+                </div>
+              </div>
 
-        {/* Entry, Exit, Stop Loss fields */}
-        <div style={{ display: 'flex', gap: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
-          <div style={{ flex: 1 }}>
-            <Label style={{ marginTop: 20, marginBottom: 10 }} htmlFor="entry_price">Entry Point</Label>
-            <Input id="entry_price" placeholder="e.g. 2500" value={newPost.entry_price || ''} onChange={e => onNewPostChange('entry_price', e.target.value)} style={{ marginTop: 4, width: '100%' }} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <Label style={{ marginTop: 20, marginBottom: 10 }} htmlFor="exit_price">Exit Point</Label>
-            <Input id="exit_price" placeholder="e.g. 2800" value={newPost.exit_price || ''} onChange={e => onNewPostChange('exit_price', e.target.value)} style={{ marginTop: 4, width: '100%' }} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <Label style={{ marginTop: 20, marginBottom: 10 }} htmlFor="stop_loss">Stop Loss</Label>
-            <Input id="stop_loss" placeholder="e.g. 2400" value={newPost.stop_loss || ''} onChange={e => onNewPostChange('stop_loss', e.target.value)} style={{ marginTop: 4, width: '100%' }} />
-          </div>
-        </div>
-        {/* Company Name input above symbol */}
-        <div style={{ display: 'flex', gap: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
-          <div style={{ flex: 1 }}>
-            <Label style={{ marginTop: 20, marginBottom: 10 }} htmlFor="company_name">Company Name</Label>
-            <Input id="company_name" placeholder="e.g. Reliance Industries Ltd" value={newPost.company_name || ''} onChange={e => onNewPostChange('company_name', e.target.value)} style={{ marginTop: 4, width: '100%' }} />
-          </div>
-        </div>
-        <div style={{ display: 'flex', gap: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
-          <div style={{ flex: 1 }}>
-            <Label style={{ marginTop: 20, marginBottom: 10 }} htmlFor="symbol1">Symbol</Label>
-            <Input id="symbol1" placeholder="e.g. RELIANCE" value={newPost.symbol} onChange={e => onNewPostChange('symbol', e.target.value)} style={{ marginTop: 4, width: '100%' }} />
-          </div>
-          <div style={{ flex: 1 }}>
-            <Label style={{ marginTop: 20, marginBottom: 10 }} htmlFor="symbol2">Compare (optional)</Label>
-            <Input id="symbol2" placeholder="e.g. TCS" value={newPost.compared} onChange={e => onNewPostChange('compared', e.target.value)} style={{ marginTop: 4, width: '100%' }} />
-          </div>
-        </div>
-        {newPost.symbol && (
-          <div style={{ marginTop: 20, paddingBottom: 20, height: '30vh', width: '100%' }}>
-            <TradingViewWidget
-              symbol={newPost.symbol}
-              compareSymbol={newPost.compared}
-              width="100%"
-              height="25vh"
-              onSymbolResolved={resolvedSymbol => {
-                if (resolvedSymbol && resolvedSymbol !== newPost.symbol) {
-                  onNewPostChange('symbol', resolvedSymbol);
-                }
-              }}
-            />
-          </div>
-        )}
-        <div style={{ marginTop: 20 }}>
-          <Label style={{ marginTop: 40, marginBottom: 10 }}>Holding</Label>
-          <Select value={newPost.holding} onValueChange={val => onNewPostChange('holding', val)}>
-            <SelectTrigger style={{ marginTop: 4, width: '100%' }}>
-              <SelectValue placeholder="Select holding period">{newPost.holding && getDisplayText(newPost.holding, holdingOptions)}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {holdingOptions.map(opt => {
-                const { main, subheadline } = parseOption(opt);
-                return (
-                  <SelectItem key={opt} value={opt.toLowerCase().replace(/\s/g, '_')}>
-                    <div className="flex flex-col">
-                      <div className="flex items-center">
-                        <Clock className="w-4 h-4 mr-2" /> {main}
-                      </div>
-                      {subheadline && <span className="text-sm text-gray-500 ml-6">{subheadline}</span>}
+              {/* Trade Details Section */}
+              <div className="bg-card border rounded-lg">
+                <div className="p-4 border-b">
+                  <h2 className="font-semibold text-base">Trade Details</h2>
+                  <p className="text-sm text-muted-foreground">Specify entry, exit, and stop loss for your tip.</p>
+                </div>
+                <div className="p-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <Label htmlFor="entry_price">Entry Point</Label>
+                      <Input id="entry_price" placeholder="e.g. 2500" value={newPost.entry_price || ''} onChange={e => onNewPostChange('entry_price', e.target.value)} className="mt-2" />
                     </div>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-          <Label style={{ marginTop: 20, marginBottom: 10 }} htmlFor="conviction">Asset Type</Label>
-<Select value={newPost.asset_type} onValueChange={val => onNewPostChange('asset_type', val)}>
-  <SelectTrigger style={{ marginTop: 4, width: '100%' }}>
-    <SelectValue value={newPost.asset_type || assestType} onValueChange={val => onNewPostChange('asset_type', val)} placeholder="Select asset type">
-    </SelectValue>    
-  </SelectTrigger>
-  <SelectContent>
-    {['stocks', 'derivatives', 'indexes', 'bonds', 'commodities', 'forex', 'equity', 'mutualfunds', 'crypto'].map(opt => {
-      const { main } = parseOption(opt);
-      return (
-        <SelectItem key={opt} value={opt}>
-          <div className="flex items-center">
-            {main === 'stocks' && <Inbox className="w-4 h-4 mr-2" />}
-            {main === 'derivatives' && <Command className="w-4 h-4 mr-2" />}
-            {main === 'indexes' && <File className="w-4 h-4 mr-2" />}
-            {main === 'bonds' && <ArchiveX className="w-4 h-4 mr-2" />}
-            {main === 'commodities' && <ArchiveX className="w-4 h-4 mr-2" />}
-            {main === 'forex' && <Send className="w-4 h-4 mr-2" />}
-            {main === 'equity' && <Inbox className="w-4 h-4 mr-2" />}
-            {main === 'mutualfunds' && <File className="w-4 h-4 mr-2" />}
-            {main === 'crypto' && <Command className="w-4 h-4 mr-2" />}
-            {main.charAt(0).toUpperCase() + main.slice(1)}
-          </div>
-        </SelectItem>
-      );
-    })}
-  </SelectContent>
-</Select>
-          <Label style={{ marginTop: 40, marginBottom: 10 }}>Risk</Label>
-          <Select value={newPost.risk} onValueChange={val => onNewPostChange('risk', val)}>
-            <SelectTrigger style={{ marginTop: 4, width: '100%' }}>
-              <SelectValue placeholder="Select risk">{newPost.risk && getDisplayText(newPost.risk, riskOptions)}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {riskOptions.map(opt => {
-                const { main, subheadline } = parseOption(opt);
-                return (
-                  <SelectItem key={opt} value={opt.toLowerCase().replace(/\s/g, '_')}>
-                    <div className="flex flex-col">
-                      <div className="flex items-center">
-                        {main === 'Low' && <Shield className="w-4 h-4 mr-2" />}
-                        {main === 'Medium' && <AlertTriangle className="w-4 h-4 mr-2" />}
-                        {main === 'High' && <Flame className="w-4 h-4 mr-2" />}
-                        {main}
-                      </div>
-                      {subheadline && <span className="text-sm text-gray-500 ml-6">{subheadline}</span>}
+                    <div>
+                      <Label htmlFor="exit_price">Exit Point</Label>
+                      <Input id="exit_price" placeholder="e.g. 2800" value={newPost.exit_price || ''} onChange={e => onNewPostChange('exit_price', e.target.value)} className="mt-2" />
                     </div>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-          <Label style={{ marginTop: 40, marginBottom: 10 }}>Conviction</Label>
-          <Select value={newPost.conviction} onValueChange={val => onNewPostChange('conviction', val)}>
-            <SelectTrigger style={{ marginTop: 4, width: '100%' }}>
-              <SelectValue placeholder="Select conviction">{newPost.conviction && getDisplayText(newPost.conviction, convictionOptions)}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {convictionOptions.map(opt => {
-            const { main, subheadline } = parseOption(opt);
-                return (
-                  <SelectItem key={opt} value={opt.toLowerCase().replace(/\s/g, '_')}>
-                    <div className="flex flex-col">
-                      <div className="flex items-center">
-                        {main === 'Speculative' && <ArrowDown className="w-4 h-4 mr-2" />}
-                        {main === 'Moderate' && <ArrowRight className="w-4 h-4 mr-2" />}
-                        {main === 'Strong' && <ArrowUp className="w-4 h-4 mr-2" />}
-                        {main}
-                      </div>
-                      {subheadline && <span className="text-sm text-gray-500 ml-6">{subheadline}</span>}
+                    <div>
+                      <Label htmlFor="stop_loss">Stop Loss</Label>
+                      <Input id="stop_loss" placeholder="e.g. 2400" value={newPost.stop_loss || ''} onChange={e => onNewPostChange('stop_loss', e.target.value)} className="mt-2" />
                     </div>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-          <Label style={{ marginTop: 40, marginBottom: 10 }}>Strategy (Details)</Label>
-          <Select value={newPost.strategy} onValueChange={val => onNewPostChange('strategy', val)}>
-            <SelectTrigger style={{ marginTop: 4, width: '100%' }}>
-              <SelectValue placeholder="Select strategy">{newPost.strategy && getDisplayText(newPost.strategy, strategyOptions)}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {strategyOptions.map(opt => {
-                const { main, subheadline } = parseOption(opt);
-                return (
-                  <SelectItem key={opt} value={opt.toLowerCase().replace(/\s/g, '_')}>
-                    <div className="flex flex-col">
-                      <div className="flex items-center">
-                        {main === 'Growth' && <TrendingUp className="w-4 h-4 mr-2" />}
-                        {main === 'Value' && <TrendingDown className="w-4 h-4 mr-2" />}
-                        {main === 'Momentum' && <Zap className="w-4 h-4 mr-2" />}
-                        {main === 'Income' && <DollarSign className="w-4 h-4 mr-2" />}
-                        {main === 'Index' && <Layers className="w-4 h-4 mr-2" />}
-                        {main === 'Arbitrage' && <RefreshCcw className="w-4 h-4 mr-2" />}
-                        {main}
-                      </div>
-                      {subheadline && <span className="text-sm text-gray-500 ml-6">{subheadline}</span>}
-                    </div>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-          <Label style={{ marginTop: 40, marginBottom: 10 }}>Sentiment</Label>
-          <Select value={newPost.sentiment} onValueChange={val => onNewPostChange('sentiment', val)}>
-            <SelectTrigger style={{ marginTop: 4, width: '100%' }}>
-              <SelectValue placeholder="Select sentiment">{newPost.sentiment && getDisplayText(newPost.sentiment, sentimentOptions)}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {sentimentOptions.map(opt => (
-                <SelectItem key={opt} value={opt.toLowerCase().replace(/\s/g, '_')}>
-                  <div className="flex items-center">
-                    {opt === 'Bullish' && <ArrowUpRight className="w-4 h-4 mr-2" />}
-                    {opt === 'Neutral' && <Minus className="w-4 h-4 mr-2" />}
-                    {opt === 'Bearish' && <ArrowDownLeft className="w-4 h-4 mr-2" />}
-                    {opt}
                   </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Label style={{ marginTop: 40, marginBottom: 10 }}>Sector</Label>
-          <Select value={newPost.sector} onValueChange={val => onNewPostChange('sector', val)}>
-            <SelectTrigger style={{ marginTop: 4, width: '100%' }}>
-              <SelectValue placeholder="Select sector">{newPost.sector && getDisplayText(newPost.sector, sectorOptions)}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {sectorOptions.map(opt => (
-                <SelectItem key={opt} value={opt.toLowerCase().replace(/\s/g, '_')}>
-                  <div className="flex items-center">
-                    {opt === 'Technology' && <Cpu className="w-4 h-4 mr-2" />}
-                    {opt === 'Financial Services' && <Banknote className="w-4 h-4 mr-2" />}
-                    {opt === 'Healthcare' && <Heart className="w-4 h-4 mr-2" />}
-                    {opt === 'Energy' && <BatteryCharging className="w-4 h-4 mr-2" />}
-                    {opt === 'Consumer Goods' && <ShoppingCart className="w-4 h-4 mr-2" />}
-                    {opt === 'Industrials' && <Factory className="w-4 h-4 mr-2" />}
-                    {opt === 'Real Estate' && <Building className="w-4 h-4 mr-2" />}
-                    {opt}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Label style={{ marginTop: 40, marginBottom: 10 }}>Target Duration</Label>
-          <Select value={newPost.target_duration} onValueChange={val => onNewPostChange('target_duration', val)}>
-            <SelectTrigger style={{ marginTop: 4, width: '100%' }}>
-              <SelectValue placeholder="Select target duration">{newPost.target_duration && getDisplayText(newPost.target_duration, targetDurationOptions)}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {targetDurationOptions.map(opt => (
-                <SelectItem key={opt} value={opt.toLowerCase().replace(/\s/g, '_')}>
-                  <div className="flex items-center">
-                    <Calendar className="w-4 h-4 mr-2" /> {opt}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Label style={{ marginTop: 40, marginBottom: 10 }}>Catalyst</Label>
-          <Select value={newPost.catalyst} onValueChange={val => onNewPostChange('catalyst', val)}>
-            <SelectTrigger style={{ marginTop: 4, width: '100%' }}>
-              <SelectValue placeholder="Select catalyst">{newPost.catalyst && getDisplayText(newPost.catalyst, catalystOptions)}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {catalystOptions.map(opt => (
-                <SelectItem key={opt} value={opt.toLowerCase().replace(/\s/g, '_')}>
-                  <div className="flex items-center">
-                    {opt === 'Earnings Report' && <BarChart2 className="w-4 h-4 mr-2" />}
-                    {opt === 'Federal Reserve Policy' && <Globe className="w-4 h-4 mr-2" />}
-                    {opt === 'Mergers & Acquisitions' && <MoreHorizontal className="w-4 h-4 mr-2" />}
-                    {opt === 'New Product Launch' && <ShoppingCart className="w-4 h-4 mr-2" />}
-                    {opt === 'Regulatory Change' && <Gavel className="w-4 h-4 mr-2" />}
-                    {opt === 'Market Event' && <Activity className="w-4 h-4 mr-2" />}
-                    {opt}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Label style={{ marginTop: 40, marginBottom: 10 }}>Valuation</Label>
-          <Select value={newPost.valuation} onValueChange={val => onNewPostChange('valuation', val)}>
-            <SelectTrigger style={{ marginTop: 4, width: '100%' }}>
-              <SelectValue placeholder="Select valuation">{newPost.valuation && getDisplayText(newPost.valuation, valuationOptions)}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {valuationOptions.map(opt => {
-                const { main, subheadline } = parseOption(opt);
-                return (
-                  <SelectItem key={opt} value={opt.toLowerCase().replace(/\s/g, '_')}>
-                    <div className="flex flex-col">
-                      <div className="flex items-center">
-                        <TrendingUp className="w-4 h-4 mr-2" /> {main}
-                      </div>
-                      {subheadline && <span className="text-sm text-gray-500 ml-6">{subheadline}</span>}
-                    </div>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-          <Label style={{ marginTop: 40, marginBottom: 10 }}>Technical</Label>
-          <Select value={newPost.technical} onValueChange={val => onNewPostChange('technical', val)}>
-            <SelectTrigger style={{ marginTop: 4, width: '100%' }}>
-              <SelectValue placeholder="Select technical">{newPost.technical && getDisplayText(newPost.technical, technicalOptions)}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {technicalOptions.map(opt => {
-                const { main, subheadline } = parseOption(opt);
-                return (
-                  <SelectItem key={opt} value={opt.toLowerCase().replace(/\s/g, '_')}>
-                    <div className="flex flex-col">
-                      <div className="flex items-center">
-                        <TrendingUp className="w-4 h-4 mr-2" /> {main}
-                      </div>
-                      {subheadline && <span className="text-sm text-gray-500 ml-6">{subheadline}</span>}
-                    </div>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
+                </div>
+                <div className="border-t p-3 text-xs text-muted-foreground">
+                  These help investors understand your risk management.
+                </div>
+              </div>
 
-          <Label style={{ marginTop: 40, marginBottom: 10 }}>Diversification</Label>
-          <Select value={newPost.diversification} onValueChange={val => onNewPostChange('diversification', val)}>
-            <SelectTrigger style={{ marginTop: 4, width: '100%' }}>
-              <SelectValue placeholder="Select diversification">{newPost.diversification && getDisplayText(newPost.diversification, diversificationOptions)}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {diversificationOptions.map(opt => {
-                const { main, subheadline } = parseOption(opt);
-                return (
-                  <SelectItem key={opt} value={opt.toLowerCase().replace(/\s/g, '_')}>
-                    <div className="flex flex-col">
-                      <div className="flex items-center">
-                        {main === 'Core' && <Minus className="w-4 h-4 mr-2" />}
-                        {main === 'Satellite' && <MoreHorizontal className="w-4 h-4 mr-2" />}
-                        {main === 'Hedge' && <Layers className="w-4 h-4 mr-2" />}
-                        {main}
-                      </div>
-                      {subheadline && <span className="text-sm text-gray-500 ml-6">{subheadline}</span>}
-                    </div>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-          <Label style={{ marginTop: 40, marginBottom: 10 }}>Liquidity</Label>
-          <Select value={newPost.liquidity} onValueChange={val => onNewPostChange('liquidity', val)}>
-            <SelectTrigger style={{ marginTop: 4, width: '100%' }}>
-              <SelectValue placeholder="Select liquidity">{newPost.liquidity && getDisplayText(newPost.liquidity, liquidityOptions)}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {liquidityOptions.map(opt => {
-                const { main, subheadline } = parseOption(opt);
-                return (
-                  <SelectItem key={opt} value={opt.toLowerCase().replace(/\s/g, '_')}>
-                    <div className="flex flex-col">
-                      <div className="flex items-center">
-                        {main === 'High' && <Droplets className="w-4 h-4 mr-2" />}
-                        {main === 'Medium' && <MoreHorizontal className="w-4 h-4 mr-2" />}
-                        {main === 'Low' && <Minus className="w-4 h-4 mr-2" />}
-                        {main}
-                      </div>
-                      {subheadline && <span className="text-sm text-gray-500 ml-6">{subheadline}</span>}
-                    </div>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-          <Label style={{ marginTop: 40, marginBottom: 10 }}>Expected Return</Label>
-          <Select value={newPost.expected_return} onValueChange={val => onNewPostChange('expected_return', val)}>
-            <SelectTrigger style={{ marginTop: 4, width: '100%' }}>
-              <SelectValue placeholder="Select expected return">{newPost.expected_return && getDisplayText(newPost.expected_return, expectedReturnOptions)}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {expectedReturnOptions.map(opt => (
-                <SelectItem key={opt} value={opt.toLowerCase().replace(/\s/g, '_')}>
-                  <div className="flex items-center">
-                    {opt === 'Up to 10%' && <TrendingDown className="w-4 h-4 mr-2" />}
-                    {opt === '10-20%' && <Minus className="w-4 h-4 mr-2" />}
-                    {opt === '20-30%' && <TrendingUp className="w-4 h-4 mr-2" />}
-                    {opt === 'Above 30%' && <TrendingUp className="w-4 h-4 mr-2" />}
-                    {opt}
+              {/* Asset Information Section */}
+              <div className="bg-card border rounded-lg">
+                <div className="p-4 border-b">
+                  <h2 className="font-semibold text-base">Asset Information</h2>
+                  <p className="text-sm text-muted-foreground">Company name and symbol details.</p>
+                </div>
+                <div className="p-4 space-y-4">
+                  <div>
+                    <Label htmlFor="company_name">Company Name</Label>
+                    <Input id="company_name" placeholder="e.g. Reliance Industries Ltd" value={newPost.company_name || ''} onChange={e => onNewPostChange('company_name', e.target.value)} className="mt-2" />
                   </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Label style={{ marginTop: 40, marginBottom: 10 }}>Performance</Label>
-          <Select value={newPost.performance} onValueChange={val => onNewPostChange('performance', val)}>
-            <SelectTrigger style={{ marginTop: 4, width: '100%' }}>
-              <SelectValue placeholder="Select performance">{newPost.performance && getDisplayText(newPost.performance, performanceOptions)}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {performanceOptions.map(opt => {
-                const { main, subheadline } = parseOption(opt);
-                return (
-                  <SelectItem key={opt} value={opt.toLowerCase().replace(/\s/g, '_')}>
-                    <div className="flex flex-col">
-                      <div className="flex items-center">
-                        {main === 'Underperforming' && <TrendingDown className="w-4 h-4 mr-2" />}
-                        {main === 'Market Average' && <Minus className="w-4 h-4 mr-2" />}
-                        {main === 'Outperforming' && <TrendingUp className="w-4 h-4 mr-2" />}
-                        {main}
-                      </div>
-                      {subheadline && <span className="text-sm text-gray-500 ml-6">{subheadline}</span>}
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="symbol1">Symbol</Label>
+                      <Input id="symbol1" placeholder="e.g. RELIANCE" value={newPost.symbol} onChange={e => onNewPostChange('symbol', e.target.value)} className="mt-2" />
                     </div>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-        </div>
-        <div style={{ height: 80 }} />
-      </div>
-      <div style={{
-        background: '#fff',
-        boxShadow: '0 -2px 12px rgba(0,0,0,0.08)',
-        display: 'flex',
-        gap: 10,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '18px 24px',
-        zIndex: 1000
-      }}>
-        <Button variant="outline" onClick={() => { setDrawerOpen(false); if (onCancelNewPost) onCancelNewPost(); }} type="button">Cancel</Button>
-        <Button variant="default" onClick={handleSubmitNewPostWrapper} disabled={submitting} type="button">{submitting ? 'Submitting...' : 'Submit'}</Button>
-        <Button variant="secondary" onClick={handleSubmitNewPostAndNewWrapper} disabled={submitting} type="button">{submitting ? 'Submitting...' : 'Submit and New'}</Button>
-      </div>
-    </DrawerContent>
-      </Drawer>}
-      {/* End Drawer */}
+                    <div>
+                      <Label htmlFor="symbol2">Compare (optional)</Label>
+                      <Input id="symbol2" placeholder="e.g. TCS" value={newPost.compared} onChange={e => onNewPostChange('compared', e.target.value)} className="mt-2" />
+                    </div>
+                  </div>
+                  {newPost.symbol && (
+                    <div className="mt-4 h-[30vh] w-full">
+                      <TradingViewWidget
+                        symbol={newPost.symbol}
+                        compareSymbol={newPost.compared}
+                        width="100%"
+                        height="25vh"
+                        onSymbolResolved={resolvedSymbol => {
+                          if (resolvedSymbol && resolvedSymbol !== newPost.symbol) {
+                            onNewPostChange('symbol', resolvedSymbol);
+                          }
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
+                <div className="border-t p-3 text-xs text-muted-foreground">
+                  Add a symbol for chart preview and comparison.
+                </div>
+              </div>
 
+              {/* Investment Strategy Section */}
+              <div className="bg-card border rounded-lg">
+                <div className="p-4 border-b">
+                  <h2 className="font-semibold text-base">Investment Strategy</h2>
+                  <p className="text-sm text-muted-foreground">Define your investment approach and risk parameters.</p>
+                </div>
+                <div className="p-4 space-y-4">
+                  <div>
+                    <Label>Holding Period</Label>
+                    <Select value={newPost.holding} onValueChange={val => onNewPostChange('holding', val)}>
+                      <SelectTrigger className="mt-2">
+                        <SelectValue placeholder="Select holding period" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MASTER_FILTERS.holding.map(opt => (
+                          <SelectItem key={opt.name} value={opt.name.toLowerCase().replace(/\s/g, '_')}>
+                            <div className="flex flex-col">
+                              <div className="flex items-center">
+                                <opt.Icon className="w-4 h-4 mr-2" />
+                                {addSpacing(opt.name)}
+                              </div>
+                              <span className="text-sm text-muted-foreground ml-6">{opt.desc}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label>Asset Type</Label>
+                    <Select value={newPost.asset_type} onValueChange={val => onNewPostChange('asset_type', val)}>
+                      <SelectTrigger className="mt-2">
+                        <SelectValue placeholder="Select asset type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MASTER_FILTERS.assets.map(opt => (
+                          <SelectItem key={opt.name} value={opt.name.toLowerCase().replace(/\s/g, '_')}>
+                            <div className="flex flex-col">
+                              <div className="flex items-center">
+                                <opt.Icon className="w-4 h-4 mr-2" />
+                                {opt.name}
+                              </div>
+                              <span className="text-xs text-muted-foreground ml-6">{opt.desc}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Risk Level</Label>
+                      <Select value={newPost.risk} onValueChange={val => onNewPostChange('risk', val)}>
+                        <SelectTrigger className="mt-2">
+                          <SelectValue placeholder="Select risk" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {MASTER_FILTERS.risk.map(opt => (
+                            <SelectItem key={opt.name} value={opt.name.toLowerCase().replace(/\s/g, '_')}>
+                              <div className="flex flex-col">
+                                <div className="flex items-center">
+                                  <opt.Icon className="w-4 h-4 mr-2" />
+                                  {opt.name}
+                                </div>
+                                <span className="text-xs text-muted-foreground ml-6">{opt.desc}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label>Conviction</Label>
+                      <Select value={newPost.conviction} onValueChange={val => onNewPostChange('conviction', val)}>
+                        <SelectTrigger className="mt-2">
+                          <SelectValue placeholder="Select conviction" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {MASTER_FILTERS.conviction.map(opt => (
+                            <SelectItem key={opt.name} value={opt.name.toLowerCase().replace(/\s/g, '_')}>
+                              <div className="flex flex-col">
+                                <div className="flex items-center">
+                                  <opt.Icon className="w-4 h-4 mr-2" />
+                                  {opt.name}
+                                </div>
+                                <span className="text-xs text-muted-foreground ml-6">{opt.desc}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label>Strategy</Label>
+                    <Select value={newPost.strategy} onValueChange={val => onNewPostChange('strategy', val)}>
+                      <SelectTrigger className="mt-2">
+                        <SelectValue placeholder="Select strategy" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MASTER_FILTERS.strategies.map(opt => (
+                          <SelectItem key={opt.name} value={opt.name.toLowerCase().replace(/\s/g, '_')}>
+                            <div className="flex flex-col">
+                              <div className="flex items-center">
+                                <opt.Icon className="w-4 h-4 mr-2" />
+                                {opt.name}
+                              </div>
+                              <span className="text-xs text-muted-foreground ml-6">{opt.desc}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Sentiment</Label>
+                      <Select value={newPost.sentiment} onValueChange={val => onNewPostChange('sentiment', val)}>
+                        <SelectTrigger className="mt-2">
+                          <SelectValue placeholder="Select sentiment" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {MASTER_FILTERS.sentiments.map(opt => (
+                            <SelectItem key={opt.name} value={opt.name.toLowerCase().replace(/\s/g, '_')}>
+                              <div className="flex flex-col">
+                                <div className="flex items-center">
+                                  <opt.Icon className="w-4 h-4 mr-2" />
+                                  {opt.name}
+                                </div>
+                                <span className="text-xs text-muted-foreground ml-6">{opt.desc}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label>Sector</Label>
+                      <Select value={newPost.sector} onValueChange={val => onNewPostChange('sector', val)}>
+                        <SelectTrigger className="mt-2">
+                          <SelectValue placeholder="Select sector" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {MASTER_FILTERS.sectors.map(opt => (
+                            <SelectItem key={opt.name} value={opt.name.toLowerCase().replace(/\s/g, '_')}>
+                              <div className="flex flex-col">
+                                <div className="flex items-center">
+                                  <opt.Icon className="w-4 h-4 mr-2" />
+                                  {opt.name}
+                                </div>
+                                <span className="text-xs text-muted-foreground ml-6">{opt.desc}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label>Target Duration</Label>
+                    <Select value={newPost.target_duration} onValueChange={val => onNewPostChange('target_duration', val)}>
+                      <SelectTrigger className="mt-2">
+                        <SelectValue placeholder="Select target duration" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MASTER_FILTERS.duration.map(opt => (
+                          <SelectItem key={opt.name} value={opt.name.toLowerCase().replace(/\s/g, '_')}>
+                            <div className="flex flex-col">
+                              <div className="flex items-center">
+                                <opt.Icon className="w-4 h-4 mr-2" />
+                                {opt.name}
+                              </div>
+                              <span className="text-xs text-muted-foreground ml-6">{opt.desc}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="border-t p-3 text-xs text-muted-foreground">
+                  These settings help categorize and filter your investment tip.
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="border-t bg-background p-4">
+              <div className="flex justify-center gap-3">
+                <Button variant="outline" onClick={() => { setDrawerOpen(false); if (onCancelNewPost) onCancelNewPost(); }} type="button">Cancel</Button>
+                <Button variant="default" onClick={handleSubmitNewPostWrapper} disabled={submitting} type="button">{submitting ? 'Submitting...' : 'Submit'}</Button>
+                <Button variant="secondary" onClick={handleSubmitNewPostAndNewWrapper} disabled={submitting} type="button">{submitting ? 'Submitting...' : 'Submit and New'}</Button>
+              </div>
+            </div>
+          </DrawerContent>
+        </Drawer>
+      )}
 
       {/* Only show Sidebar when drawer is not open */}
       {!drawerOpen && (
@@ -879,7 +760,6 @@ const performanceOptions = [
             gap: 14,
             borderBottom: '1px solid #eee',
             padding: 16,
-           
              backgroundColor: "#FFF", 
           }}>
             <div style={{ display: 'flex', width: '100%', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -901,6 +781,7 @@ const performanceOptions = [
               }}
             />
           </div>
+
           {/* Post list */}
           <div style={{ flex: 1, overflowY: 'auto', background: '#fff', padding: 0, width: '100%' }}>
             <div style={{ padding: 0 }}>
@@ -925,9 +806,7 @@ const performanceOptions = [
                     transition: 'background 0.15s',
                   }}
                   onClick={() => {
-                    
                     onSelectPost(post);
-                   
                   }}
                   onMouseEnter={e => (e.currentTarget.style.background = '#f5f7fa')}
                   onMouseLeave={e => (e.currentTarget.style.background = selectedPost?.id === post.id ? '#f1f5ff' : '#fff')}
@@ -947,16 +826,16 @@ const performanceOptions = [
                   <AlertDialog open={deletingId === post.id} onOpenChange={open => setDeletingId(open ? post.id : null)}>
                     <AlertDialogTrigger asChild>
                       <Button
-  variant="ghost"
-  size="icon"
-  onClick={e => { e.stopPropagation(); setDeletingId(post.id); }}
-  style={{
-    padding: -1.4,
-    minWidth: 0,
-    background: '#fff', // ensure visible
-    border: '1px solid #e53935',
-    borderRadius: 4,
-  }}
+                        variant="ghost"
+                        size="icon"
+                        onClick={e => { e.stopPropagation(); setDeletingId(post.id); }}
+                        style={{
+                          padding: -1.4,
+                          minWidth: 0,
+                          background: '#fff', // ensure visible
+                          border: '1px solid #e53935',
+                          borderRadius: 4,
+                        }}
                       >
                         <Trash2 style={{ width: 15, height: 15, color: '#e53935' }} />
                       </Button>
@@ -979,6 +858,7 @@ const performanceOptions = [
               ))}
             </div>
           </div>
+
           {/* Footer */}
           <div
             style={{
@@ -994,8 +874,6 @@ const performanceOptions = [
           </div>
         </div>
       )}
-
-
     </Sidebar>
   );
 }

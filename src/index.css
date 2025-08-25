@@ -1,3 +1,42 @@
+@font-face {
+  font-family: 'UberMoveTextLight';
+  src: url('./assets/uber-move-fonts/UberMoveTextLight.otf')  format('woff2'),
+       url('/src/assets/uber-move-fonts/UberMove-Regular.woff') format('woff');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'UberMoveBold';
+  src: url('./assets/uber-move-fonts/UberMoveBold.otf') format('woff2'),
+       url('/src/assets/uber-move-fonts/UberMove-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'UberMoveMedium';
+  src: url('./assets/uber-move-fonts/UberMoveMedium.otf')  format('woff2'),
+       url('/src/assets/uber-move-text-cdnfonts/UberMoveText-Regular.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'UberMoveTextRegular';
+  src: url('./assets/uber-move-fonts/UberMoveTextRegular.otf')  format('woff2'),
+       url('/src/assets/uber-move-text-cdnfonts/UberMoveText-Bold.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+body, html, #root, * {
+  font-family: 'UberMoveMedium', 'UberMoveBold', 'UberMoveTextLight', 'UberMoveTextRegular' !important;
+}
 @import "tailwindcss";
 @import "tw-animate-css";
 

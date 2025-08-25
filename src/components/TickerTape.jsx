@@ -209,10 +209,15 @@ const TickerTape = () => {
     <div
       style={{
         position: 'absolute',
-        top: -7.5,
+        bottom: -7.5,
         width: '150%',
         scale: '0.75',
         marginLeft: '-25%',
+        borderWidth:3,
+        borderColor: '#EEE',
+        borderStyle: 'solid',
+        backgroundColor: 'white',
+   
       }}
       ref={container}
     >

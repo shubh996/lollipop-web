@@ -6,8 +6,31 @@ import NewsCards from "@/components/NewsCards"
 import SelectedPost from "./selected-post";
 import { formatDistanceToNow } from "date-fns";
 import { DataTable } from "./tips-data-table";
-import { Trash } from "lucide-react";
+import { Trash, MessageSquare, Plus, ArrowLeft, Loader2, Upload, X } from "lucide-react";
 import { columns as baseColumns } from "./tips-columns";
+import { 
+  SidebarProvider, 
+  SidebarInset 
+} from "@/components/ui/sidebar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import { toast } from "sonner";
+import { NavUser } from "./nav-user";
+
+import LollipopSVG from '../assets/icons/lollipop.svg';
+import LollipopSVGWhite from '../assets/icons/lollipop-white.svg';
 
 // Compose columns: all fields + delete icon
 function columnsWithDelete(handleDeletePost) {
@@ -74,34 +97,9 @@ function handleDeletePost(post) {
     }
   });
 }
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Separator } from "@/components/ui/separator"
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar"
-import { useLocation, useNavigate } from "react-router-dom";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
-import { toast } from "sonner";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { X, Upload, Loader2 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { NavUser } from "./nav-user";
 
 export default function Page() {
+ 
   const [posts, setPosts] = useState([]);
   const [search, setSearch] = useState("");
   const [selectedPost, setSelectedPost] = useState(null);
@@ -134,8 +132,13 @@ export default function Page() {
     entry_price: '',
     exit_price: '',
     stop_loss: '',
-    
-
+    regions: '',
+    valuation_metrics: '',
+    growth_metrics: '',
+    technical_indicators: '',
+    esg_ratings: '',
+    analysis_type: '',
+    volatility: '',
   });
   const [submitting, setSubmitting] = useState(false);
   const [selectedStocks, setSelectedStocks] = useState({ symbol: '', compared: '' });
@@ -262,6 +265,7 @@ export default function Page() {
 
   // Handler to start new post creation
   const handleStartNewPost = (postType = 'buy', postStrategy = '') => {
+    console.log('handleStartNewPost called');
     setCreatingNewPost(true);
     setSelectedPost(null);
     setNewPost({
@@ -284,16 +288,25 @@ export default function Page() {
       liquidity: '',
       expected_return: '',
       performance: '',
+      regions: '',
+      valuation_metrics: '',
+      growth_metrics: '',
+      technical_indicators: '',
+      esg_ratings: '',
+      analysis_type: '',
+      volatility: '',
     });
   };
 
   const handleSelectedPost = (post) => {
+    console.log('handleSelectedPost called', post);
     console.log('Inside the function Selected post:', post);
     setSelectedPost(post);
   };
 
   // Handler to cancel new post creation
   const handleCancelNewPost = () => {
+    console.log('handleCancelNewPost called');
     setCreatingNewPost(false);
     setNewPost({
       
@@ -315,11 +328,19 @@ export default function Page() {
       liquidity: '',
       expected_return: '',
       performance: '',
+      regions: '',
+      valuation_metrics: '',
+      growth_metrics: '',
+      technical_indicators: '',
+      esg_ratings: '',
+      analysis_type: '',
+      volatility: '',
     });
   };
 
   // Handler to update new post fields
   const handleNewPostChange = (field, value) => {
+    console.log('handleNewPostChange', field, value);
     const updatedPost = { ...newPost, [field]: value };
     setNewPost(updatedPost);
     // Update selected stocks immediately for the TradingView widget
@@ -333,6 +354,7 @@ export default function Page() {
 
   // Handler to submit new post with validation
   const handleSubmitNewPost = async () => {
+    console.log('handleSubmitNewPost called');
     // Validation: require symbol, headline, tip,  and new fields
     if (!newPost.symbol) {
       toast.error('Please enter Stock 1.', { position: 'top-left' });
@@ -366,6 +388,7 @@ export default function Page() {
 
   // Handler to submit new post and keep form open for another
   const handleSubmitNewPostAndNew = async () => {
+    console.log('handleSubmitNewPostAndNew called');
     // Validation: require symbol, headline, tip,  summary, image_url, and new fields
     if (!newPost.symbol) {
       toast.error('Please enter Stock 1.', { position: 'top-left' });
@@ -411,6 +434,13 @@ export default function Page() {
         liquidity: '',
         expected_return: '',
         performance: '',
+        regions: '',
+        valuation_metrics: '',
+        growth_metrics: '',
+        technical_indicators: '',
+        esg_ratings: '',
+        analysis_type: '',
+        volatility: '',
       });
       setSelectedStocks({ symbol: '', compared: '' });
       toast.success('Post created! You can add another.');
@@ -420,6 +450,7 @@ export default function Page() {
 
   // Handler for image upload
   const handleNewPostImageUpload = async (file) => {
+    console.log('handleNewPostImageUpload called', file);
     if (!file) return;
     const fileName = `${Date.now()}_${file.name}`;
     const { data, error } = await supabase.storage.from('post-images').upload(fileName, file);
@@ -433,11 +464,8 @@ export default function Page() {
   };
 
   return (
-    <div style={{ height: "100%", display: "flex",  width: "100%", 
-      flexDirection: "column",justifyContent:"center", alignItems:"center",
-      paddingLeft:"-20vw",paddingTop:"-10vh",}}>
-
-
+    console.log('Page JSX render:', { loading, creatingNewPost, selectedPost }),
+    <div className="flex h-screen w-screen overflow-hidden">
       {/* Profile Setup Dialog */}
       <Dialog open={showProfileSetup} onOpenChange={setShowProfileSetup}>
         <DialogContent className="sm:max-w-md">
@@ -501,87 +529,174 @@ export default function Page() {
         </DialogContent>
       </Dialog>
 
-               
-      {/* <div style={{ marginBottom: 36, marginTop:-20,
-        justifyContent: 'center',  padding: 0, borderRadius: 8 }}>
-                  <Input
-                    placeholder="Search by tip or symbol..."
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    style={{ width: 320 }}
-                  />
+      {/* Desktop View */}
+      <div className="hidden lg:flex w-full h-full">
+        {/* Left Side: Sidebar Area */}
+        <div className="w-2/5 flex flex-col bg-background">
+          {/* Header */}
+          <header className="border-b border-border p-6">
+            <div className="flex items-center gap-3">
+              <img src={LollipopSVG} alt="Lollipop" className="w-10 h-10" />
+              <div>
+                <h1 className="text-xl font-bold text-foreground">LOLLIPOP</h1>
+                <p className="text-sm text-muted-foreground">Investment Intelligence Platform</p>
+              </div>
+            </div>
+          </header>
+
+          {/* Sidebar Content */}
+          <main className="flex-1 overflow-hidden">
+            <SidebarProvider>
+              <AppSidebar
+                posts={creatingNewPost ? [] : posts}
+                onSelectPost={handleSelectedPost}
+                selectedPost={selectedPost}
+                user={{
+                  name: profile?.name || user?.user_metadata?.name,
+                  email: profile?.email || user?.email,
+                  avatar: profile?.profile_photo_url || user?.user_metadata?.profile_photo_url,
+                  id: user?.id,
+                }}
+                onNewPost={handleStartNewPost}
+                creatingNewPost={creatingNewPost}
+                newPost={newPost}
+                onNewPostChange={handleNewPostChange}
+                onCancelNewPost={handleCancelNewPost}
+                submitting={submitting}
+                onSubmitNewPost={handleSubmitNewPost}
+                onSubmitNewPostAndNew={handleSubmitNewPostAndNew}
+                onNewPostImageUpload={handleNewPostImageUpload}
+              />
+            </SidebarProvider>
+          </main>
+
+          {/* Footer */}
+          <footer className="border-t border-border p-6">
+            <div className="text-center">
+              <p className="text-xs text-muted-foreground">
+                © 2025 Lollipop. All investments carry risk of loss.
+              </p>
+            </div>
+          </footer>
+        </div>
+
+        {/* Right Side: Content Details */}
+        <div className="w-3/5 flex flex-col bg-background border-l border-border">
+          {/* Content Header */}
+          <header className="border-b border-border p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">
+                  {selectedPost ? 'Tip Details' : creatingNewPost ? 'New Investment Tip' : 'Select a Tip'}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {selectedPost ? 'View and analyze investment details' : 
+                   creatingNewPost ? 'Create your investment recommendation' : 
+                   'Choose a tip from the sidebar to view details'}
+                </p>
+              </div>
+              {selectedPost && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setSelectedPost(null)}
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back
+                </Button>
+              )}
+            </div>
+          </header>
+
+          {/* Content Area */}
+          <main className="flex-1 overflow-y-auto p-6">
+            {loading ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center space-y-4">
+                  <Loader2 className="w-8 h-8 animate-spin mx-auto text-muted-foreground" />
+                  <p className="text-muted-foreground">Loading posts...</p>
+                </div>
+              </div>
+            ) : creatingNewPost ? (
+              <div className="max-w-4xl mx-auto">
+                <NewPostForm
+                  newPost={newPost}
+                  onNewPostChange={handleNewPostChange}
+                  submitting={submitting}
+                  onSubmit={handleSubmitNewPost}
+                  onSubmitAndNew={handleSubmitNewPostAndNew}
+                  onCancel={handleCancelNewPost}
+                />
+              </div>
+            ) : selectedPost ? (
+              <div className="max-w-4xl mx-auto">
+                <SelectedPost post={selectedPost} onBack={() => setSelectedPost(null)} />
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center space-y-4 max-w-md">
+                  <div className="w-16 h-16 mx-auto bg-muted rounded-full flex items-center justify-center">
+                    <MessageSquare className="w-8 h-8 text-muted-foreground" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold text-foreground">No Tip Selected</h3>
+                    <p className="text-muted-foreground">
+                      Choose an investment tip from the sidebar to view detailed analysis and insights.
+                    </p>
+                  </div>
+                  <Button onClick={() => handleStartNewPost()}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create New Tip
+                  </Button>
+                </div>
+                </div>
+            )}
+          </main>
+        </div>
       </div>
 
-
-    <div style={{ width: '100%', borderRadius: 12,
-      overflow: 'hidden', boxShadow: '0 2px 8px #0001', background: '#FFF' }}>
-      <DataTable
-        columns={columnsWithDelete(handleDeletePost)}
-        data={posts.filter(
-          post =>
-            post.tip?.toLowerCase().includes(search.toLowerCase()) ||
-            post.symbol?.toLowerCase().includes(search.toLowerCase())
-        )}
-        tableHeaderStyle={{ background: '#F6F6F7', color: '#222', fontWeight: 600, height: 48, fontSize: 16, borderBottom: '1px solid #E5E7EB' }}
-        rowStyle={{ height: 44, verticalAlign: 'middle' }}
-      />
-    </div> */}
-            
-      
-      <SidebarProvider
-        style={{
-          flexDirection: "row",
-          width: "100%",
-          height: "100%",
-          display: "flex",
-          justifyContent: "flex-start",
-          alignItems: "center",
-          backgroundColor: "#FFF",
-        }}
-      >
-      <AppSidebar
-        style={{backgroundColor:"#FFF",width:"25vw", height: "100vh",}}
-        posts={creatingNewPost ? [] : posts}
-        onSelectPost={handleSelectedPost}
-        selectedPost={selectedPost}
-        user={{
-          name: profile?.name || user?.user_metadata?.name,
-          email: profile?.email || user?.email,
-          avatar: profile?.profile_photo_url || user?.user_metadata?.profile_photo_url,
-          id: user?.id,
-        }}
-        onNewPost={handleStartNewPost}
-        creatingNewPost={creatingNewPost}
-        newPost={newPost}
-        onNewPostChange={handleNewPostChange}
-        onCancelNewPost={handleCancelNewPost}
-        submitting={submitting}
-        onSubmitNewPost={handleSubmitNewPost}
-        onSubmitNewPostAndNew={handleSubmitNewPostAndNew}
-        onNewPostImageUpload={handleNewPostImageUpload}
-      />
-      <SidebarInset style={{backgroundColor:"#FFF", width: "30vw", height: "100vh", position: "absolute", left: "22.5vw", top: "5vh", bottom: "0", right: "0", display: "flex", justifyContent: "flex-start", alignItems: "center" }}>
-        <div style={{ width: '100%', display: 'flex', gap: 32 }}>
-          <div style={{ flex: 1, marginLeft:"5vw" }}>
-            {loading ? (
-              <div>Loading posts...</div>
-            ) : creatingNewPost ? (
-              <></>
-            ) : selectedPost ? (
-              <SelectedPost post={selectedPost} onBack={() => setSelectedPost(null)} />
-            ) : (
-              <>
-                <h4>Select a tip to see its details</h4>
-              </>
-            )}
+      {/* Mobile View */}
+      <div className="lg:hidden w-full h-full relative">
+        {/* Background */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800" />
+        
+        {/* Mobile Header */}
+        <div className="absolute top-0 left-0 right-0 w-full h-[8vh] z-20 bg-gradient-to-b from-white/95 via-white/90 to-transparent border-b border-border/20 backdrop-blur-sm">
+          <div className="flex items-center justify-between h-full px-6">
+            <img src={LollipopSVG} alt="Lollipop" className="w-8 h-8 flex-shrink-0" />
+            <div className="text-right">
+              <h1 className="text-lg font-bold text-foreground leading-tight">LOLLIPOP</h1>
+              <p className="text-xs text-muted-foreground leading-tight">Investment Intelligence Platform</p>
+            </div>
           </div>
         </div>
-      </SidebarInset>
-      </SidebarProvider>
 
-
-
-
+        {/* Mobile Content */}
+        <div className="absolute inset-0 pt-[8vh] overflow-y-auto">
+          <SidebarProvider>
+            <AppSidebar
+              posts={creatingNewPost ? [] : posts}
+              onSelectPost={handleSelectedPost}
+              selectedPost={selectedPost}
+              user={{
+                name: profile?.name || user?.user_metadata?.name,
+                email: profile?.email || user?.email,
+                avatar: profile?.profile_photo_url || user?.user_metadata?.profile_photo_url,
+                id: user?.id,
+              }}
+              onNewPost={handleStartNewPost}
+              creatingNewPost={creatingNewPost}
+              newPost={newPost}
+              onNewPostChange={handleNewPostChange}
+              onCancelNewPost={handleCancelNewPost}
+              submitting={submitting}
+              onSubmitNewPost={handleSubmitNewPost}
+              onSubmitNewPostAndNew={handleSubmitNewPostAndNew}
+              onNewPostImageUpload={handleNewPostImageUpload}
+            />
+          </SidebarProvider>
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,0 +1,5819 @@
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import supabase from '@/lib/supabaseClient';
+import TickerTape from './components/TickerTape';
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable"
+import { toast } from "sonner";
+
+import { 
+  Search, 
+  RefreshCw, 
+  Info, 
+  Sun, 
+  Moon, 
+  Bell, 
+  User,
+  Settings,
+  TrendingUp, 
+  TrendingDown, 
+  Minus, 
+  ArrowLeftRight, 
+  Gauge, 
+  Leaf, 
+  DollarSign, 
+  Wallet, 
+  Shield, 
+  Coins,
+  GripHorizontal, 
+  Grip, 
+  Ellipsis,
+  Lock,
+  LogOut,
+  LogIn,
+  LockOpen,
+  ArrowRight,
+  Loader2,
+  X,
+  ChartPie,
+  Euro,
+  PieChart,
+  Bitcoin,
+  Repeat,
+  FileText,
+  Package,
+  Laptop,
+  Cpu,
+  Heart,
+  Zap,
+  ShoppingCart,
+  Factory,
+  Home,
+  Landmark,
+  AlertTriangle,
+  UserCheck,
+  GraduationCap,
+  Radio,
+  
+  MoonIcon as Dark,
+  Handshake,
+  Settings2,
+  Globe,
+  Phone,
+  Mail,
+  Book,
+  BookOpen,
+  BookText,
+  Calendar,
+  Clock,
+  Droplet,
+  MessageSquare,
+  ArrowUp,
+  ArrowDown,
+  Plus,
+  Eye,
+  LockIcon,
+  EyeIcon,
+  ArrowLeft,
+  ArrowUpRight,
+  Award,
+  ShieldCheck,
+  ShieldAlert,
+  Briefcase,
+  BarChart2,
+  Target,
+  ChevronDown,
+  MoreHorizontal,
+  Gavel,
+  RefreshCcw,
+  Activity,
+  Layers,
+  ArrowDownLeft,
+  Share2,
+  Building,
+  Calculator,
+  BarChart3,
+  Droplets,
+  Shuffle,
+  Trophy,
+  LineChart,
+  Columns,
+  Hash,
+  Infinity,
+  CheckCircle,
+  Users,
+  Smartphone,
+  Rocket
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { 
+  Accordion, 
+  AccordionContent, 
+  AccordionItem, 
+  AccordionTrigger 
+} from '@/components/ui/accordion';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import TipDetailCard from './components/TipDetailCard';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { Menubar, MenubarContent,MenubarSeparator, MenubarItem, MenubarMenu, MenubarTrigger, MenubarCheckboxItem, MenubarSub, MenubarSubContent, MenubarSubTrigger } from '@/components/ui/menubar';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+
+import { mockNewsData } from './mockNewsData';
+
+import LollipopSVG from './assets/icons/lollipop.svg';
+import LollipopSVGWhite from './assets/icons/lollipop-white.svg';
+import TradingViewWidget from './components/TradingViewWidget';
+// LollipopSVG: Main branding icon for the app
+
+
+// Lucide Icon component wrapper
+const LucideIcon = ({ Icon, size = 20, className = "" }) => {
+// LucideIcon: Wrapper for Lucide icons used in filter UI
+  // Fallback to Ellipsis if Icon is not a valid React component
+  const ValidIcon = typeof Icon === 'function' ? Icon : Icon;
+  return <ValidIcon size={size} className={className} />;
+};
+
+// Master filter configuration
+const MASTER_FILTERS = {
+  assets: [
+    { name: 'Equity', Icon: ChartPie, desc: 'Individual company stocks and shares' },
+    { name: 'Forex', Icon: Euro, desc: 'Foreign exchange currency pairs' },
+    { name: 'ETF', Icon: Handshake, desc: 'Exchange-traded funds tracking indexes or sectors' },
+    { name: 'Crypto', Icon: Bitcoin, desc: 'Digital currencies and blockchain tokens' },
+    { name: 'F&O', Icon: Repeat, desc: 'Futures and options derivatives' },
+    { name: 'Indexes', Icon: FileText, desc: 'Market index benchmarks and trackers' },
+    { name: 'Bonds', Icon: Cpu, desc: 'Government and corporate debt securities' },
+    { name: 'Commodities', Icon: Package, desc: 'Physical goods like gold, oil, agricultural products' },
+    { name: 'Mutual Funds', Icon: PieChart, desc: 'Professionally managed investment pools' },
+    { name: 'REITs', Icon: Home, desc: 'Real estate investment trusts' },
+    { name: 'Options', Icon: Settings2, desc: 'Call and put option contracts' },
+    { name: 'Futures', Icon: ArrowRight, desc: 'Future delivery contracts for assets' },
+  ],
+  sectors: [
+    { name: 'Technology', Icon: Laptop, desc: 'Software, hardware, and tech services companies' },
+    { name: 'Finance', Icon: Cpu, desc: 'Banks, insurance, and financial services' },
+    { name: 'Healthcare', Icon: Heart, desc: 'Pharmaceuticals, medical devices, and healthcare providers' },
+    { name: 'Energy', Icon: Zap, desc: 'Oil, gas, renewable energy, and utilities' },
+    { name: 'Retail', Icon: ShoppingCart, desc: 'Consumer retail and e-commerce companies' },
+    { name: 'Industrials', Icon: Factory, desc: 'Manufacturing, aerospace, and industrial equipment' },
+    { name: 'Estate', Icon: Home, desc: 'Real estate development and property companies' },
+    { name: 'Infrastructure', Icon: Landmark, desc: 'Transportation, utilities, and infrastructure projects' },
+    { name: 'Consumer Staples', Icon: ShoppingCart, desc: 'Essential goods like food, beverages, household items' },
+    { name: 'Consumer Discretionary', Icon: Heart, desc: 'Non-essential goods like luxury items, entertainment' },
+    { name: 'Utilities', Icon: Zap, desc: 'Electric, gas, water, and waste management services' },
+    { name: 'Materials', Icon: Package, desc: 'Basic materials, chemicals, and mining companies' },
+    { name: 'Communication Services', Icon: Radio, desc: 'Telecom, media, and entertainment companies' },
+    { name: 'Telecommunications', Icon: Radio, desc: 'Phone, internet, and communication infrastructure' },
+  ],
+  sentiments: [
+    { name: 'Bullish', color: '#22c55e', Icon: TrendingUp, desc: 'Expect prices to rise, positive outlook' },
+    { name: 'Bearish', color: '#f87171', Icon: TrendingDown, desc: 'Expect prices to fall, negative outlook' },
+    { name: 'Neutral', color: '#EEE', Icon: Minus, desc: 'No strong directional bias, sideways movement' },
+    { name: 'Optimistic', color: '#22c55e', Icon: TrendingUp, desc: 'Generally positive about market conditions' },
+    { name: 'Pessimistic', color: '#f87171', Icon: TrendingDown, desc: 'Generally negative about market conditions' },
+    { name: 'Cautious', color: '#fbbf24', Icon: AlertTriangle, desc: 'Careful approach due to uncertainty' },
+  ],
+  strategies: [
+    { name: 'Momentum', color: '#6366f1', Icon: Gauge, desc: 'Buy assets showing strong price trends and momentum' },
+    { name: 'Growth', color: '#0ea5e9', Icon: Leaf, desc: 'Invest in companies with high growth potential' },
+    { name: 'Value', color: '#a855f7', Icon: DollarSign, desc: 'Buy undervalued assets trading below intrinsic value' },
+    { name: 'Income', color: '#eab308', Icon: Wallet, desc: 'Focus on dividend-paying assets for regular income' },
+    { name: 'Defensive', color: '#ef4444', Icon: Shield, desc: 'Conservative approach to preserve capital' },
+    { name: 'Speculative', color: '#ef4444', Icon: AlertTriangle, desc: 'High-risk, high-reward investment approach' },
+    { name: 'Contrarian', color: '#6366f1', Icon: ArrowLeftRight, desc: 'Go against popular market sentiment' },
+    { name: 'Swing Trading', color: '#0ea5e9', Icon: ArrowLeftRight, desc: 'Short-term trades lasting days to weeks' },
+    { name: 'Day Trading', color: '#fbbf24', Icon: Gauge, desc: 'Buy and sell within the same trading day' },
+    { name: 'Position Trading', color: '#a855f7', Icon: Leaf, desc: 'Long-term trades lasting months to years' },
+    { name: 'Scalping', color: '#6366f1', Icon: Zap, desc: 'Very short-term trades lasting minutes' },
+    { name: 'Trend Following', color: '#22c55e', Icon: TrendingUp, desc: 'Follow established market trends' },
+    { name: 'Mean Reversion', color: '#f87171', Icon: ArrowLeftRight, desc: 'Bet on prices returning to average levels' },
+  ],
+  risk: [
+    { name: 'Low', Icon: Ellipsis, desc: 'Conservative investments with minimal risk of loss' },
+    { name: 'Medium', Icon: GripHorizontal, desc: 'Moderate risk with balanced return potential' },
+    { name: 'High', Icon: Grip, desc: 'Aggressive investments with significant risk' },
+    { name: 'Very Low', Icon: Minus, desc: 'Extremely safe investments like government bonds' },
+    { name: 'Very High', Icon: AlertTriangle, desc: 'Speculative investments with potential for major losses' },
+  ],
+  expectedReturn: [
+    { name: '<5%', Icon: TrendingDown, desc: 'Less than 5% expected return.' },
+    { name: '5-10%', Icon: Minus, desc: '5-10% expected return.' },
+    { name: '10-20%', Icon: TrendingUp, desc: '10-20% expected return.' },
+    { name: '20-30%', Icon: TrendingUp, desc: '20-30% expected return.' },
+    { name: '30-50%', Icon: ArrowUp, desc: '30-50% expected return.' },
+    { name: '50%+', Icon: ArrowUpRight, desc: 'More than 50% expected return.' },
+    { name: 'Negative', Icon: TrendingDown, desc: 'Expecting a loss.' },
+  ],
+  marketCap: [
+    { name: 'Nano Cap', Icon: Minus, desc: 'Very small companies under $50M market cap' },
+    { name: 'Micro Cap', Icon: GripHorizontal, desc: 'Small companies $50M-$300M market cap' },
+    { name: 'Small Cap', Icon: Grip, desc: 'Companies $300M-$2B market cap' },
+    { name: 'Mid Cap', Icon: Gauge, desc: 'Companies $2B-$10B market cap' },
+    { name: 'Large Cap', Icon: Landmark, desc: 'Major companies $10B-$200B market cap' },
+    { name: 'Mega Cap', Icon: Factory, desc: 'Largest companies over $200B market cap' },
+  ],
+  dividendYield: [
+    { label: '0-2%', min: 0, max: 2, icon: DollarSign, desc: 'Low dividend yield, growth-focused companies' },
+    { label: '2-4%', min: 2, max: 4, icon: DollarSign, desc: 'Moderate dividend yield, balanced approach' },
+    { label: '4-6%', min: 4, max: 6, icon: DollarSign, desc: 'Good dividend yield, income-focused' },
+    { label: '6-8%', min: 6, max: 8, icon: DollarSign, desc: 'High dividend yield, strong income generation' },
+    { label: '8-10%', min: 8, max: 10, icon: DollarSign, desc: 'Very high dividend yield, mature companies' },
+    { label: '10%+', min: 10, max: Infinity, icon: DollarSign, desc: 'Exceptional dividend yield, possible risks' },
+  ],
+  holding: [
+    { name: 'Intraday', Icon: Zap, desc: 'Buy and sell within the same trading day' },
+    { name: '1W', Icon: Calendar, desc: 'Hold position for one week' },
+    { name: 'Short Term', Icon: Gauge, desc: 'Hold positions for short period (1-4 weeks)' },
+    { name: 'Swing', Icon: ArrowLeftRight, desc: 'Swing trading positions (few days to weeks)' },
+    { name: 'Long Term', Icon: Leaf, desc: 'Long-term investment (months to years)' },
+    { name: 'Position', Icon: Calendar, desc: 'Hold positions for months' },
+  ],
+  duration: [
+    { name: '1D', Icon: Zap, desc: 'One day duration' },
+    { name: '2D', Icon: Zap, desc: 'Two days duration' },
+    { name: '3D', Icon: Zap, desc: 'Three days duration' },
+    { name: '4-7D', Icon: Gauge, desc: 'Four to seven days duration' },
+    { name: '1W', Icon: Calendar, desc: 'One week duration' },
+    { name: '2W', Icon: Calendar, desc: 'Two weeks duration' },
+    { name: '1M', Icon: ArrowLeftRight, desc: 'One month duration' },
+    { name: '2-3M', Icon: ArrowLeftRight, desc: 'Two to three months duration' },
+    { name: '3-6M', Icon: Calendar, desc: 'Three to six months duration' },
+    { name: '6-12M', Icon: Calendar, desc: 'Six months to one year duration' },
+    { name: '1Y+', Icon: Leaf, desc: 'More than one year duration' },
+  ],
+  regions: [
+    { name: 'North America', Icon: Globe, desc: 'United States, Canada, Mexico' },
+    { name: 'Europe', Icon: Globe, desc: 'European markets and companies' },
+    { name: 'Asia Pacific', Icon: Globe, desc: 'Asian markets including Japan, China, India' },
+    { name: 'Emerging Markets', Icon: TrendingUp, desc: 'Developing market economies' },
+    { name: 'Global', Icon: Globe, desc: 'Worldwide or multi-regional exposure' },
+    { name: 'Domestic', Icon: Home, desc: 'Local/home market only' },
+    { name: 'China', Icon: Globe, desc: 'China-focused investments' },
+    { name: 'India', Icon: Globe, desc: 'India-focused investments' },
+    { name: 'Japan', Icon: Globe, desc: 'Japan-focused investments' },
+  ],
+  valuationMetrics: [
+    { name: 'P/E Ratio', Icon: BarChart2, desc: 'Price to earnings ratio analysis' },
+    { name: 'EV/EBITDA', Icon: BarChart2, desc: 'Enterprise value to EBITDA multiple' },
+    { name: 'PEG Ratio', Icon: BarChart2, desc: 'Price/earnings to growth ratio' },
+    { name: 'Price/Book', Icon: BarChart2, desc: 'Price to book value ratio' },
+    { name: 'Price/Sales', Icon: BarChart2, desc: 'Price to sales ratio' },
+    { name: 'DCF', Icon: BarChart2, desc: 'Discounted cash flow valuation' },
+    { name: 'Free Cash Flow Yield', Icon: BarChart2, desc: 'Free cash flow relative to market cap' },
+    { name: 'Dividend Yield', Icon: DollarSign, desc: 'Annual dividend relative to price' },
+  ],
+  growthMetrics: [
+    { name: 'Revenue Growth', Icon: TrendingUp, desc: 'Strong revenue growth trajectory' },
+    { name: 'Earnings Growth', Icon: TrendingUp, desc: 'Consistent earnings growth' },
+    { name: 'User Growth', Icon: TrendingUp, desc: 'Growing user base or customer count' },
+    { name: 'Market Share Growth', Icon: TrendingUp, desc: 'Expanding market share' },
+    { name: 'Margin Expansion', Icon: TrendingUp, desc: 'Improving profit margins' },
+    { name: 'ROE Growth', Icon: TrendingUp, desc: 'Improving return on equity' },
+    { name: 'Cash Flow Growth', Icon: TrendingUp, desc: 'Growing free cash flow' },
+    { name: 'Book Value Growth', Icon: TrendingUp, desc: 'Increasing book value per share' },
+  ],
+  technicalIndicators: [
+    { name: 'RSI', Icon: Activity, desc: 'Relative Strength Index signal' },
+    { name: 'MACD', Icon: Activity, desc: 'MACD crossover or divergence' },
+    { name: 'Moving Averages', Icon: Activity, desc: 'Moving average crossover or support' },
+    { name: 'Bollinger Bands', Icon: Activity, desc: 'Bollinger Band squeeze or breakout' },
+    { name: 'Support/Resistance', Icon: Activity, desc: 'Key support or resistance levels' },
+    { name: 'Volume', Icon: BarChart2, desc: 'Volume confirmation or spike' },
+    { name: 'Momentum', Icon: Activity, desc: 'Momentum indicators' },
+    { name: 'Trend Lines', Icon: Activity, desc: 'Trend line breaks or confirmations' },
+  ],
+  esgRatings: [
+    { name: 'ESG Leader', Icon: Leaf, desc: 'Strong ESG practices and leadership' },
+    { name: 'ESG Positive', Icon: Leaf, desc: 'Good ESG score and practices' },
+    { name: 'ESG Neutral', Icon: GripHorizontal, desc: 'Average ESG considerations' },
+    { name: 'ESG Improving', Icon: TrendingUp, desc: 'Improving ESG practices' },
+    { name: 'ESG Concern', Icon: AlertTriangle, desc: 'Some ESG concerns or risks' },
+    { name: 'Not Applicable', Icon: Minus, desc: 'ESG not relevant for this investment' },
+  ],
+  analysisType: [
+    { name: 'Fundamental', Icon: BookOpen, desc: 'Based on fundamental analysis' },
+    { name: 'Technical', Icon: BookOpen, desc: 'Based on technical analysis' },
+    { name: 'Quantitative', Icon: BookOpen, desc: 'Data-driven quantitative analysis' },
+    { name: 'Macro', Icon: BookOpen, desc: 'Macroeconomic analysis' },
+    { name: 'Event Driven', Icon: BookOpen, desc: 'Based on specific events or catalysts' },
+    { name: 'Sentiment', Icon: BookOpen, desc: 'Market sentiment analysis' },
+    { name: 'Hybrid', Icon: BookOpen, desc: 'Combination of multiple analysis types' },
+  ],
+  volatility: [
+    { name: 'Very Low', Icon: Activity, desc: 'Minimal price fluctuations expected' },
+    { name: 'Low', Icon: Activity, desc: 'Below average volatility' },
+    { name: 'Moderate', Icon: Activity, desc: 'Average market volatility' },
+    { name: 'High', Icon: Activity, desc: 'Above average volatility' },
+    { name: 'Very High', Icon: Activity, desc: 'Significant price swings expected' },
+    { name: 'Extreme', Icon: AlertTriangle, desc: 'Highly volatile with major price moves' },
+  ],
+  liquidity: [
+    { name: 'High Large Cap', Icon: Droplet, desc: 'Very liquid, easy to trade.' },
+    { name: 'Medium Mid Cap', Icon: MoreHorizontal, desc: 'Moderately liquid.' },
+    { name: 'Low Small Cap', Icon: Minus, desc: 'Less liquid, harder to trade.' },
+    { name: 'Micro Cap', Icon: Droplet, desc: 'Very illiquid.' },
+    { name: 'High Volume', Icon: Activity, desc: 'High trading volume.' },
+    { name: 'Low Volume', Icon: BarChart2, desc: 'Low trading volume.' },
+    { name: 'Illiquid', Icon: Lock, desc: 'Difficult to buy or sell.' },
+  ],
+  conviction: [
+    { name: 'Speculative', Icon: ArrowDown, desc: 'Weak conviction, just a hunch' },
+    { name: 'Low', Icon: ArrowDown, desc: 'Low conviction, not very confident' },
+    { name: 'Moderate', Icon: ArrowRight, desc: 'Moderate conviction, some confidence' },
+    { name: 'Strong', Icon: ArrowUp, desc: 'Strong conviction, confident' },
+    { name: 'Very Strong', Icon: ArrowUp, desc: 'Very strong conviction, highly confident' },
+  ],
+  catalyst: [
+    { name: 'Earnings', Icon: BarChart2, desc: 'Company earnings report.' },
+    { name: 'Fed Policy', Icon: Globe, desc: 'Central bank policy change.' },
+    { name: 'Mergers', Icon: MoreHorizontal, desc: 'Mergers or acquisitions.' },
+    { name: 'Product Launch', Icon: ShoppingCart, desc: 'New product launch.' },
+    { name: 'Regulation', Icon: Gavel, desc: 'Regulatory change.' },
+    { name: 'Market Event', Icon: Activity, desc: 'Major market event.' },
+    { name: 'Analyst Upgrade', Icon: TrendingUp, desc: 'Analyst rating upgrade.' },
+    { name: 'Buyback', Icon: RefreshCcw, desc: 'Company share buyback.' },
+    { name: 'Dividend Hike', Icon: DollarSign, desc: 'Increase in dividend payout.' },
+    { name: 'Sector Rotation', Icon: ArrowRight, desc: 'Shift in sector focus.' },
+    { name: 'Geopolitical', Icon: Globe, desc: 'Geopolitical event.' },
+    { name: 'Innovation', Icon: Zap, desc: 'New innovation.' },
+    { name: 'Litigation', Icon: Gavel, desc: 'Legal action.' },
+    { name: 'Supply Chain', Icon: Layers, desc: 'Supply chain disruption.' },
+  ],
+  valuation: [
+    { name: 'Low P/E (<15x)', Icon: TrendingDown, desc: 'Low price-to-earnings ratio.' },
+    { name: 'Mid P/E (15–25x)', Icon: Minus, desc: 'Medium price-to-earnings ratio.' },
+    { name: 'High P/E (>25x)', Icon: TrendingUp, desc: 'High price-to-earnings ratio.' },
+    { name: 'Low EV/EBITDA (<10x)', Icon: TrendingDown, desc: 'Low enterprise value to EBITDA.' },
+    { name: 'Mid EV/EBITDA (10–15x)', Icon: Minus, desc: 'Medium enterprise value to EBITDA.' },
+    { name: 'High EV/EBITDA (>15x)', Icon: TrendingUp, desc: 'High enterprise value to EBITDA.' },
+    { name: 'Discounted Cash Flow (10%+ IRR)', Icon: BarChart2, desc: 'Discounted cash flow analysis.' },
+    { name: 'PEG Ratio ~1.5', Icon: Activity, desc: 'Price/earnings to growth ratio.' },
+    { name: 'Low Price/Book (<2x)', Icon: TrendingDown, desc: 'Low price-to-book ratio.' },
+    { name: 'Low Price/Sales (<2x)', Icon: TrendingDown, desc: 'Low price-to-sales ratio.' },
+    { name: 'High ROE (>15%)', Icon: TrendingUp, desc: 'High return on equity.' },
+    { name: 'Low Debt/Equity (<0.5)', Icon: Shield, desc: 'Low debt-to-equity ratio.' },
+  ],
+  technical: [
+    { name: 'RSI Overbought 70', Icon: TrendingUp, desc: 'Relative Strength Index above 70.' },
+    { name: 'RSI Oversold 30', Icon: TrendingDown, desc: 'Relative Strength Index below 30.' },
+    { name: 'MACD Bullish', Icon: TrendingUp, desc: 'MACD bullish crossover.' },
+    { name: 'MACD Bearish', Icon: TrendingDown, desc: 'MACD bearish crossover.' },
+    { name: 'MA Crossover', Icon: ArrowUpRight, desc: 'Moving average crossover.' },
+    { name: 'ADX Trend 25', Icon: Activity, desc: 'ADX trend strength above 25.' },
+    { name: 'Bollinger Breakout', Icon: ArrowUp, desc: 'Bollinger Bands breakout.' },
+    { name: 'Fibonacci', Icon: Layers, desc: 'Fibonacci retracement levels.' },
+    { name: 'Support Break', Icon: ArrowDown, desc: 'Support level broken.' },
+    { name: 'Resistance Break', Icon: ArrowUp, desc: 'Resistance level broken.' },
+    { name: 'Volume Spike', Icon: BarChart2, desc: 'Unusual volume spike.' },
+    { name: 'Stochastic 80', Icon: TrendingUp, desc: 'Stochastic oscillator above 80.' },
+    { name: 'Stochastic 20', Icon: TrendingDown, desc: 'Stochastic oscillator below 20.' },
+    { name: 'Ichimoku Buy', Icon: TrendingUp, desc: 'Ichimoku cloud buy signal.' },
+    { name: 'Ichimoku Sell', Icon: TrendingDown, desc: 'Ichimoku cloud sell signal.' },
+    { name: 'VWAP Bounce', Icon: RefreshCcw, desc: 'VWAP bounce signal.' },
+  ],
+  diversification: [
+    { name: 'Core', Icon: Shield, desc: 'Main part of your portfolio.' },
+    { name: 'Satellite', Icon: MoreHorizontal, desc: 'Smaller, supporting position.' },
+    { name: 'Hedge', Icon: Layers, desc: 'Position to offset risk.' },
+    { name: 'Tactical', Icon: Zap, desc: 'Short-term tactical position.' },
+    { name: 'Diversifier', Icon: ArrowRight, desc: 'Adds diversification.' },
+    { name: 'Opportunistic', Icon: TrendingUp, desc: 'Opportunistic trade.' },
+    { name: 'Balanced', Icon: Minus, desc: 'Balanced position.' },
+  ],
+  performance: [
+    { name: 'Strong Underperform', Icon: TrendingDown, desc: 'Expected to do much worse than market.' },
+    { name: 'Underperform', Icon: ArrowDownLeft, desc: 'Expected to do worse than market.' },
+    { name: 'Market', Icon: Minus, desc: 'Expected to match market performance.' },
+    { name: 'Outperform', Icon: ArrowUpRight, desc: 'Expected to do better than market.' },
+    { name: 'Strong Outperform', Icon: TrendingUp, desc: 'Expected to do much better than market.' },
+    { name: 'Flat', Icon: ArrowRight, desc: 'No expected movement.' },
+  ]
+};
+
+
+
+const timeAgo = (dateString) => {
+// Utility: timeAgo for tip timestamps
+  const now = new Date();
+  const created = new Date(dateString);
+  const diffMs = now.getTime() - created.getTime();
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  
+  if (diffHours < 1) return 'Just now';
+  if (diffHours < 24) return `${diffHours}h ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays}d ago`;
+};
+
+const InfoRow = ({ icon, label, value, valueComponent, isMobile }) => (
+  <div className="flex items-start gap-3">
+    <div className="flex-shrink-0 w-5 h-5 text-muted-foreground">{icon}</div>
+    <div className="flex-1">
+      <div className={`${isMobile ? 'text-[10px]' : 'text-xs'} text-muted-foreground`}>{label}</div>
+      {valueComponent || <div className={`font-semibold ${isMobile ? 'text-xs' : 'text-sm'}`}>{value}</div>}
+    </div>
+  </div>
+);
+
+export default function TipScreen() {
+  // State for all tips fetched from Supabase
+  const [allTips, setAllTips] = useState([]);
+  const [loadingTips, setLoadingTips] = useState(true);
+
+  useEffect(() => {
+    async function fetchTips() {
+      setLoadingTips(true);
+      const { data, error } = await supabase
+        .from('investment_tips')
+        .select('*');
+      if (error) {
+        console.error('Error fetching tips:', error);
+        setAllTips([]);
+      } else {
+        setAllTips(data || []);
+      }
+      setLoadingTips(false);
+    }
+    fetchTips();
+  }, []);
+  // --- State Hooks ---
+
+  // Theme state
+  const [isDarkTheme, setIsDarkTheme] = useState(false);
+
+  // Wallet and unlock state
+  const [wallet, setWallet] = useState(25);
+  const [unlockedTips, setUnlockedTips] = useState([]);
+  const [userData, setUserData] = useState({  });
+  // Fetch current user from Supabase
+  useEffect(() => {
+    async function fetchUser() {
+      const { data: { user }, error } = await supabase.auth.getUser();
+
+
+      // if (!user || error) {
+      //   window.location.href = '/login';
+      //   return;
+      // }
+      // Fetch user profile from 'users' table
+      const { data: userProfile, error: profileError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+      if (userProfile && !profileError) {
+        setUserData({
+          id: userProfile.id,
+          name: userProfile.name,
+          avatar: userProfile.profile_photo_url || userProfile.avatar,
+          credits: userProfile.credits ?? 0,
+          email: userProfile.email
+        });
+        setUnlockedTips(userProfile.unlockedTips || []);
+      } else {
+        //window.location.href = '/login';
+      }
+    }
+    fetchUser();
+  }, []);
+  const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const tableContainerRef = useRef(null);
+
+  // Filter states
+  const [search, setSearch] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [selectedAsset, setSelectedAsset] = useState([]);
+  const [selectedSector, setSelectedSector] = useState([]);
+  const [selectedSentiment, setSelectedSentiment] = useState([]);
+  const [selectedStrategies, setSelectedStrategies] = useState([]);
+  const [selectedRisk, setSelectedRisk] = useState([]);
+  const [selectedExpectedReturn, setSelectedExpectedReturn] = useState([]);
+  const [selectedMarketCap, setSelectedMarketCap] = useState([]);
+  const [selectedDividendYield, setSelectedDividendYield] = useState([]);
+  const [selectedHolding, setSelectedHolding] = useState([]);
+  const [selectedDuration, setSelectedDuration] = useState([]);
+  const[selectedHoldingDuration, setSelectedHoldingDuration] = useState([]);
+  const [selectedRegions, setSelectedRegions] = useState([]);
+  const [selectedValuationMetrics, setSelectedValuationMetrics] = useState([]);
+  const [selectedGrowthMetrics, setSelectedGrowthMetrics] = useState([]);
+  const [selectedTechnicalIndicators, setSelectedTechnicalIndicators] = useState([]);
+  const [selectedEsgRatings, setSelectedEsgRatings] = useState([]);
+  const [selectedAnalysisType, setSelectedAnalysisType] = useState([]);
+  const [selectedVolatility, setSelectedVolatility] = useState([]);
+  const [selectedLiquidity, setSelectedLiquidity] = useState([]);
+  const [selectedConviction, setSelectedConviction] = useState([]);
+  const [selectedCatalyst, setSelectedCatalyst] = useState([]);
+  const [selectedValuation, setSelectedValuation] = useState([]);
+  const [selectedTechnical, setSelectedTechnical] = useState([]);
+  const [selectedDiversification, setSelectedDiversification] = useState([]);
+  const [selectedPerformance, setSelectedPerformance] = useState([]);
+
+  // UI states
+  const [visibleCount, setVisibleCount] = useState(25);
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [activeFilter, setActiveFilter] = useState(null);
+  const [showOnlyFree, setShowOnlyFree] = useState(false);
+  const [infoSheetOpen, setInfoSheetOpen] = useState(false);
+  const [selectedTip, setSelectedTip] = useState(null);
+  const [mobileTipSheetOpen, setMobileTipSheetOpen] = useState(false);
+  const [selectedTipForMobile, setSelectedTipForMobile] = useState(null);
+  const [tipDetailModalOpen, setTipDetailModalOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [columnSelectorOpen, setColumnSelectorOpen] = useState(false);
+  
+  // Mobile-specific states
+  const [showSymbolSheet, setShowSymbolSheet] = useState(false);
+  const [selectedSymbolForMobile, setSelectedSymbolForMobile] = useState(null);
+  const [showPaywallSheet, setShowPaywallSheet] = useState(false);
+  const [selectedPaywallTip, setSelectedPaywallTip] = useState(null);
+  const [showAdvisorSheet, setShowAdvisorSheet] = useState(false);
+  const [selectedAdvisorForMobile, setSelectedAdvisorForMobile] = useState(null);
+  const [showMobileAlertSheet, setShowMobileAlertSheet] = useState(false);
+  const [showMobileUserSheet, setShowMobileUserSheet] = useState(false);
+  
+  // Information Sheet for explanations
+  const [showInfoSheet, setShowInfoSheet] = useState(false);
+  const [infoSheetData, setInfoSheetData] = useState(null);
+  
+  // Platform Information Sheet
+  const [showPlatformInfoSheet, setShowPlatformInfoSheet] = useState(false);
+
+  // Information data for different elements
+  const informationData = {
+    asset: {
+      title: "Asset Classes",
+      iconComponent: <Briefcase size={20} className="text-primary" />,
+      description: "Understanding different types of investment assets and their characteristics",
+      content: [
+        {
+          section: "What are Asset Classes?",
+          text: "Asset classes are categories of investments that have similar characteristics and behave similarly in the marketplace. They are subject to the same laws and regulations."
+        },
+        {
+          section: "Main Asset Classes",
+          items: [
+            { name: "Equities (Stocks)", desc: "Ownership shares in companies that can provide capital appreciation and dividends" },
+            { name: "Bonds", desc: "Debt securities that provide regular income through interest payments" },
+            { name: "Commodities", desc: "Physical goods like gold, oil, agricultural products that hedge against inflation" },
+            { name: "Real Estate", desc: "Property investments including REITs and direct real estate ownership" },
+            { name: "Cash & Cash Equivalents", desc: "Highly liquid, low-risk investments like savings accounts and money market funds" },
+            { name: "Cryptocurrencies", desc: "Digital assets that offer high growth potential but with significant volatility" }
+          ]
+        },
+        {
+          section: "Why Asset Classes Matter",
+          text: "Different asset classes perform differently under various market conditions. Diversifying across asset classes helps reduce overall portfolio risk while potentially enhancing returns."
+        }
+      ],
+      footer: "Choose asset classes that align with your investment goals, risk tolerance, and time horizon."
+    },
+    sentiment: {
+      title: "Investment Sentiment",
+      iconComponent: <TrendingUp size={20} className="text-primary" />,
+      description: "How market sentiment affects investment decisions and outcomes",
+      content: [
+        {
+          section: "What is Investment Sentiment?",
+          text: "Investment sentiment represents the overall attitude and outlook of investors toward a particular security, sector, or market. It reflects the collective psychology driving buying and selling decisions."
+        },
+        {
+          section: "Sentiment Types",
+          items: [
+            { name: "Bullish", desc: "Optimistic outlook expecting prices to rise, encouraging buying activity" },
+            { name: "Bearish", desc: "Pessimistic outlook expecting prices to fall, encouraging selling or short positions" },
+            { name: "Neutral", desc: "Balanced view with no strong directional bias, wait-and-see approach" }
+          ]
+        },
+        {
+          section: "Factors Influencing Sentiment",
+          items: [
+            { name: "Economic Indicators", desc: "GDP growth, employment rates, inflation data" },
+            { name: "Company Performance", desc: "Earnings reports, revenue growth, management guidance" },
+            { name: "Market Events", desc: "Geopolitical events, policy changes, market volatility" },
+            { name: "Technical Analysis", desc: "Chart patterns, trading volumes, price movements" }
+          ]
+        }
+      ],
+      footer: "Understanding sentiment helps in timing investments and managing risk effectively."
+    },
+    risk: {
+      title: "Investment Risk Levels",
+      iconComponent: <AlertTriangle size={20} className="text-primary" />,
+      description: "Understanding different risk levels and their implications for your investments",
+      content: [
+        {
+          section: "What is Investment Risk?",
+          text: "Investment risk refers to the probability of losing some or all of the original investment. Higher risk investments typically offer the potential for higher returns, but also greater potential losses."
+        },
+        {
+          section: "Risk Categories",
+          items: [
+            { name: "Low Risk", desc: "Conservative investments with minimal chance of loss but lower return potential (e.g., government bonds, savings accounts)" },
+            { name: "Medium Risk", desc: "Balanced investments with moderate risk and return potential (e.g., diversified mutual funds, blue-chip stocks)" },
+            { name: "High Risk", desc: "Aggressive investments with significant potential for both gains and losses (e.g., growth stocks, emerging markets)" },
+            { name: "Very High Risk", desc: "Speculative investments with extreme volatility (e.g., penny stocks, cryptocurrency, options trading)" }
+          ]
+        },
+        {
+          section: "Risk Management Strategies",
+          items: [
+            { name: "Diversification", desc: "Spread investments across different assets to reduce overall risk" },
+            { name: "Asset Allocation", desc: "Balance portfolio between different risk levels based on goals" },
+            { name: "Regular Review", desc: "Monitor and adjust investments based on changing circumstances" }
+          ]
+        }
+      ],
+      footer: "Always invest according to your risk tolerance and financial goals."
+    },
+    returns: {
+      title: "Expected Returns",
+      iconComponent: <BarChart2 size={20} className="text-primary" />,
+      description: "Understanding how investment returns work and what to expect",
+      content: [
+        {
+          section: "What are Investment Returns?",
+          text: "Investment returns represent the profit or loss generated by an investment over a specific period. Returns can come from capital appreciation, dividends, interest, or other income sources."
+        },
+        {
+          section: "Types of Returns",
+          items: [
+            { name: "Capital Gains", desc: "Profit from selling an investment for more than you paid" },
+            { name: "Dividends", desc: "Regular payments from companies to shareholders" },
+            { name: "Interest", desc: "Fixed payments from bonds and other debt instruments" },
+            { name: "Total Return", desc: "Combination of capital gains and income generated" }
+          ]
+        },
+        {
+          section: "Return Expectations",
+          items: [
+            { name: "Conservative (3-5%)", desc: "Low-risk investments like bonds and savings accounts" },
+            { name: "Moderate (6-8%)", desc: "Balanced portfolios with mixed asset allocation" },
+            { name: "Aggressive (9-12%)", desc: "Growth-focused investments with higher risk" },
+            { name: "Speculative (Varies)", desc: "High-risk investments with unpredictable returns" }
+          ]
+        }
+      ],
+      footer: "Past performance doesn't guarantee future results. Consider your time horizon and risk tolerance."
+    },
+    conviction: {
+      title: "Investment Conviction",
+      iconComponent: <Target size={20} className="text-primary" />,
+      description: "Understanding advisor confidence levels and investment conviction",
+      content: [
+        {
+          section: "What is Investment Conviction?",
+          text: "Investment conviction represents the level of confidence an advisor or analyst has in their investment recommendation. It indicates how strongly they believe in the potential success of the investment."
+        },
+        {
+          section: "Conviction Levels",
+          items: [
+            { name: "High Conviction", desc: "Strong confidence based on thorough analysis and favorable conditions" },
+            { name: "Medium Conviction", desc: "Moderate confidence with some uncertainty or mixed signals" },
+            { name: "Low Conviction", desc: "Limited confidence due to unclear outlook or high uncertainty" }
+          ]
+        },
+        {
+          section: "Factors Affecting Conviction",
+          items: [
+            { name: "Research Quality", desc: "Depth and accuracy of fundamental and technical analysis" },
+            { name: "Market Conditions", desc: "Overall market environment and sector-specific trends" },
+            { name: "Track Record", desc: "Historical performance of similar recommendations" },
+            { name: "Risk Assessment", desc: "Understanding of potential downside and risk factors" }
+          ]
+        }
+      ],
+      footer: "Higher conviction doesn't guarantee success, but indicates stronger analyst confidence."
+    },
+    filters: {
+      title: "Investment Filters",
+      iconComponent: <Search size={20} className="text-primary" />,
+      description: "How to use filters to find the perfect investment opportunities",
+      content: [
+        {
+          section: "What are Investment Filters?",
+          text: "Investment filters help you narrow down the vast universe of investment opportunities to find those that match your specific criteria, goals, and preferences."
+        },
+        {
+          section: "Available Filter Categories",
+          items: [
+            { name: "Asset Classes", desc: "Filter by investment types like stocks, bonds, commodities, crypto" },
+            { name: "Risk Levels", desc: "Choose investments based on your risk tolerance" },
+            { name: "Expected Returns", desc: "Filter by potential return ranges that match your goals" },
+            { name: "Geographic Regions", desc: "Focus on specific markets or global diversification" },
+            { name: "Sectors", desc: "Target specific industries or economic sectors" },
+            { name: "Investment Strategies", desc: "Find investments matching your preferred approach" }
+          ]
+        },
+        {
+          section: "How to Use Filters Effectively",
+          items: [
+            { name: "Start Broad", desc: "Begin with basic criteria like risk tolerance and time horizon" },
+            { name: "Layer Filters", desc: "Add additional filters one by one to refine results" },
+            { name: "Regular Review", desc: "Adjust filters as your goals and circumstances change" },
+            { name: "Save Combinations", desc: "Keep track of filter combinations that work well for you" }
+          ]
+        }
+      ],
+      footer: "Effective filtering helps you focus on opportunities that align with your investment strategy."
+    },
+    search: {
+      title: "Search Functionality",
+      iconComponent: <Search size={20} className="text-primary" />,
+      description: "How to effectively search and find specific investment tips",
+      content: [
+        {
+          section: "Smart Search Features",
+          text: "Our search function allows you to quickly find specific investments, advisors, companies, or topics across all available tips and recommendations."
+        },
+        {
+          section: "What You Can Search For",
+          items: [
+            { name: "Company Names", desc: "Search for specific companies like 'Apple', 'Tesla', 'Microsoft'" },
+            { name: "Stock Symbols", desc: "Find investments by ticker symbols like 'AAPL', 'TSLA', 'MSFT'" },
+            { name: "Advisor Names", desc: "Look up tips from specific investment advisors" },
+            { name: "Investment Themes", desc: "Search for topics like 'AI', 'renewable energy', 'blockchain'" },
+            { name: "Asset Types", desc: "Find specific asset classes or investment types" }
+          ]
+        },
+        {
+          section: "Search Tips",
+          items: [
+            { name: "Use Partial Terms", desc: "Don't need to spell out full names - partial matches work too" },
+            { name: "Try Synonyms", desc: "Use different terms if your first search doesn't yield results" },
+            { name: "Combine with Filters", desc: "Use search together with filters for more precise results" },
+            { name: "Clear and Retry", desc: "Clear search terms to see all results again" }
+          ]
+        }
+      ],
+      footer: "Search is your fastest way to find specific investment opportunities or information."
+    },
+    columns: {
+      title: "Table Columns Guide",
+      iconComponent: <Columns size={20} className="text-primary" />,
+      description: "Understanding what each column in the tips table represents",
+      content: [
+        {
+          section: "Column Explanations",
+          text: "Each column provides specific information about investment tips to help you make informed decisions."
+        },
+        {
+          section: "Available Columns",
+          items: [
+            { name: "Time", desc: "When the tip was published or last updated" },
+            { name: "Advisor", desc: "The investment professional providing the recommendation" },
+            { name: "Asset", desc: "The type of investment or asset class" },
+            { name: "Symbol", desc: "Stock ticker or investment identifier" },
+            { name: "Returns", desc: "Expected return percentage or range" },
+            { name: "Risk", desc: "Risk level assessment for the investment" },
+            { name: "Holding Period", desc: "Recommended time to hold the investment" },
+            { name: "Sentiment", desc: "Overall market sentiment (Bullish/Bearish/Neutral)" },
+            { name: "Conviction", desc: "Advisor's confidence level in the recommendation" }
+          ]
+        },
+        {
+          section: "Customizing Your View",
+          items: [
+            { name: "Column Selection", desc: "Choose which columns to display based on your needs" },
+            { name: "Mobile Optimization", desc: "Columns automatically adjust for mobile viewing" },
+            { name: "Click for Details", desc: "Click on column headers or values for detailed explanations" }
+          ]
+        }
+      ],
+      footer: "Customize your table view to focus on the information most important to your investment decisions."
+    },
+    symbol: {
+      title: "Investment Symbols & Tickers",
+      iconComponent: <Hash size={20} className="text-primary" />,
+      description: "Understanding stock symbols, tickers, and investment identifiers",
+      content: [
+        {
+          section: "What are Investment Symbols?",
+          text: "Investment symbols (also called tickers) are unique identifiers used to represent publicly traded securities on exchanges. They make it easy to identify and trade specific investments."
+        },
+        {
+          section: "Types of Symbols",
+          items: [
+            { name: "Stock Tickers", desc: "3-4 letter codes for publicly traded companies (e.g., AAPL for Apple, TSLA for Tesla)" },
+            { name: "ETF Symbols", desc: "Exchange-traded fund identifiers (e.g., SPY for S&P 500 ETF, QQQ for Nasdaq ETF)" },
+            { name: "Index Symbols", desc: "Market index identifiers (e.g., ^GSPC for S&P 500, ^DJI for Dow Jones)" },
+            { name: "Crypto Symbols", desc: "Cryptocurrency identifiers (e.g., BTC for Bitcoin, ETH for Ethereum)" },
+            { name: "Currency Pairs", desc: "Foreign exchange pairs (e.g., EUR/USD, GBP/JPY)" }
+          ]
+        },
+        {
+          section: "How to Use Symbols",
+          items: [
+            { name: "Research", desc: "Use symbols to quickly find financial data and news" },
+            { name: "Trading", desc: "Enter symbols when placing buy/sell orders" },
+            { name: "Tracking", desc: "Monitor performance using portfolio tracking tools" },
+            { name: "Analysis", desc: "Compare different investments using their symbols" }
+          ]
+        }
+      ],
+      footer: "Symbols are your gateway to accessing detailed information and trading any investment."
+    },
+    holding: {
+      title: "Investment Holding Periods",
+      iconComponent: <Clock size={20} className="text-primary" />,
+      description: "Understanding recommended holding periods and investment time horizons",
+      content: [
+        {
+          section: "What is a Holding Period?",
+          text: "The holding period is the recommended length of time an investor should hold an investment before considering selling. It aligns with the investment strategy and expected timeline for achieving returns."
+        },
+        {
+          section: "Common Holding Periods",
+          items: [
+            { name: "Short-term (< 1 year)", desc: "Day trading, swing trading, or tactical positions for quick gains" },
+            { name: "Medium-term (1-3 years)", desc: "Positions based on business cycles, sector rotations, or specific catalysts" },
+            { name: "Long-term (3-5+ years)", desc: "Buy-and-hold strategies focused on fundamental growth and compounding" },
+            { name: "Very Long-term (10+ years)", desc: "Retirement investing, wealth building, and generational wealth strategies" }
+          ]
+        },
+        {
+          section: "Factors Affecting Holding Period",
+          items: [
+            { name: "Investment Strategy", desc: "Growth vs value vs income strategies have different time horizons" },
+            { name: "Market Conditions", desc: "Bull or bear markets may affect optimal holding periods" },
+            { name: "Personal Goals", desc: "Retirement, house purchase, or education funding timelines" },
+            { name: "Tax Implications", desc: "Long-term capital gains tax benefits after 1 year" }
+          ]
+        }
+      ],
+      footer: "Align your holding period with your investment goals and risk tolerance for optimal results."
+    },
+    time: {
+      title: "Investment Timing & Timestamps",
+      iconComponent: <Calendar size={20} className="text-primary" />,
+      description: "Understanding when investment tips were published and their relevance",
+      content: [
+        {
+          section: "Why Timing Matters",
+          text: "The publication time of investment tips is crucial for understanding their relevance, market context, and potential impact on your investment decisions."
+        },
+        {
+          section: "Time-Related Factors",
+          items: [
+            { name: "Market Conditions", desc: "Tips published during different market phases have varying relevance" },
+            { name: "News Events", desc: "Recent tips may reflect latest earnings, announcements, or market developments" },
+            { name: "Seasonal Trends", desc: "Some investments perform better at certain times of year" },
+            { name: "Economic Cycles", desc: "Tips may be more or less relevant based on current economic conditions" }
+          ]
+        },
+        {
+          section: "How to Use Timing Information",
+          items: [
+            { name: "Freshness Check", desc: "Prioritize recent tips for current market conditions" },
+            { name: "Historical Context", desc: "Use older tips to understand long-term advisor track record" },
+            { name: "Trend Analysis", desc: "Look for patterns in advisor recommendations over time" },
+            { name: "Event Correlation", desc: "Connect tip timing with market events and outcomes" }
+          ]
+        }
+      ],
+      footer: "Consider the timing context of investment tips alongside their content for better decision-making."
+    },
+    advisor: {
+      title: "Investment Advisors & Analysts",
+      iconComponent: <User size={20} className="text-primary" />,
+      description: "Understanding the professionals behind investment recommendations",
+      content: [
+        {
+          section: "Who are Investment Advisors?",
+          text: "Investment advisors are licensed professionals who provide investment recommendations based on research, analysis, and market expertise. They help investors make informed decisions."
+        },
+        {
+          section: "Types of Advisors",
+          items: [
+            { name: "Registered Investment Advisors (RIAs)", desc: "Fiduciary duty to act in client's best interest" },
+            { name: "Wealth Managers", desc: "Comprehensive financial planning and investment management" },
+            { name: "Research Analysts", desc: "Specialists who analyze specific securities, sectors, or markets" },
+            { name: "Portfolio Managers", desc: "Professionals who manage investment portfolios and strategies" },
+            { name: "Financial Planners", desc: "Holistic approach to financial goals and investment planning" }
+          ]
+        },
+        {
+          section: "Evaluating Advisor Recommendations",
+          items: [
+            { name: "Track Record", desc: "Historical performance and accuracy of past recommendations" },
+            { name: "Expertise Area", desc: "Specialization in specific sectors, asset classes, or strategies" },
+            { name: "Research Quality", desc: "Depth and thoroughness of analysis supporting recommendations" },
+            { name: "Risk Assessment", desc: "How well they identify and communicate potential risks" },
+            { name: "Communication Style", desc: "Clarity and transparency in explaining investment rationale" }
+          ]
+        }
+      ],
+      footer: "Research the advisor's background and track record before following their investment recommendations."
+    },
+    investment: {
+      title: "Investment Ideas & Trade Configuration",
+      iconComponent: <Briefcase size={20} className="text-primary" />,
+      description: "Understanding our comprehensive investment approach and what we offer",
+      content: [
+        {
+          section: "What We Offer",
+          text: "Our investment platform provides complete trade configurations with detailed analysis, entry/exit strategies, risk management, and professional guidance to help you make informed investment decisions."
+        },
+        {
+          section: "Trade Configuration Components",
+          items: [
+            { name: "Entry Price Analysis", desc: "Optimal entry points based on technical and fundamental analysis" },
+            { name: "Exit Price Targets", desc: "Clear profit-taking levels and price targets for each investment" },
+            { name: "Stop Loss Protection", desc: "Risk management with predefined stop-loss levels to limit downside" },
+            { name: "Position Sizing Guidance", desc: "Recommended allocation percentages based on risk tolerance" },
+            { name: "Holding Period Strategy", desc: "Time horizon recommendations from intraday to long-term investing" },
+            { name: "Market Timing Insights", desc: "When to enter and exit based on market conditions and catalysts" }
+          ]
+        },
+        {
+          section: "Investment Strategy Components",
+          items: [
+            { name: "Research & Analysis", desc: "Fundamental and technical analysis to identify opportunities" },
+            { name: "Risk Assessment", desc: "Understanding potential downside and risk factors" },
+            { name: "Sector Analysis", desc: "Industry-specific insights and sector rotation strategies" },
+            { name: "Catalyst Identification", desc: "Key events and triggers that can drive price movements" },
+            { name: "Valuation Metrics", desc: "Price-to-earnings, DCF analysis, and other valuation methods" },
+            { name: "Technical Indicators", desc: "Chart patterns, momentum indicators, and technical signals" }
+          ]
+        },
+        {
+          section: "Professional Advisory Services",
+          items: [
+            { name: "SEBI Registered Advisors", desc: "Licensed professionals with verified credentials and track records" },
+            { name: "Performance Tracking", desc: "Transparent success rates and historical performance data" },
+            { name: "Personalized Recommendations", desc: "Tips tailored to your risk profile and investment goals" },
+            { name: "Real-time Updates", desc: "Market updates and strategy adjustments as conditions change" },
+            { name: "Educational Content", desc: "Learning resources to improve your investment knowledge" },
+            { name: "Portfolio Guidance", desc: "Comprehensive portfolio construction and diversification advice" }
+          ]
+        }
+      ],
+      footer: "Our complete trade configuration approach helps you invest with confidence and clarity."
+    }
+  };
+
+  // Comprehensive platform information
+  const platformInformationData = {
+    title: "About Lollipop",
+    iconComponent: <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-8 h-8" />,
+    description: "The world's first verified trading signal marketplace",
+    content: [
+      {
+        section: "What We Do",
+        text: "Lollipop is Substack for trading signals. We connect verified advisors with serious traders, eliminating Telegram scams and fake gurus.",
+        items: [
+          {
+            name: "Verified Signals",
+            desc: "Only legitimate advisors with proven track records can share signals."
+          },
+          {
+            name: "Complete Transparency",
+            desc: "Every signal's performance is tracked publicly. No hiding losses."
+          },
+          {
+            name: "Pay for Value",
+            desc: "Use Lollipop credits to unlock premium signals. No subscriptions."
+          }
+        ]
+      },
+      {
+        section: "The Problem",
+        text: "Trading signals are broken. Telegram groups, Instagram gurus, and pump-and-dump schemes dominate the space.",
+        items: [
+          {
+            name: "Fake Gurus",
+            desc: "Flashy '🚀 BUY NOW' messages with zero accountability."
+          },
+          {
+            name: "No Verification",
+            desc: "Anyone can claim to be a trading expert without proof."
+          },
+          {
+            name: "Hidden Performance",
+            desc: "Track records are fake or completely hidden from users."
+          }
+        ]
+      },
+      {
+        section: "Our Solution",
+        text: "A marketplace where trust is built through transparency and verified performance.",
+        items: [
+          {
+            name: "Advisor Verification",
+            desc: "Rigorous vetting ensures only real traders join our platform."
+          },
+          {
+            name: "Public Track Records",
+            desc: "Every signal's outcome is tracked and displayed publicly."
+          },
+          {
+            name: "Credit-Based System",
+            desc: "Pay only for signals you want. No monthly subscriptions."
+          }
+        ]
+      },
+      {
+        section: "How It Works",
+        text: "Simple. Browse signals, check advisor track records, spend Lollipop credits to unlock detailed analysis.",
+        items: [
+          {
+            name: "Browse for Free",
+            desc: "Explore thousands of signals without spending money."
+          },
+          {
+            name: "Check Track Records",
+            desc: "See real performance data before following any advisor."
+          },
+          {
+            name: "Unlock with Credits",
+            desc: "Use Lollipops to access complete trade details and analysis."
+          },
+          {
+            name: "Execute Trades",
+            desc: "Take the parameters to your broker and trade with confidence."
+          }
+        ]
+      },
+      {
+        section: "Lollipop Credits",
+        text: "Our in-app currency ensures fair pricing and quality content. Tips cost 1-5 Lollipops based on advisor quality.",
+        items: [
+          {
+            name: "Fair Pricing",
+            desc: "Pay based on advisor track record and signal quality."
+          },
+          {
+            name: "No Subscriptions",
+            desc: "Buy credits when you need them. No recurring charges."
+          },
+          {
+            name: "Quality Guaranteed",
+            desc: "Premium signals include detailed analysis or get refunded."
+          }
+        ]
+      },
+      {
+        section: "Why We'll Win",
+        text: "First platform to solve the trust problem in trading signals through technology and transparency.",
+        items: [
+          {
+            name: "Trust Through Tech",
+            desc: "Automated tracking makes lying about performance impossible."
+          },
+          {
+            name: "Network Effects",
+            desc: "Best advisors attract more traders, creating a quality flywheel."
+          },
+          {
+            name: "Clear Value Prop",
+            desc: "Solving real pain for both traders and legitimate advisors."
+          }
+        ]
+      }
+    ],
+    footer: "Lollipop transforms trading signals from scam-filled chaos into a legitimate, transparent marketplace. No more fake gurus. Just real signals from verified advisors."
+  };
+
+  // Helper function to get meaningful icons for different sections
+  const getSectionIcon = (sectionTitle, index) => {
+    const sectionIcons = {
+      "What are Asset Classes?": <Briefcase size={14} className="text-primary" />,
+      "Main Asset Classes": <Layers size={14} className="text-primary" />,
+      "Why Asset Classes Matter": <Target size={14} className="text-primary" />,
+      "What is Investment Sentiment?": <TrendingUp size={14} className="text-primary" />,
+      "Sentiment Types": <BarChart2 size={14} className="text-primary" />,
+      "Factors Influencing Sentiment": <Activity size={14} className="text-primary" />,
+      "What is Investment Risk?": <AlertTriangle size={14} className="text-primary" />,
+      "Risk Categories": <Shield size={14} className="text-primary" />,
+      "Risk Management Strategies": <ShieldCheck size={14} className="text-primary" />,
+      "What are Investment Returns?": <BarChart2 size={14} className="text-primary" />,
+      "Types of Returns": <DollarSign size={14} className="text-primary" />,
+      "Return Expectations": <TrendingUp size={14} className="text-primary" />,
+      "What is Investment Conviction?": <Target size={14} className="text-primary" />,
+      "Conviction Levels": <Gauge size={14} className="text-primary" />,
+      "Factors Affecting Conviction": <Award size={14} className="text-primary" />,
+      "What are Investment Filters?": <Search size={14} className="text-primary" />,
+      "Available Filter Categories": <Layers size={14} className="text-primary" />,
+      "How to Use Filters Effectively": <Settings size={14} className="text-primary" />,
+      "Smart Search Features": <Search size={14} className="text-primary" />,
+      "What You Can Search For": <Hash size={14} className="text-primary" />,
+      "Search Tips": <Zap size={14} className="text-primary" />,
+      "Column Explanations": <Columns size={14} className="text-primary" />,
+      "Available Columns": <BarChart3 size={14} className="text-primary" />,
+      "Customizing Your View": <Settings2 size={14} className="text-primary" />,
+      "What are Investment Symbols?": <Hash size={14} className="text-primary" />,
+      "Types of Symbols": <Package size={14} className="text-primary" />,
+      "How to Use Symbols": <ArrowRight size={14} className="text-primary" />,
+      "What is a Holding Period?": <Clock size={14} className="text-primary" />,
+      "Common Holding Periods": <Calendar size={14} className="text-primary" />,
+      "Factors Affecting Holding Period": <RefreshCw size={14} className="text-primary" />,
+      "Why Timing Matters": <Calendar size={14} className="text-primary" />,
+      "Time-Related Factors": <Activity size={14} className="text-primary" />,
+      "How to Use Timing Information": <Clock size={14} className="text-primary" />,
+      "Who are Investment Advisors?": <User size={14} className="text-primary" />,
+      "Types of Advisors": <UserCheck size={14} className="text-primary" />,
+      "Evaluating Advisor Recommendations": <Award size={14} className="text-primary" />,
+      "What are Investment Ideas?": <Briefcase size={14} className="text-primary" />,
+      "Types of Investment Ideas": <Layers size={14} className="text-primary" />,
+      "Investment Strategy Components": <Target size={14} className="text-primary" />,
+      
+      // Platform Information Icons
+      "Our Mission": <Target size={14} className="text-primary" />,
+      "Our Vision": <Eye size={14} className="text-primary" />,
+      "The Problem We're Solving": <AlertTriangle size={14} className="text-primary" />,
+      "How We're Solving It": <CheckCircle size={14} className="text-primary" />,
+      "Why Some Tips Are Paid": <DollarSign size={14} className="text-primary" />,
+      "How to Unlock Premium Tips": <LockOpen size={14} className="text-primary" />,
+      "How to Evaluate Advisor Trustworthiness": <ShieldCheck size={14} className="text-primary" />,
+      "How to Place a Trade Using Our Platform": <TrendingUp size={14} className="text-primary" />,
+      "Platform Features Deep Dive": <Settings2 size={14} className="text-primary" />,
+      "What Makes Us Different": <Award size={14} className="text-primary" />
+    };
+    
+    return sectionIcons[sectionTitle] || <Info size={14} className="text-primary" />;
+  };
+
+  // Helper function to get meaningful icons for different items
+  const getItemIcon = (itemName, index) => {
+    const itemIcons = {
+      // Asset Classes
+      "Equities (Stocks)": <TrendingUp size={12} className="text-blue-600" />,
+      "Bonds": <Shield size={12} className="text-green-600" />,
+      "Commodities": <Coins size={12} className="text-yellow-600" />,
+      "Real Estate": <Home size={12} className="text-purple-600" />,
+      "Cash & Cash Equivalents": <DollarSign size={12} className="text-gray-600" />,
+      "Cryptocurrencies": <Bitcoin size={12} className="text-orange-600" />,
+      
+      // Sentiment Types
+      "Bullish": <TrendingUp size={12} className="text-green-600" />,
+      "Bearish": <TrendingDown size={12} className="text-red-600" />,
+      "Neutral": <Minus size={12} className="text-gray-600" />,
+      
+      // Risk Categories
+      "Low Risk": <Shield size={12} className="text-green-600" />,
+      "Medium Risk": <Gauge size={12} className="text-yellow-600" />,
+      "High Risk": <AlertTriangle size={12} className="text-orange-600" />,
+      "Very High Risk": <Zap size={12} className="text-red-600" />,
+      
+      // Return Types
+      "Capital Gains": <TrendingUp size={12} className="text-green-600" />,
+      "Dividends": <DollarSign size={12} className="text-blue-600" />,
+      "Interest": <Coins size={12} className="text-purple-600" />,
+      "Total Return": <BarChart2 size={12} className="text-primary" />,
+      
+      // Conviction Levels
+      "High Conviction": <Target size={12} className="text-green-600" />,
+      "Medium Conviction": <Gauge size={12} className="text-yellow-600" />,
+      "Low Conviction": <AlertTriangle size={12} className="text-orange-600" />,
+      
+      // Filter Categories
+      "Asset Classes": <Briefcase size={12} className="text-blue-600" />,
+      "Risk Levels": <Shield size={12} className="text-red-600" />,
+      "Expected Returns": <TrendingUp size={12} className="text-green-600" />,
+      "Geographic Regions": <Globe size={12} className="text-purple-600" />,
+      "Sectors": <Building size={12} className="text-orange-600" />,
+      "Investment Strategies": <Target size={12} className="text-pink-600" />,
+      
+      // Search Categories
+      "Company Names": <Building size={12} className="text-blue-600" />,
+      "Stock Symbols": <Hash size={12} className="text-green-600" />,
+      "Advisor Names": <User size={12} className="text-purple-600" />,
+      "Investment Themes": <Layers size={12} className="text-orange-600" />,
+      "Asset Types": <Package size={12} className="text-pink-600" />,
+      
+      // Column Types
+      "Time": <Clock size={12} className="text-blue-600" />,
+      "Advisor": <User size={12} className="text-green-600" />,
+      "Asset": <Briefcase size={12} className="text-purple-600" />,
+      "Symbol": <Hash size={12} className="text-orange-600" />,
+      "Returns": <TrendingUp size={12} className="text-pink-600" />,
+      "Risk": <Shield size={12} className="text-red-600" />,
+      "Holding Period": <Clock size={12} className="text-blue-600" />,
+      "Sentiment": <Activity size={12} className="text-green-600" />,
+      "Conviction": <Target size={12} className="text-purple-600" />,
+      
+      // Symbol Types
+      "Stock Tickers": <BarChart2 size={12} className="text-blue-600" />,
+      "ETF Symbols": <Package size={12} className="text-green-600" />,
+      "Index Symbols": <PieChart size={12} className="text-purple-600" />,
+      "Crypto Symbols": <Bitcoin size={12} className="text-orange-600" />,
+      "Currency Pairs": <ArrowLeftRight size={12} className="text-pink-600" />,
+      
+      // Holding Periods
+      "Short-term (< 1 year)": <Zap size={12} className="text-red-600" />,
+      "Medium-term (1-3 years)": <Clock size={12} className="text-yellow-600" />,
+      "Long-term (3-5+ years)": <Calendar size={12} className="text-green-600" />,
+      "Very Long-term (10+ years)": <Infinity size={12} className="text-blue-600" />,
+      
+      // Advisor Types
+      "Registered Investment Advisors (RIAs)": <ShieldCheck size={12} className="text-blue-600" />,
+      "Wealth Managers": <Briefcase size={12} className="text-green-600" />,
+      "Research Analysts": <Search size={12} className="text-purple-600" />,
+      "Portfolio Managers": <BarChart2 size={12} className="text-orange-600" />,
+      "Financial Planners": <Calculator size={12} className="text-pink-600" />,
+      
+      // Investment Strategies  
+      "Value Investing": <DollarSign size={12} className="text-green-600" />,
+      "Growth Investing": <TrendingUp size={12} className="text-blue-600" />,
+      "Income Investing": <Coins size={12} className="text-purple-600" />,
+      "Momentum Investing": <Zap size={12} className="text-orange-600" />,
+      "Contrarian Investing": <RefreshCw size={12} className="text-red-600" />,
+      "Thematic Investing": <Layers size={12} className="text-pink-600" />,
+      
+      // Strategy Components
+      "Research & Analysis": <Search size={12} className="text-blue-600" />,
+      "Risk Assessment": <Shield size={12} className="text-red-600" />,
+      "Position Sizing": <Gauge size={12} className="text-green-600" />,
+      "Entry & Exit Strategy": <ArrowLeftRight size={12} className="text-purple-600" />,
+      "Portfolio Integration": <Package size={12} className="text-orange-600" />,
+      "Monitoring Plan": <Activity size={12} className="text-pink-600" />,
+      
+      // Platform Information Item Icons
+      "Information Asymmetry": <TrendingDown size={12} className="text-red-600" />,
+      "Fragmented Advice": <Shuffle size={12} className="text-orange-600" />,
+      "Lack of Transparency": <EyeIcon size={12} className="text-red-600" />,
+      "High Barriers to Entry": <Lock size={12} className="text-red-600" />,
+      "No Standardization": <Layers size={12} className="text-orange-600" />,
+      "Trust Issues": <AlertTriangle size={12} className="text-red-600" />,
+      
+      "Centralized Discovery Platform": <Search size={12} className="text-green-600" />,
+      "Complete Transparency": <Eye size={12} className="text-green-600" />,
+      "Standardized Information": <CheckCircle size={12} className="text-green-600" />,
+      "Professional Verification": <ShieldCheck size={12} className="text-green-600" />,
+      "Performance Tracking": <BarChart2 size={12} className="text-green-600" />,
+      "Educational Resources": <BookOpen size={12} className="text-green-600" />,
+      
+      "Quality Assurance": <Award size={12} className="text-blue-600" />,
+      "Advisor Incentive": <DollarSign size={12} className="text-green-600" />,
+      "Resource Investment": <Building size={12} className="text-purple-600" />,
+      "Risk Management": <Shield size={12} className="text-red-600" />,
+      "Exclusive Insights": <Zap size={12} className="text-yellow-600" />,
+      "Timely Updates": <RefreshCw size={12} className="text-blue-600" />,
+      
+      "Lollipop Credits": <Coins size={12} className="text-yellow-600" />,
+      "Pricing Structure": <Calculator size={12} className="text-blue-600" />,
+      "Credit Purchase": <ShoppingCart size={12} className="text-green-600" />,
+      "Instant Access": <Zap size={12} className="text-purple-600" />,
+      "Bulk Discounts": <Package size={12} className="text-orange-600" />,
+      "Refund Policy": <RefreshCw size={12} className="text-green-600" />,
+      
+      "Track Record Analysis": <BarChart3 size={12} className="text-blue-600" />,
+      "Success Rate Metrics": <TrendingUp size={12} className="text-green-600" />,
+      "SEBI Registration": <ShieldCheck size={12} className="text-green-600" />,
+      "Professional Background": <GraduationCap size={12} className="text-purple-600" />,
+      "Tip Quality Assessment": <Award size={12} className="text-blue-600" />,
+      "Consistency Check": <Activity size={12} className="text-orange-600" />,
+      "Community Feedback": <MessageSquare size={12} className="text-pink-600" />,
+      "Response to Market Changes": <RefreshCw size={12} className="text-blue-600" />,
+      
+      "Discovery Phase": <Search size={12} className="text-blue-600" />,
+      "Evaluation Phase": <Eye size={12} className="text-green-600" />,
+      "Decision Making": <Target size={12} className="text-purple-600" />,
+      "Unlock Premium Content": <LockOpen size={12} className="text-orange-600" />,
+      "Execute Through Your Broker": <TrendingUp size={12} className="text-green-600" />,
+      "Monitor Performance": <Activity size={12} className="text-blue-600" />,
+      "Follow Updates": <Bell size={12} className="text-yellow-600" />,
+      "Learn and Improve": <BookOpen size={12} className="text-purple-600" />,
+      
+      "Advanced Search": <Search size={12} className="text-blue-600" />,
+      "Smart Filters": <Settings size={12} className="text-green-600" />,
+      "Categorization System": <Layers size={12} className="text-purple-600" />,
+      "Real-time Data": <Activity size={12} className="text-orange-600" />,
+      "Mobile Optimization": <Smartphone size={12} className="text-pink-600" />,
+      "Portfolio Tools": <Briefcase size={12} className="text-blue-600" />,
+      "Educational Content": <BookOpen size={12} className="text-green-600" />,
+      "Community Features": <Users size={12} className="text-purple-600" />,
+      
+      "Complete Transparency": <Eye size={12} className="text-green-600" />,
+      "Professional Standards": <Award size={12} className="text-blue-600" />,
+      "Educational Focus": <GraduationCap size={12} className="text-purple-600" />,
+      "Technology Integration": <Zap size={12} className="text-orange-600" />,
+      "Regulatory Compliance": <ShieldCheck size={12} className="text-green-600" />,
+      "Customer-First Approach": <Heart size={12} className="text-pink-600" />
+    };
+    
+    return itemIcons[itemName] || <ArrowRight size={12} className="text-muted-foreground" />;
+  };
+
+  // Helper function to get footer text for sections
+  const getSectionFooter = (sectionTitle) => {
+    const sectionFooters = {
+      "What are Asset Classes?": "Foundation of portfolio construction",
+      "Main Asset Classes": "Diversification across asset types",
+      "Why Asset Classes Matter": "Risk reduction through diversification",
+      "What is Investment Sentiment?": "Market psychology drives decisions",
+      "Sentiment Types": "Direction determines strategy",
+      "Factors Influencing Sentiment": "Multiple data points shape outlook",
+      "What is Investment Risk?": "Higher risk, higher potential return",
+      "Risk Categories": "Match risk to your tolerance",
+      "Risk Management Strategies": "Systematic approach to risk control",
+      "What are Investment Returns?": "Returns come in multiple forms",
+      "Types of Returns": "Understand all return sources",
+      "Return Expectations": "Align expectations with risk level",
+      "What is Investment Conviction?": "Confidence drives position size",
+      "Conviction Levels": "Higher conviction, larger positions",
+      "Factors Affecting Conviction": "Quality research builds confidence",
+      "What are Investment Filters?": "Filters narrow down opportunities",
+      "Available Filter Categories": "Multiple ways to slice data",
+      "How to Use Filters Effectively": "Systematic filtering approach",
+      "Smart Search Features": "Powerful search across all data",
+      "What You Can Search For": "Find exactly what you need",
+      "Search Tips": "Optimize your search strategy",
+      "Column Explanations": "Each column tells a story",
+      "Available Columns": "Customize your data view",
+      "Customizing Your View": "Tailor interface to your needs",
+      "What are Investment Symbols?": "Universal investment language",
+      "Types of Symbols": "Different markets, different formats",
+      "How to Use Symbols": "Symbols unlock detailed information",
+      "What is a Holding Period?": "Time horizon affects strategy",
+      "Common Holding Periods": "Match timeframe to goals",
+      "Factors Affecting Holding Period": "Multiple variables influence timing",
+      "Why Timing Matters": "Context affects relevance",
+      "Time-Related Factors": "Market timing considerations",
+      "How to Use Timing Information": "Leverage timing for better decisions",
+      "Who are Investment Advisors?": "Professional expertise matters",
+      "Types of Advisors": "Different specializations available",
+      "Evaluating Advisor Recommendations": "Due diligence is essential",
+      "What are Investment Ideas?": "Opportunities require research",
+      "Types of Investment Ideas": "Multiple strategies available",
+      "Investment Strategy Components": "Systematic approach essential",
+      
+      // Platform Information Footers
+      "Our Mission": "Democratizing professional investment advice",
+      "Our Vision": "Building the world's most trusted investment platform",
+      "The Problem We're Solving": "Addressing key challenges in retail investing", 
+      "How We're Solving It": "Technology-driven solutions for modern investors",
+      "Why Some Tips Are Paid": "Quality comes with investment in research",
+      "How to Unlock Premium Tips": "Simple credit system for accessing premium content",
+      "How to Evaluate Advisor Trustworthiness": "Multiple verification methods ensure quality",
+      "How to Place a Trade Using Our Platform": "End-to-end investment process guidance",
+      "Platform Features Deep Dive": "Comprehensive tools for smart investing",
+      "What Makes Us Different": "Transparency, education, and technology combined"
+    };
+    
+    return sectionFooters[sectionTitle] || "Important investment consideration";
+  };
+
+  // Helper function to get footer text for items
+  const getItemFooter = (itemName) => {
+    const itemFooters = {
+      // Asset Classes
+      "Equities (Stocks)": "Growth potential with volatility",
+      "Bonds": "Steady income with lower risk",
+      "Commodities": "Inflation hedge with cyclicality",
+      "Real Estate": "Tangible assets with income",
+      "Cash & Cash Equivalents": "Liquidity with low returns",
+      "Cryptocurrencies": "High potential, high risk",
+      
+      // Sentiment Types
+      "Bullish": "Optimism drives buying",
+      "Bearish": "Pessimism drives selling",
+      "Neutral": "Balanced market view",
+      
+      // Risk Categories
+      "Low Risk": "Stability over growth",
+      "Medium Risk": "Balanced risk-reward",
+      "High Risk": "Growth over stability",
+      "Very High Risk": "Speculation territory",
+      
+      // And more...
+      "Capital Gains": "Buy low, sell high",
+      "Dividends": "Regular income stream",
+      "Interest": "Fixed income payments",
+      "Total Return": "Complete picture",
+      
+      "High Conviction": "Strong research backing",
+      "Medium Conviction": "Moderate confidence",
+      "Low Conviction": "Limited certainty",
+      
+      "Short-term (< 1 year)": "Quick turnaround",
+      "Medium-term (1-3 years)": "Balanced timeframe",
+      "Long-term (3-5+ years)": "Patient capital",
+      "Very Long-term (10+ years)": "Generational wealth",
+      
+      // Investment Strategies
+      "Value Investing": "Buy cheap, sell fair",
+      "Growth Investing": "Pay for potential",
+      "Income Investing": "Cash flow focus",
+      "Momentum Investing": "Ride the trend",
+      "Contrarian Investing": "Zigging when others zag",
+      "Thematic Investing": "Future-focused approach",
+      
+      // Strategy Components
+      "Research & Analysis": "Knowledge is power",
+      "Risk Assessment": "Know the downside",
+      "Position Sizing": "Size matters",
+      "Entry & Exit Strategy": "Timing is crucial",
+      "Portfolio Integration": "Fit the puzzle",
+      "Monitoring Plan": "Stay vigilant"
+    };
+    
+    return itemFooters[itemName] || "Consider carefully";
+  };
+
+  // Function to open information sheet
+  const openInfoSheet = (type, additionalData = {}) => {
+    const data = informationData[type];
+    if (data) {
+      setInfoSheetData({ ...data, ...additionalData });
+      setShowInfoSheet(true);
+    }
+  };
+
+  // Available columns configuration
+  const availableColumns = [
+    { key: 'time', label: 'Time', minWidth: 'min-w-[100px]' },
+    { key: 'advisor', label: 'Advisor', minWidth: 'min-w-[180px]' },
+    { key: 'asset', label: 'Asset', minWidth: 'min-w-[120px]' },
+    { key: 'symbol', label: 'Symbol', minWidth: 'min-w-[90px]' },
+    { key: 'return', label: 'Returns', minWidth: 'min-w-[120px]' },
+    { key: 'risk', label: 'Risk', minWidth: 'min-w-[110px]' },
+    { key: 'holding', label: 'Holding', minWidth: 'min-w-[110px]' },
+    { key: 'sentiment', label: 'Sentiment', minWidth: 'min-w-[110px]' },
+    { key: 'investment', label: 'Investment', minWidth: 'min-w-[80px]' },
+    { key: 'sector', label: 'Sector', minWidth: 'min-w-[120px]' },
+    { key: 'strategy', label: 'Strategy', minWidth: 'min-w-[130px]' },
+    { key: 'conviction', label: 'Conviction', minWidth: 'min-w-[110px]' },
+    { key: 'entry', label: 'Entry Price', minWidth: 'min-w-[100px]' },
+    { key: 'exit', label: 'Exit Price', minWidth: 'min-w-[100px]' },
+    { key: 'stop', label: 'Stop Loss', minWidth: 'min-w-[100px]' },
+    { key: 'duration', label: 'Duration', minWidth: 'min-w-[100px]' },
+    { key: 'allocation', label: 'Allocation', minWidth: 'min-w-[100px]' },
+    { key: 'catalyst', label: 'Catalyst', minWidth: 'min-w-[120px]' },
+    { key: 'valuation', label: 'Valuation', minWidth: 'min-w-[120px]' },
+    { key: 'technical', label: 'Technical', minWidth: 'min-w-[120px]' },
+    // Additional columns for missing filter types
+    { key: 'marketCap', label: 'Market Cap', minWidth: 'min-w-[120px]' },
+    { key: 'dividendYield', label: 'Dividend Yield', minWidth: 'min-w-[120px]' },
+    { key: 'region', label: 'Region', minWidth: 'min-w-[100px]' },
+    { key: 'growthMetrics', label: 'Growth Metrics', minWidth: 'min-w-[140px]' },
+    { key: 'esgRatings', label: 'ESG Rating', minWidth: 'min-w-[110px]' },
+    { key: 'analysisType', label: 'Analysis Type', minWidth: 'min-w-[130px]' },
+    { key: 'volatility', label: 'Volatility', minWidth: 'min-w-[110px]' },
+    { key: 'liquidity', label: 'Liquidity', minWidth: 'min-w-[110px]' },
+    { key: 'diversification', label: 'Diversification', minWidth: 'min-w-[140px]' },
+    { key: 'performance', label: 'Performance', minWidth: 'min-w-[120px]' }
+  ];
+
+  // Default selected columns (current 9 columns)
+  const [selectedColumns, setSelectedColumns] = useState([
+    'time', 'advisor', 'asset', 'symbol', 'return', 'risk', 'holding', 'sentiment', 'investment'
+  ]);
+
+  // Map filter keys to table column keys
+  const filterKeyToColumnKey = {
+    assets: 'asset',
+    sectors: 'sector',
+    sentiments: 'sentiment',
+    strategies: 'strategy',
+    risk: 'risk',
+    expectedReturn: 'return',
+    marketCap: 'marketCap',
+    dividendYield: 'dividendYield',
+    holding: 'holding',
+    duration: 'duration',
+    regions: 'region',
+    valuationMetrics: 'valuation',
+    growthMetrics: 'growthMetrics',
+    technicalIndicators: 'technical',
+    esgRatings: 'esgRatings',
+    analysisType: 'analysisType',
+    volatility: 'volatility',
+    liquidity: 'liquidity',
+    conviction: 'conviction',
+    catalyst: 'catalyst',
+    // Remove duplicate mappings - these filters will use the above mappings
+    // valuation: 'valuation', (already mapped by valuationMetrics)
+    // technical: 'technical', (already mapped by technicalIndicators)
+    diversification: 'diversification',
+    performance: 'performance',
+  };
+
+  // Auto-add columns for selected filter categories
+  useEffect(() => {
+    let newColumns = [...selectedColumns];
+    Object.entries({
+      assets: selectedAsset,
+      sectors: selectedSector,
+      sentiments: selectedSentiment,
+      strategies: selectedStrategies,
+      risk: selectedRisk,
+      expectedReturn: selectedExpectedReturn,
+      marketCap: selectedMarketCap,
+      dividendYield: selectedDividendYield,
+      holding: selectedHolding,
+      duration: selectedDuration,
+      regions: selectedRegions,
+      valuationMetrics: selectedValuationMetrics,
+      growthMetrics: selectedGrowthMetrics,
+      technicalIndicators: selectedTechnicalIndicators,
+      esgRatings: selectedEsgRatings,
+      analysisType: selectedAnalysisType,
+      volatility: selectedVolatility,
+      liquidity: selectedLiquidity,
+      conviction: selectedConviction,
+      catalyst: selectedCatalyst,
+      diversification: selectedDiversification,
+      performance: selectedPerformance,
+    }).forEach(([key, arr]) => {
+      if (arr && arr.length > 0) {
+        const colKey = filterKeyToColumnKey[key];
+        if (colKey && !newColumns.includes(colKey)) {
+          newColumns.push(colKey);
+        }
+      }
+    });
+    
+    // Handle additional filters that map to same columns
+    if (selectedValuation.length > 0 && !newColumns.includes('valuation')) {
+      newColumns.push('valuation');
+    }
+    if (selectedTechnical.length > 0 && !newColumns.includes('technical')) {
+      newColumns.push('technical');
+    }
+    
+    // Remove duplicates
+    newColumns = Array.from(new Set(newColumns));
+    setSelectedColumns(newColumns);
+  }, [
+    selectedAsset,
+    selectedSector,
+    selectedSentiment,
+    selectedStrategies,
+    selectedRisk,
+    selectedExpectedReturn,
+    selectedMarketCap,
+    selectedDividendYield,
+    selectedHolding,
+    selectedDuration,
+    selectedRegions,
+    selectedValuationMetrics,
+    selectedGrowthMetrics,
+    selectedTechnicalIndicators,
+    selectedEsgRatings,
+    selectedAnalysisType,
+    selectedVolatility,
+    selectedLiquidity,
+    selectedConviction,
+    selectedCatalyst,
+    selectedDiversification,
+    selectedPerformance,
+    selectedValuation,
+    selectedTechnical
+  ]);
+
+  // Mock tips data
+  const tipsData = allTips;
+
+  // Debounced search
+  const [debouncedSearch, setDebouncedSearch] = useState(search);
+  // --- Search Debounce ---
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedSearch(search), 200);
+    return () => clearTimeout(handler);
+  }, [search]);
+
+  // Helper functions
+  const normalize = (str) => (str || '').toLowerCase().replace(/\s+/g, '').trim();
+  // --- Helper functions ---
+  
+  const toCamelCase = (str) => {
+    if (!str) return '';
+    return str
+      .replace(/(?:^|\s|_|-)([a-z])/g, (_, c) => c ? c.toUpperCase() : '')
+      .replace(/\s+/g, '');
+  };
+
+  // Helper function to add proper spacing to filter names
+  const addSpacing = (str) => {
+    if (!str) return '';
+    return str
+      .replace(/([a-z])([A-Z])/g, '$1 $2') // Add space between lowercase and uppercase
+      .replace(/([A-Z])([A-Z][a-z])/g, '$1 $2') // Add space between consecutive uppercase letters
+      .replace(/([a-z])([0-9])/g, '$1 $2') // Add space between letters and numbers
+      .replace(/([0-9])([a-z])/g, '$1 $2') // Add space between numbers and letters
+      .replace(/([&])([A-Z])/g, '$1 $2') // Add space after ampersand
+      .replace(/(\w)(\/)/g, '$1 $2') // Add space before slash
+      .replace(/(\/)/g, ' / ') // Add spaces around slash
+      .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+      .trim();
+  };
+
+  const isPaywalled = (tip) => {
+  // --- Tip Paywall Logic ---
+    if (!tip?.created_at) return false;
+    const now = new Date();
+    const created = new Date(tip.created_at);
+    return (now.getTime() - created.getTime()) < 24 * 60 * 60 * 1000;
+  };
+
+  const isUnlocked = (tip) => {
+    return unlockedTips.includes(tip.id);
+  };
+
+  // Function to render table cell content dynamically
+  const renderTableCell = (tip, columnKey, idx, isMobile = false) => {
+    const getLevelStyle = (level, type) => {
+      if (type === 'conviction') {
+        if (level === 'High') return isDarkTheme ? { background: '#166534', color: '#bbf7d0' } : { background: '#bbf7d0', color: '#166534' };
+        if (level === 'Medium') return isDarkTheme ? { background: '#854d0e', color: '#fef9c3' } : { background: '#fef9c3', color: '#854d0e' };
+        if (level === 'Low') return isDarkTheme ? { background: '#991b1b', color: '#fecaca' } : { background: '#fecaca', color: '#991b1b' };
+      }
+      if (type === 'risk') {
+        if (level === 'Low') return isDarkTheme ? { background: '#166534', color: '#bbf7d0' } : { background: '#bbf7d0', color: '#166534' };
+        if (level === 'Medium') return isDarkTheme ? { background: '#854d0e', color: '#fef9c3' } : { background: '#fef9c3', color: '#854d0e' };
+        if (level === 'High') return isDarkTheme ? { background: '#991b1b', color: '#fecaca' } : { background: '#fecaca', color: '#991b1b' };
+      }
+      return {};
+    };
+
+    const baseClasses = isMobile ? "px-3 py-3 border-b border-border min-h-[44px]" : "px-4 py-2 border-r border-b border-border text-center whitespace-nowrap h-12 overflow-hidden text-ellipsis font-light text-[13.5px]";
+    const cellClasses = `${baseClasses} ${isMobile ? 'text-sm' : ''}`;
+
+    switch (columnKey) {
+      case 'time':
+        return (
+          <td key={columnKey} className={isMobile ? 'min-w-[80px] px-3 py-3 border-b border-border text-sm' : cellClasses}>
+            {timeAgo(tip.created_at)}
+          </td>
+        );
+      case 'advisor':
+        if (isMobile) {
+          return (
+            <td key={columnKey} className={cellClasses}>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="p-1 flex items-center gap-1 w-full justify-start hover:bg-muted/50" 
+                onClick={() => {
+                  setSelectedAdvisorForMobile(tip);
+                  setShowAdvisorSheet(true);
+                }}
+                onDoubleClick={() => {
+                  // Double-click to directly view all tips from this advisor
+                  handleViewAllTips(tip.name);
+                }}
+                title={`Tap to view ${tip.name}'s profile, double-tap to view all tips`}
+              >
+                <img src={tip.avatar} alt={tip.name} className="w-5 h-5 rounded-full flex-shrink-0" />
+                <span className="font-light text-[13.5px] truncate">{tip.name}</span>
+                <ArrowUpRight size={14} style={{color: !isDarkTheme ? '#555' : '#A9A9A9'}} className="text-primary ml-1" />
+              </Button>
+            </td>
+          );
+        } else {
+          return (
+            <td key={columnKey} className="min-w-[180px] px-4 py-2 border-r border-b border-border text-center h-12">
+              <div 
+                className="flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden text-ellipsis cursor-pointer hover:bg-muted/50 rounded-md p-1 transition-colors"
+                onClick={() => {
+                  if (paywalled && !unlocked) {
+                    setSelectedPaywallTip(tip);
+                    setShowPaywallSheet(true);
+                  } else {
+                    setSelectedAdvisorForMobile(tip);
+                    setShowAdvisorSheet(true);
+                  }
+                }}
+                onDoubleClick={() => {
+                  // Double-click to directly view all tips from this advisor
+                  handleViewAllTips(tip.name);
+                }}
+                title={`Click to view ${tip.name}'s profile, double-click to view all tips`}
+              >
+                <img src={tip.avatar} alt={tip.name} className="w-6 h-6 rounded-xl flex-shrink-0" />
+                <span className="font-light text-[13.5px] whitespace-nowrap overflow-hidden text-ellipsis">{tip.name}</span>
+                <ArrowUpRight size={14} className="text-muted-foreground" />
+              </div>
+            </td>
+          );
+        }
+      
+      case 'asset':
+        return (
+          <td key={columnKey} className={cellClasses}>
+            {tip.asset_type}
+          </td>
+        );
+      
+      case 'symbol':
+        if (isMobile) {
+          return (
+            <td key={columnKey} className={`${cellClasses} font-medium`}>
+              <Button variant="ghost" size="sm" className="p-1 pl-2 pr-2 flex items-center gap-1.5" onClick={() => {
+                setSelectedSymbolForMobile(tip.symbol);
+                setShowSymbolSheet(true);
+              }}>
+                <span className="font-light text-[13.5px]">{tip.symbol}</span>
+                <BarChart2 size={12} className="text-muted-foreground opacity-60" />
+              </Button>
+            </td>
+          );
+        } else {
+          return (
+            <td key={columnKey} className="min-w-[90px] px-4 py-2 border-r border-b border-border text-center whitespace-nowrap h-12 overflow-hidden text-ellipsis font-light text-[13.5px]">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="p-1 px-2 flex items-center justify-center gap-1.5 mx-auto" 
+                    onClick={(e) => { 
+                      const tipData = encodeURIComponent(JSON.stringify({
+                        id: tip.id,
+                        created_at: tip.created_at,
+                        name: tip.name,
+                        avatar: tip.avatar,
+                        symbol: tip.symbol,
+                        performance: tip.score || 60,
+                        win_rate: tip.win_rate || 65,
+                        conviction: tip.conviction || 'Medium',
+                        holding: tip.holding || 'Swing',
+                        risk: tip.risk || 'Medium',
+                        entry_price: tip.entry_price,
+                        exit_price: tip.exit_price,
+                        target_duration: tip.target_duration,
+                        allocation: tip.allocation,
+                        catalyst: tip.catalyst,
+                        valuation: tip.valuation,
+                        sentiment: tip.sentiment,
+                        technical: tip.technical,
+                        sector: tip.sector,
+                        ...tip
+                      }));
+                      window.open(`/tip?data=${tipData}`, '_blank');
+                    }}
+                  >
+                    <span className="font-light text-[13.5px]">{tip.symbol}</span>
+                    <BarChart2 size={12} className="text-muted-foreground opacity-60" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" align="center" sideOffset={5} className="p-0">
+                  <div className="w-[800px] h-[400px] p-0 bg-background border border-border rounded-lg overflow-hidden">
+                    <TradingViewWidget
+                      symbol={tip?.symbol}
+                      theme={isDarkTheme ? 'dark' : 'light'}
+                      height={400}
+                      width={1000}
+                    />
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </td>
+          );
+        }
+      
+      case 'return':
+        return (
+          <td key={columnKey} className={isMobile ? `${cellClasses} font-medium` : cellClasses}>
+            {tip.expected_return}
+          </td>
+        );
+      
+      case 'risk':
+        return (
+          <td key={columnKey} className={isMobile ? cellClasses : "min-w-[110px] px-4 py-2 border-r border-b border-border text-center h-12"}>
+            <Badge 
+              style={getLevelStyle(tip.risk || 'Medium', 'risk')} 
+              className={isMobile ? "font-medium border-none px-1 py-0.5 text-xs whitespace-nowrap" : "font-[13.5px] font-light border-none px-2.5 py-0.5 whitespace-nowrap"}
+            >
+              {tip.risk || 'Medium'}
+            </Badge>
+          </td>
+        );
+      
+      case 'holding':
+        return (
+          <td key={columnKey} className={cellClasses}>
+            {tip.holding }
+          </td>
+        );
+      
+      case 'sentiment':
+        return (
+          <td key={columnKey} className={cellClasses}>
+            {tip.sentiment}
+          </td>
+        );
+      
+      case 'investment': {
+        // Paywall logic: show lock icon if tip is less than 25 hours old and not unlocked
+        const created = new Date(tip.created_at);
+        const now = new Date();
+        const diffMs = now.getTime() - created.getTime();
+        const diffHours = diffMs / (1000 * 60 * 60);
+        const paywalled = diffHours < 24;
+        const unlocked = isUnlocked(tip);
+        return (
+          <td key={columnKey} className={isMobile ? "px-2 py-2 border-b border-border text-center" : "min-w-[80px] px-4 py-2 border-r border-b border-border text-center h-12"}>
+            <div className="flex items-center justify-center gap-1">
+              <span>{tip.investment }</span>
+              {paywalled && !unlocked ? (
+                <span onClick={() => {
+                  setSelectedPaywallTip(tip);
+                  setShowPaywallSheet(true);
+                }}>
+                  <Lock size={16} className="ml-1 text-muted-foreground cursor-pointer" />
+                </span>
+              ) : (
+                <Button variant="ghost" size="icon" className={isMobile ? "h-6 w-6" : "h-8 w-8"} onClick={() => {
+                  setSelectedTipForMobile(tip);
+                  setMobileTipSheetOpen(true);
+                }}>
+                  <Info size={isMobile ? 12 : 16} />
+                </Button>
+              )}
+            </div>
+          </td>
+        );
+      }
+      
+      // Additional columns
+      case 'sector':
+        return (
+          <td key={columnKey} className={cellClasses}>
+            {tip.sector }
+          </td>
+        );
+      
+      case 'strategy':
+        return (
+          <td key={columnKey} className={cellClasses}>
+            {tip.strategy }
+          </td>
+        );
+      
+      case 'conviction':
+        return (
+          <td key={columnKey} className={isMobile ? cellClasses : "min-w-[110px] px-4 py-2 border-r border-b border-border text-center h-12"}>
+            <Badge 
+              style={getLevelStyle(tip.conviction || 'Medium', 'conviction')} 
+              className={isMobile ? "font-medium border-none px-1 py-0.5 text-xs whitespace-nowrap" : "font-[13.5px] font-light border-none px-2.5 py-0.5 whitespace-nowrap"}
+            >
+              {tip.conviction || 'Medium'}
+            </Badge>
+          </td>
+        );
+      
+      case 'entry':
+        return (
+          <td key={columnKey} className={cellClasses}>
+            ${tip.entry_price }
+          </td>
+        );
+      
+      case 'exit':
+        return (
+          <td key={columnKey} className={cellClasses}>
+            ${tip.exit_price }
+          </td>
+        );
+      
+      case 'stop':
+        return (
+          <td key={columnKey} className={cellClasses}>
+            ${tip.stop_loss }
+          </td>
+        );
+      
+      case 'duration':
+        return (
+          <td key={columnKey} className={cellClasses}>
+            {tip.target_duration }
+          </td>
+        );
+      
+      case 'allocation':
+        return (
+          <td key={columnKey} className={cellClasses}>
+            {tip.allocation }
+          </td>
+        );
+      
+      case 'catalyst':
+        return (
+          <td key={columnKey} className={cellClasses}>
+            {tip.catalyst }
+          </td>
+        );
+      
+      case 'valuation':
+        return (
+          <td key={columnKey} className={cellClasses}>
+            {tip.valuation }
+          </td>
+        );
+      
+      case 'technical':
+        return (
+          <td key={columnKey} className={cellClasses}>
+            {tip.technical }
+          </td>
+        );
+      
+      case 'marketCap':
+        return (
+          <td key={columnKey} className={cellClasses}>
+            {tip.market_cap || tip.marketCap || '-'}
+          </td>
+        );
+      
+      case 'dividendYield':
+        return (
+          <td key={columnKey} className={cellClasses}>
+            {tip.dividend_yield || tip.dividendYield || '-'}
+          </td>
+        );
+      
+      case 'region':
+        return (
+          <td key={columnKey} className={cellClasses}>
+            {tip.region || tip.geography || '-'}
+          </td>
+        );
+      
+      case 'growthMetrics':
+        return (
+          <td key={columnKey} className={cellClasses}>
+            {tip.growth_metrics || tip.growthMetrics || '-'}
+          </td>
+        );
+      
+      case 'esgRatings':
+        return (
+          <td key={columnKey} className={cellClasses}>
+            {tip.esg_rating || tip.esgRating || '-'}
+          </td>
+        );
+      
+      case 'analysisType':
+        return (
+          <td key={columnKey} className={cellClasses}>
+            {tip.analysis_type || tip.analysisType || '-'}
+          </td>
+        );
+      
+      case 'volatility':
+        return (
+          <td key={columnKey} className={cellClasses}>
+            {tip.volatility || '-'}
+          </td>
+        );
+      
+      case 'liquidity':
+        return (
+          <td key={columnKey} className={cellClasses}>
+            {tip.liquidity || '-'}
+          </td>
+        );
+      
+      case 'diversification':
+        return (
+          <td key={columnKey} className={cellClasses}>
+            {tip.diversification || '-'}
+          </td>
+        );
+      
+      case 'performance':
+        return (
+          <td key={columnKey} className={cellClasses}>
+            {tip.performance || tip.expected_performance || '-'}
+          </td>
+        );
+      
+      default:
+        return (
+          <td key={columnKey} className={cellClasses}>
+            {tip[columnKey] || '-'}
+          </td>
+        );
+    }
+  };
+
+  // Unlock tip handler
+  const handleUnlockTip = async (tip) => {
+    // If not logged in, redirect to login
+    if (!userData || !userData.id) {
+      window.location.href = '/login';
+      return;
+    }
+    // Check if already unlocked
+    if (isUnlocked(tip)) {
+      return;
+    }
+    // Get required lollipops (default 1 if not specified)
+    const requiredLollipops = tip.lollipopsRequired || 5;
+    // Check if user has enough credits
+    if ((userData.credits || 0) < requiredLollipops) {
+      alert('Not enough Lollipops to unlock this tip.');
+      return;
+    }
+    // Deduct credits and update Supabase
+    const newCredits = (userData.credits || 0) - requiredLollipops;
+    const { data: updateData, error: updateError } = await supabase
+      .from('users')
+      .update({ credits: newCredits })
+      .eq('id', userData.id)
+      .select()
+      .single();
+    
+    if (updateError) {
+      console.error('Error updating user credits:', updateError);
+      alert('Failed to update credits. Please try again.');
+      return;
+    }
+  const baseClasses = isMobile ? "px-2 py-2 border-b border-border text-center" : "px-4 py-2 border-r border-b border-border text-center whitespace-nowrap h-12 overflow-hidden text-ellipsis font-light text-[13.5px]";
+    const currentUnlocked = Array.isArray(updateData.unlockedTips) ? updateData.unlockedTips : [];
+    const updatedUnlocked = currentUnlocked.includes(tip.id) ? currentUnlocked : [...currentUnlocked, tip.id];
+    const { data: unlockData, error: unlockError } = await supabase
+      .from('users')
+      .update({ unlockedTips: updatedUnlocked })
+      .eq('id', userData.id)
+      .select()
+      .single();
+    if (unlockError) {
+      console.error('Error updating unlocked_tips:', unlockError);
+      alert('Failed to unlock tip. Please try again.');
+      return;
+    }
+    // Update local state atomically
+    setUserData(prev => ({ ...prev, credits: newCredits, unlocked_tips: updatedUnlocked }));
+    setUnlockedTips(prev => prev.includes(tip.id) ? prev : [...prev, tip.id]);
+  };
+
+  // Filtered tips logic
+
+  const filteredTips = useMemo(() => {
+  // --- Filtered Tips Logic ---
+    // Helper for string match
+    const matchString = (a, b) => {
+      if (!a || !b) return false;
+      return a.trim().toLowerCase() === b.trim().toLowerCase();
+    };
+
+    // Helper for array filter
+    const filterArray = (selected, value) => {
+      if (!selected || selected.length === 0) return true;
+      return selected.some(sel => matchString(sel, value));
+    };
+
+    // Helper for range filter
+    const filterRange = (selected, value, config) => {
+      if (!selected || selected.length === 0) return true;
+      return selected.some(label => {
+        const range = config.find(r => r.label === label);
+        return range && value !== null && value >= range.min && value < range.max;
+      });
+    };
+
+    // Main filter logic
+    let tips = tipsData.filter(tip => {
+      if (showOnlyFree) {
+        const tipDate = new Date(tip.created_at);
+        const now = new Date();
+        const hoursDiff = (now - tipDate) / (1000 * 60 * 60);
+        if (hoursDiff < 24) return false;
+      }
+
+      // Parse numbers for range filters
+      const tipReturn = tip.expected_return ? parseFloat(String(tip.expected_return).replace(/[^\d.]/g, '')) : null;
+      const tipDividend = tip.dividend_yield ? parseFloat(tip.dividend_yield) : null;
+      const tipSalesGrowth = tip.sales_growth ? parseFloat(tip.sales_growth) : null;
+      const tipEarningsGrowth = tip.earnings_growth ? parseFloat(tip.earnings_growth) : null;
+
+      // Apply all filters strictly
+      return (
+        filterArray(selectedAsset, tip.asset_type) &&
+        filterArray(selectedSector, tip.sector) &&
+        filterArray(selectedSentiment, tip.sentiment) &&
+        filterArray(selectedStrategies, tip.strategy) &&
+        filterArray(selectedRisk, tip.risk) &&
+        filterRange(selectedExpectedReturn, tipReturn, MASTER_FILTERS.expectedReturn) &&
+        filterArray(selectedMarketCap, tip.marketCap) &&
+        filterRange(selectedDividendYield, tipDividend, MASTER_FILTERS.dividendYield) &&
+        filterArray(selectedHolding, tip.holding) &&
+        filterArray(selectedDuration, tip.target_duration) &&
+        filterArray(selectedRegions, tip.region) &&
+        filterArray(selectedValuationMetrics, tip.valuationMetric) &&
+        // Growth metrics: handle both sales and earnings
+        (selectedGrowthMetrics.length === 0 || selectedGrowthMetrics.some(label => {
+          const range = MASTER_FILTERS.growthMetrics.find(r => r.label === label);
+          if (label.includes('Sales')) {
+            return range && tipSalesGrowth !== null && tipSalesGrowth >= range.min && tipSalesGrowth < range.max;
+          } else if (label.includes('Earnings')) {
+            return range && tipEarningsGrowth !== null && tipEarningsGrowth >= range.min && tipEarningsGrowth < range.max;
+          }
+          return false;
+        })) &&
+        filterArray(selectedTechnicalIndicators, tip.technicalIndicator) &&
+        filterArray(selectedEsgRatings, tip.esgRating) &&
+        filterArray(selectedAnalysisType, tip.analysisType) &&
+        filterArray(selectedVolatility, tip.volatility) &&
+        filterArray(selectedLiquidity, tip.liquidity) &&
+        filterArray(selectedConviction, tip.conviction) &&
+        filterArray(selectedCatalyst, tip.catalyst) &&
+        filterArray(selectedValuation, tip.valuation) &&
+        filterArray(selectedTechnical, tip.technical) &&
+        filterArray(selectedDiversification, tip.diversification) &&
+        filterArray(selectedPerformance, tip.performance)
+      );
+    });
+
+    // Search filter
+    if (debouncedSearch.trim() !== '') {
+      const q = debouncedSearch.trim().toLowerCase();
+      tips = tips.filter(tip => {
+        return [
+          tip.tip,
+          tip.name,
+          tip.symbol,
+          tip.asset_type,
+          tip.sector,
+          tip.sentiment,
+          tip.strategy,
+          tip.risk,
+          tip.expected_return,
+          tip.marketCap,
+          tip.dividend_yield,
+          tip.holding,
+          tip.target_duration,
+          tip.region,
+          tip.valuationMetric,
+          tip.sales_growth,
+          tip.earnings_growth,
+          tip.technicalIndicator,
+          tip.esgRating,
+          tip.analysisType,
+          tip.volatility,
+          tip.liquidity,
+          tip.conviction,
+          tip.catalyst,
+          tip.valuation,
+          tip.technical,
+          tip.diversification,
+          tip.performance
+        ].some(field => field && String(field).toLowerCase().includes(q));
+      });
+    }
+    return tips;
+  }, [tipsData, selectedAsset, selectedSector, selectedSentiment, selectedStrategies, selectedRisk, selectedExpectedReturn, selectedMarketCap, selectedDividendYield, selectedHolding, selectedDuration, selectedRegions, selectedValuationMetrics, selectedGrowthMetrics, selectedTechnicalIndicators, selectedEsgRatings, selectedAnalysisType, selectedVolatility, selectedLiquidity, selectedConviction, selectedCatalyst, selectedValuation, selectedTechnical, selectedDiversification, selectedPerformance, debouncedSearch, showOnlyFree]);
+
+  // REMOVED: old visibleTips for pagination fix
+
+  // Reset visible count when filters change
+  useEffect(() => {
+    setVisibleCount(25);
+  }, [filteredTips.length]);
+
+  // Filter handlers
+  const toggleFilter = (filterArray, setFilter, value) => {
+  // --- Filter Handlers ---
+    if (filterArray.includes(value)) {
+      setFilter(filterArray.filter(x => x !== value));
+    } else {
+      setFilter([...filterArray, value]);
+    }
+  };
+
+  const removeFilter = (filterArray, setFilter, value) => {
+    setFilter(filterArray.filter(x => x !== value));
+  };
+
+
+    const renderFilterCarousel = (data, selected, onSelect, renderItem) => (
+  // --- Filter Carousel Component ---
+    <div style={{marginLeft:-15}}  className="mt-4 mb-4">
+      <div className="w-full flex flex-wrap gap-4 p-1">
+        {data?.map((item, idx) => {
+          const value = item.label || item.name;
+          const isSelected = selected.includes(value);
+          return (
+            <>
+            <Button
+              key={value || idx}
+              className="flex-shrink-0"
+              onClick={() => onSelect(value)}
+              variant={'ghost'}
+              style={{marginRight:-30, marginBottom:10, marginTop:30}}
+            >
+              {renderItem(item, isSelected)}
+            </Button>
+            </>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  // Components
+
+    // Profile edit modal state
+  const [showProfileEdit, setShowProfileEdit] = useState(false);
+  const [editName, setEditName] = useState("");
+  const [editPhoto, setEditPhoto] = useState(null);
+  const [editLoading, setEditLoading] = useState(false);
+
+  useEffect(() => {
+    setEditName(userData.name || "");
+    // If user is logged in and missing name or avatar, open profile edit popover
+    if (userData.id && (!userData.name || !userData.avatar)) {
+      setShowProfileEdit(true);
+    }
+  }, [userData.name, userData.avatar, userData.id]);
+
+  const handleProfileUpdate = async () => {
+    setEditLoading(true);
+    let photoUrl = userData.avatar;
+    if (editPhoto) {
+      // Upload photo to Supabase storage
+      const fileExt = editPhoto.name.split('.').pop();
+      const fileName = `${userData.id}_${Date.now()}.${fileExt}`;
+      const { data, error } = await supabase.storage.from('post-images').upload(fileName, editPhoto);
+      if (!error && data) {
+        const publicUrlObj = supabase.storage.from('post-images').getPublicUrl(data.path);
+        photoUrl = publicUrlObj.data.publicUrl;
+      } else {
+        console.error('Error uploading photo:', error);
+      }
+    }
+    const { data: updateData, error: updateError } = await supabase.from('users').update({ name: editName, profile_photo_url: photoUrl }).eq('id', userData.id);
+    setUserData({ ...userData, name: editName, avatar: photoUrl });
+    setEditLoading(false);
+    setShowProfileEdit(false);
+  };
+
+  const ProfileEditPopover = () => {
+    if (!showProfileEdit) return null;
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+        <div className={`rounded-lg p-6 w-[340px] shadow-lg ${isDarkTheme ? 'bg-zinc-900 text-white' : 'bg-white text-black'}` }>
+          <div className={`font-bold text-lg mb-2 text-center ${isDarkTheme ? 'text-white' : 'text-black'}`}>Complete Your Profile</div>
+          <div className="flex flex-col gap-3">
+            <label className={`text-sm font-medium ${isDarkTheme ? 'text-white' : 'text-black'}`}>Name</label>
+            <span className={`text-xs mb-1 ${isDarkTheme ? 'text-zinc-300' : 'text-gray-600'}`}>Your name will be displayed on your profile and helps personalize your experience. Please enter your full name so we can address you properly and show it to other users if needed.</span>
+            <input
+              type="text"
+              value={editName}
+              onChange={e => setEditName(e.target.value)}
+              className={`border px-2 py-1 rounded ${isDarkTheme ? 'bg-zinc-800 text-white border-zinc-700' : 'bg-gray-100 text-black border-gray-300'}`}
+              autoFocus
+            />
+            <label className={`text-sm font-medium mt-2 ${isDarkTheme ? 'text-white' : 'text-black'}`}>Profile Photo</label>
+            <span className={`text-xs mb-1 ${isDarkTheme ? 'text-zinc-300' : 'text-gray-600'}`}>Your profile photo helps others recognize you and adds a personal touch to your account. Please upload a clear image of yourself or an avatar you prefer. This is required for account security and community trust.</span>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={e => setEditPhoto(e.target.files[0])}
+              className={`border px-2 py-1 rounded ${isDarkTheme ? 'bg-zinc-800 text-white border-zinc-700' : 'bg-gray-100 text-black border-gray-300'}`}
+            />
+            {editPhoto && (
+              <img src={URL.createObjectURL(editPhoto)} alt="Preview" className="w-16 h-16 rounded-full mt-2 mx-auto" />
+            )}
+            <div className={`text-xs mt-2 mb-2 ${isDarkTheme ? 'text-yellow-300' : 'text-yellow-700'}`}>Completing your profile is necessary to use all features and interact with the community. Your information is kept private and secure.</div>
+            <div className="flex gap-2 mt-4 justify-center">
+              <Button
+                size="sm"
+                className={`px-4 py-1 rounded font-semibold border transition-colors duration-150 ${isDarkTheme ? 'bg-black text-white border-zinc-700 hover:bg-zinc-900' : 'bg-white text-black border-gray-300 hover:bg-gray-100'}`}
+                style={{ boxShadow: isDarkTheme ? '0 1px 4px #222' : '0 1px 4px #EEE' }}
+                onClick={handleProfileUpdate}
+                disabled={editLoading}
+              >
+                {editLoading ? 'Updating...' : 'Update'}
+              </Button>
+              <Button
+                size="sm"
+                className={`px-4 py-1 rounded ${isDarkTheme ? 'bg-zinc-700 text-white' : 'bg-gray-300 text-black'}`}
+                onClick={() => setShowProfileEdit(false)}
+                disabled={editLoading}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+
+  const HeaderBar = () => (
+  // --- Header Bar ---
+    <div className="mt-[-5px] flex items-center justify-between p-4 border-b border-border">
+      
+      
+      
+      {/* Left: LollipopIcon SVG icon and app name */}
+      {<div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/60 transition-colors cursor-pointer"
+          onClick={() => setShowPlatformInfoSheet(true)}
+        >
+          <img src={ isDarkTheme ? LollipopSVGWhite :  LollipopSVG} alt="Lollipop" className="w-5 h-5" />
+          <span style={{letterSpacing: '1.2px', fontSize:16}} className="font-bold text-lg tracking-tight">LOLLIPOP</span>
+          <Info size={16} className="text-muted-foreground ml-1" />
+        </Button>
+      </div>}
+
+
+
+
+      {/* Center: Desktop always shows search input, mobile shows icon toggle */}
+        
+        <div className="h-[3vh] relative flex items-center w-[80%] max-w-[20%] ml-20">
+          {/* Desktop: always show search input */}
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground block">
+            {search && debouncedSearch !== search ? (
+              <Loader2 size={18} className="animate-spin" />
+            ) : (
+              <Search size={16} />
+            )}
+          </span>
+          <Input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search tips…"
+            className="pl-9 pr-[search ? 9 : 8] w-full text-sm py-1 border-border rounded"
+            autoFocus={search && true}
+            style={{ height: '150%' }}
+          />
+
+          {search && (
+            <Button
+              className="absolute left-[85%] top-1/2 -translate-y-1/2 text-muted-foreground bg-transparent border-none cursor-pointer p-0 m-0"
+              onClick={() => setSearch('')}
+              tabIndex={-1}
+              aria-label="Clear search"
+            >
+              <X size={16} />
+            </Button>
+          )}
+          
+        </div>
+    
+
+
+
+      {/* Right: User controls */}
+      <div className="flex items-center gap-2">
+        <div className="hidden">
+            {searchOpen ? (
+              <div className="relative flex items-start w-full">
+                <Input
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  placeholder="Search tipsdfsdfs…"
+                  className="pl-9 pr-8 w-full text-sm py-2 rounded border-border"
+                  autoFocus
+                />
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                  <Search size={18} />
+                </span>
+                {search && (
+                  <Button
+                    className="absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground bg-transparent border-none cursor-pointer"
+                    onClick={() => setSearch('')}
+                    tabIndex={-1}
+                  >
+                    
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => { setSearchOpen(true); setSearch(''); }}
+
+              >
+                <Search size={17.5} />
+              </Button>
+            )}
+          </div>
+        {searchOpen ? null : (
+          <>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={showOnlyFree ? "default" : "outline"}
+                    size="sm"
+                    className="flex items-center gap-1.5 px-3 rounded-full"
+                    onClick={() => setShowOnlyFree(!showOnlyFree)}
+                  >
+                    <LockOpen size={16} />
+                    <span className="text-xs">Only Free Tips</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Show tips that are older than 24 hours</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="flex items-center border border-border rounded-full w-[30px] h-[30px] justify-center"
+              onClick={() => setIsDarkTheme(!isDarkTheme)}
+            >
+              {isDarkTheme ? <Sun size={17.5} /> : <Moon size={17.5} />}
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="flex items-center border border-border rounded-full w-[30px] h-[30px] justify-center"
+              onClick={() => setShowMobileAlertSheet(true)}
+            >
+              <Bell size={17.5} />
+            </Button>
+            <div className="relative">
+              {userData && userData.id ? (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex items-center border border-border rounded-full w-[30px] h-[30px] justify-center p-0"
+                  onClick={() => setShowMobileUserSheet(true)}
+                >
+                  {userData.avatar ? (
+                    <img 
+                      src={userData.avatar} 
+                      alt={userData.name} 
+                      className="w-full h-full rounded-full"
+                    />
+                  ) : (
+                    <User size={17.5} />
+                  )}
+                </Button>
+              ) : (
+                <Button
+                  className="flex items-center border border-border rounded-full w-[30px] h-[30px] justify-center"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => window.location.href = '/login'}
+                >
+                  <User size={17.5} />
+                </Button>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+
+
+      
+    </div>
+  );
+
+  // When a tip is clicked, open drawer and set selectedTip
+  const handleTipClick = (tip) => {
+    // Open tip details in a new tab with a unique URL (e.g., /tip/{tip.id})
+    if (tip && tip.id) {
+      window.open(`/tip/${encodeURIComponent(tip.id)}`, '_blank', 'noopener,noreferrer');
+    }
+    // Optionally, you can still setSelectedTip(tip) if you want to keep the current tab behavior
+    // setSelectedTip(tip);
+  };
+
+  // Function to view all tips for a specific advisor
+  const handleViewAllTips = (advisorName) => {
+    // Clear all filters first
+    setSelectedAsset([]);
+    setSelectedSector([]);
+    setSelectedSentiment([]);
+    setSelectedStrategies([]);
+    setSelectedRisk([]);
+    setSelectedExpectedReturn([]);
+    setSelectedMarketCap([]);
+    setSelectedDividendYield([]);
+    setSelectedHolding([]);
+    setSelectedDuration([]);
+    setSelectedRegions([]);
+    setSelectedValuationMetrics([]);
+    setSelectedGrowthMetrics([]);
+    setSelectedTechnicalIndicators([]);
+    setSelectedEsgRatings([]);
+    setSelectedAnalysisType([]);
+    setSelectedVolatility([]);
+    setSelectedLiquidity([]);
+    setSelectedConviction([]);
+    setSelectedCatalyst([]);
+    setSelectedValuation([]);
+    setSelectedTechnical([]);
+    setSelectedDiversification([]);
+    setSelectedPerformance([]);
+    setShowOnlyFree(false);
+    
+    // Set search to advisor name
+    setSearch(advisorName);
+    
+    // Close any open sheets
+    setShowAdvisorSheet(false);
+    setShowPaywallSheet(false);
+    
+    // Scroll to top of page
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Show a toast notification
+    toast(`Showing all tips from ${advisorName}`, {
+      duration: 3000,
+      description: `Found tips from this advisor. Use the search bar to explore other advisors.`,
+    });
+  };
+
+  const filterCategories = [
+    { key: 'assets', title: 'Assets', icon: ChartPie, selected: selectedAsset, setSelected: setSelectedAsset },
+    { key: 'sectors', title: 'Sector', icon: Laptop, selected: selectedSector, setSelected: setSelectedSector },
+    { key: 'sentiments', title: 'Sentiment', icon: TrendingUp, selected: selectedSentiment, setSelected: setSelectedSentiment },
+    { key: 'strategies', title: 'Strategies', icon: Gauge, selected: selectedStrategies, setSelected: setSelectedStrategies },
+    { key: 'risk', title: 'Risk', icon: AlertTriangle, selected: selectedRisk, setSelected: setSelectedRisk },
+    { key: 'expectedReturn', title: 'Returns', icon: TrendingUp, selected: selectedExpectedReturn, setSelected: setSelectedExpectedReturn },
+    { key: 'marketCap', title: 'Market Cap', icon: Building, selected: selectedMarketCap, setSelected: setSelectedMarketCap },
+    { key: 'dividendYield', title: 'Dividend Yield', icon: DollarSign, selected: selectedDividendYield, setSelected: setSelectedDividendYield },
+    { key: 'holding', title: 'Holding', icon: Calendar, selected: selectedHolding, setSelected: setSelectedHolding },
+    { key: 'duration', title: 'Duration', icon: Clock, selected: selectedDuration, setSelected: setSelectedDuration },
+    { key: 'regions', title: 'Regions', icon: Globe, selected: selectedRegions, setSelected: setSelectedRegions },
+    { key: 'valuationMetrics', title: 'Valuation Metrics', icon: Calculator, selected: selectedValuationMetrics, setSelected: setSelectedValuationMetrics },
+    { key: 'growthMetrics', title: 'Growth', icon: Leaf, selected: selectedGrowthMetrics, setSelected: setSelectedGrowthMetrics },
+    { key: 'technicalIndicators', title: 'Technical Indicators', icon: BarChart3, selected: selectedTechnicalIndicators, setSelected: setSelectedTechnicalIndicators },
+    { key: 'esgRatings', title: 'ESG', icon: Leaf, selected: selectedEsgRatings, setSelected: setSelectedEsgRatings },
+    { key: 'analysisType', title: 'Analysis', icon: FileText, selected: selectedAnalysisType, setSelected: setSelectedAnalysisType },
+    { key: 'volatility', title: 'Volatility', icon: Activity, selected: selectedVolatility, setSelected: setSelectedVolatility },
+    { key: 'liquidity', title: 'Liquidity', icon: Droplets, selected: selectedLiquidity, setSelected: setSelectedLiquidity },
+    { key: 'conviction', title: 'Conviction', icon: Shield, selected: selectedConviction, setSelected: setSelectedConviction },
+    { key: 'catalyst', title: 'Catalyst', icon: Zap, selected: selectedCatalyst, setSelected: setSelectedCatalyst },
+    { key: 'valuation', title: 'Valuations', icon: Target, selected: selectedValuation, setSelected: setSelectedValuation },
+    { key: 'technical', title: 'Technicals', icon: LineChart, selected: selectedTechnical, setSelected: setSelectedTechnical },
+    { key: 'diversification', title: 'Diversification', icon: Shuffle, selected: selectedDiversification, setSelected: setSelectedDiversification },
+    { key: 'performance', title: 'Performance', icon: Trophy, selected: selectedPerformance, setSelected: setSelectedPerformance },
+  ];
+
+  // Split filter categories into main (first 8) and additional (rest)
+  const mainFilterCategories = filterCategories.slice(0, 8);
+  const additionalFilterCategories = filterCategories.slice(8);
+
+  // Responsive pagination and load more logic
+  const [displayedTips, setDisplayedTips] = React.useState([]);
+  const [isMobile, setIsMobile] = React.useState(false);
+  
+  useEffect(() => {
+    function updateLayout() {
+      const w = window.innerWidth;
+      const isMobileView = w < 1024; // lg breakpoint
+      setIsMobile(isMobileView);
+    }
+    updateLayout();
+    window.addEventListener('resize', updateLayout);
+    return () => window.removeEventListener('resize', updateLayout);
+  }, []);
+
+  // Update displayed tips when filteredTips changes (start with 20 tips)
+  useEffect(() => {
+    setDisplayedTips(filteredTips.slice(0, 20));
+  }, [filteredTips]);
+
+  // Infinite scroll handler for both mobile and desktop
+  useEffect(() => {
+    const handleScroll = () => {
+      if (loadingMore) return;
+      
+      const container = tableContainerRef.current;
+      if (!container) return;
+      
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      const nearBottom = scrollTop + clientHeight >= scrollHeight - 100; // 100px threshold
+      
+      if (nearBottom && displayedTips.length < filteredTips.length) {
+        setLoadingMore(true);
+        
+        // Show toast for desktop
+        if (!isMobile) {
+          toast("Loading more tips...", {
+            duration: 1000,
+            position: "bottom-right",
+            icon: "⏳",
+          });
+        }
+        
+        // Simulate loading delay for smooth UX
+        setTimeout(() => {
+          const nextBatch = Math.min(displayedTips.length + 15, filteredTips.length);
+          setDisplayedTips(filteredTips.slice(0, nextBatch));
+          setLoadingMore(false);
+        }, 500);
+      }
+    };
+
+    const container = tableContainerRef.current;
+    if (container) {
+      container.addEventListener('scroll', handleScroll);
+      return () => container.removeEventListener('scroll', handleScroll);
+    }
+  }, [isMobile, loadingMore, displayedTips.length, filteredTips.length, filteredTips]);
+
+  return (
+    <div className={isDarkTheme ? 'dark' : ''}>
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 text-foreground overflow-x-hidden font-[UberMove,UberMoveText]">
+      {/* Additional content can go here */}
+        {/* Header: show on desktop, else show grey background bar */}
+        <div>
+          <div className="hidden lg:block">
+            <HeaderBar />
+          </div>
+
+
+          {/* Mobile Header Bar - Brand on first line, search/filter on next line */}
+          <div className="lg:hidden sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border shadow-sm">
+            {/* First line: Brand and right-side icons */}
+            <div className="flex items-center justify-between pr-4 py-2">
+              <Button
+                variant="ghost"
+                className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted/60 transition-colors cursor-pointer flex-shrink-0"
+                onClick={() => setShowPlatformInfoSheet(true)}
+              >
+                <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-6 h-6" />
+                <span style={{letterSpacing: '1px', fontSize: 16}} className="font-bold tracking-tight">LOLLIPOP</span>
+                <Info size={14} className="text-muted-foreground ml-[-1px]" />
+              </Button>
+              <div className="flex items-center gap-1">
+                {/* Theme Toggle Button */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="p-2.5 h-10 w-10 rounded-full hover:bg-muted/80 transition-colors"
+                  onClick={() => setIsDarkTheme(!isDarkTheme)}
+                  aria-label="Toggle theme"
+                >
+                  {isDarkTheme ? <Sun size={18} /> : <Moon size={18} />}
+                </Button>
+                {/* Bell/Notifications Button */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="p-2.5 h-10 w-10 rounded-full hover:bg-muted/80 transition-colors"
+                  onClick={() => setShowMobileAlertSheet(true)}
+                  aria-label="Notifications"
+                >
+                  <Bell size={18} />
+                </Button>
+                {/* User Profile Button */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="p-2.5 h-10 w-10 rounded-full hover:bg-muted/80 transition-colors"
+                  onClick={() => {
+                    if (!userData || !userData.id) {
+                      window.location.href = '/login';
+                    } else {
+                      setShowMobileUserSheet(true);
+                    }
+                  }}
+                  aria-label="Profile"
+                >
+                  {userData?.avatar ? (
+                    <img 
+                      src={userData.avatar} 
+                      alt={userData.name} 
+                      className="w-6 h-6 rounded-full object-cover"
+                    />
+                  ) : (
+                    <User size={18} />
+                  )}
+                </Button>
+              </div>
+            </div>
+            {/* Second line: Search Bar and Filter Icon */}
+            <div className="flex items-center gap-2 px-2 pb-3 pt-0">
+              <div className="flex-1 flex items-center">
+                <div className="relative w-full">
+                  <Input
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    placeholder="Search tips, symbols, advisors, etc ..."
+                    className="pl-10 pr-10 pt-5 pb-5 w-full text-sm border-border rounded-md bg-background shadow-sm"
+                    autoFocus={searchOpen}
+                  />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground cursor-pointer hover:text-primary transition-colors" onClick={() => openInfoSheet('search')}>
+                    {search && debouncedSearch !== search ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                      <Search size={16} />
+                    )}
+                  </span>
+                  {search && (
+                    <Button
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground bg-transparent hover:bg-muted/50 rounded-full p-1 h-7 w-7"
+                      onClick={() => setSearch('')}
+                      tabIndex={-1}
+                      aria-label="Clear search"
+                    >
+                      <X size={14} />
+                    </Button>
+                  )}
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2.5 h-10 w-10 rounded-full hover:bg-muted/80 transition-colors relative flex-shrink-0"
+                onClick={() => setFilterSheetOpen(true)}
+                aria-label="Filters"
+              >
+                <Settings2 size={40} className='w-20 h-30' style={{width: '22.5px', height: '22.5px'}}/>
+                {/* Active filters indicator */}
+                {(selectedAsset.length > 0 || selectedSector.length > 0 || selectedSentiment.length > 0 || 
+                  selectedStrategies.length > 0 || selectedRisk.length > 0 || selectedExpectedReturn.length > 0 || 
+                  selectedMarketCap.length > 0 || selectedDividendYield.length > 0 || selectedHolding.length > 0 || selectedDuration.length > 0 || 
+                  selectedRegions.length > 0 || selectedValuationMetrics.length > 0 || selectedGrowthMetrics.length > 0 || 
+                  selectedTechnicalIndicators.length > 0 || selectedEsgRatings.length > 0 || selectedAnalysisType.length > 0 || 
+                  selectedVolatility.length > 0 || selectedLiquidity.length > 0 || selectedConviction.length > 0 || 
+                  selectedCatalyst.length > 0 || selectedValuation.length > 0 || selectedTechnical.length > 0 || 
+                  selectedDiversification.length > 0 || selectedPerformance.length > 0) && (
+                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full border-2 border-background"></div>
+                )}
+              </Button>
+            </div>
+
+            {/* Mobile Filter Sheet */}
+            <Sheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
+              <SheetContent side="right" className="max-h-[100vh] w-full lg:w-[35vw] overflow-hidden flex flex-col">
+                {/* Header */}
+                <SheetHeader className="pb-4 border-b border-border">
+                  <SheetTitle className="flex items-center gap-2">
+                    <Settings2 size={20} />
+                    Filters & Categories
+                  </SheetTitle>
+                  <SheetDescription className="text-left">
+                    Customize your investment tips feed with precise filtering options
+                  </SheetDescription>
+                </SheetHeader>
+                
+                {/* Content */}
+                <div className="flex-1 overflow-y-auto">
+                  <div className="p-4 space-y-4">
+                    {/* Main Filter Categories */}
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                        Primary Filters
+                      </h3>
+                      
+                      <div className="space-y-3">
+                        {mainFilterCategories.map(cat => (
+                          <div key={cat.key} className="p-3 rounded-lg border border-border bg-muted/30">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-2">
+                                <cat.icon size={16} className="text-primary" />
+                                <span className="font-medium text-sm">{cat.title}</span>
+                              </div>
+                              {cat.selected.length > 0 && (
+                                <Badge variant="default" className="text-xs">
+                                  {cat.selected.length} selected
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {(MASTER_FILTERS[cat.key] || []).map(item => {
+                                const value = item.label || item.name;
+                                const ItemIcon = item.Icon || item.icon;
+                                const isSelected = cat.selected.includes(value);
+                                return (
+                                  <Button
+                                    key={value}
+                                    variant={isSelected ? 'default' : 'outline'}
+                                    size="sm"
+                                    className="flex items-center gap-1 px-2 py-1 rounded-full text-xs"
+                                    onClick={() => toggleFilter(cat.selected, cat.setSelected, value)}
+                                  >
+                                    {ItemIcon && <ItemIcon className="h-3 w-3" />}
+                                    <span>{addSpacing(value)}</span>
+                                  </Button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Advanced Filter Categories */}
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                        Advanced Filters
+                      </h3>
+                      
+                      <div className="space-y-3">
+                        {additionalFilterCategories.map(cat => (
+                          <div key={cat.key} className="p-3 rounded-lg border border-border bg-muted/30">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-2">
+                                <cat.icon size={16} className="text-secondary-foreground" />
+                                <span className="font-medium text-sm">{cat.title}</span>
+                              </div>
+                              {cat.selected.length > 0 && (
+                                <Badge variant="secondary" className="text-xs">
+                                  {cat.selected.length} selected
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {(MASTER_FILTERS[cat.key] || []).map(item => {
+                                const value = item.label || item.name;
+                                const ItemIcon = item.Icon || item.icon;
+                                const isSelected = cat.selected.includes(value);
+                                return (
+                                  <Button
+                                    key={value}
+                                    variant={isSelected ? 'default' : 'outline'}
+                                    size="sm"
+                                    className="flex items-center gap-1 px-2 py-1 rounded-full text-xs"
+                                    onClick={() => toggleFilter(cat.selected, cat.setSelected, value)}
+                                  >
+                                    {ItemIcon && <ItemIcon className="h-3 w-3" />}
+                                    <span>{addSpacing(value)}</span>
+                                  </Button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Active Filters Summary */}
+                    {(mainFilterCategories.some(cat => cat.selected.length > 0) || additionalFilterCategories.some(cat => cat.selected.length > 0)) && (
+                      <div className="space-y-3">
+                        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                          Active Filters
+                        </h3>
+                        
+                        <div className="p-4 rounded-lg border border-dashed border-border bg-muted/20">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Target size={16} className="text-primary" />
+                            <span className="font-medium text-sm">
+                              {[...mainFilterCategories, ...additionalFilterCategories].reduce((sum, cat) => sum + cat.selected.length, 0)} filters applied
+                            </span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mb-3">
+                            Your feed is customized based on the selected criteria above.
+                          </p>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full text-xs"
+                            onClick={() => {
+                              // Clear all filters
+                              [...mainFilterCategories, ...additionalFilterCategories].forEach(cat => {
+                                cat.setSelected([]);
+                              });
+                              toast("All filters cleared", {
+                                duration: 2000,
+                                position: "top-center",
+                              });
+                            }}
+                          >
+                            <X size={14} className="mr-2" />
+                            Clear All Filters
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Filter Actions */}
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                        Quick Actions
+                      </h3>
+                      
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start p-3 h-auto rounded-xl border border-border hover:bg-muted/50"
+                        onClick={() => {
+                          setShowOnlyFree(!showOnlyFree);
+                          setFilterSheetOpen(false);
+                        }}
+                      >
+                        <LockOpen size={16} className="mr-3" />
+                        <div className="text-left">
+                          <div className="font-medium text-sm">
+                            {showOnlyFree ? 'Show All Tips' : 'Only Free Tips'}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {showOnlyFree ? 'Include premium tips in results' : 'Show tips older than 24 hours only'}
+                          </div>
+                        </div>
+                        <ArrowUpRight size={14} className="ml-auto text-muted-foreground" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Footer */}
+                <div className="p-4 border-t border-border bg-muted/20">
+                  <div className="text-xs text-center text-muted-foreground">
+                    Personalize your investment journey with smart filtering
+                  </div>
+                </div>
+              </SheetContent>
+            </Sheet>
+
+            {/* Mobile Search Input (expandable) */}
+            {searchOpen && (
+              <div className="px-4 pb-4 border-b border-border bg-muted/20">
+                <div className="relative">
+                  <Input
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
+                    placeholder="Search tips, symbols, advisors..."
+                    className="pl-10 pr-10 w-full text-sm border-border rounded-xl bg-background shadow-sm"
+                    autoFocus
+                  />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                    {search && debouncedSearch !== search ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                      <Search size={16} />
+                    )}
+                  </span>
+                  {search && (
+                    <Button
+                      className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground bg-transparent hover:bg-muted/50 rounded-full p-1 h-7 w-7"
+                      onClick={() => setSearch('')}
+                      tabIndex={-1}
+                      aria-label="Clear search"
+                    >
+                      <X size={14} />
+                    </Button>
+                  )}
+                </div>
+                {search && debouncedSearch && (
+                  <div className="mt-2 text-xs text-muted-foreground text-center">
+                    {filteredTips.length} {filteredTips.length === 1 ? 'result' : 'results'} found for "{search}"
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+
+
+        <style>{`
+          /* Custom thin scrollbar for all columns */
+          .patla-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f3f4f6;
+          }
+          .patla-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            background: #f3f4f6;
+          }
+          .patla-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+          }
+        `}</style>
+
+        
+
+        <div className="hidden lg:flex items-center p-4 justify-center gap-4 sticky top-0 bg-background z-20"> 
+          {/* Search icon and expandable input */}
+          {/* {!searchOpen ? (
+            <Button
+              className="bg-transparent border-none cursor-pointer p-1.5 mr-2 flex items-center"
+              onClick={() => setSearchOpen(true)}
+              aria-label="Open search"
+            >
+              <Search size={17.5} />
+            </Button>
+          ) : (
+            <div className="relative flex items-center min-w-[220px] max-w-[320px] w-[260px] mr-2">
+              <Input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search tips…"
+                className="pl-9 pr-9 w-full text-sm border-border rounded"
+                autoFocus
+              />
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground block">
+                {search && debouncedSearch !== search ? (
+                  <Loader2 size={18} className="animate-spin" />
+                ) : (
+                  <Search size={18} />
+                )}
+              </span>
+              {search && (
+                <Button
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground bg-transparent border-none cursor-pointer p-0 m-0"
+                  onClick={() => setSearch('')}
+                  tabIndex={-1}
+                  aria-label="Clear search"
+                >
+                  <X size={16} />
+                </Button>
+              )}
+              <Button
+                className="absolute right-[search ? 8 : 2] top-1/2 -translate-y-1/2 text-muted-foreground bg-transparent border-none cursor-pointer p-0 m-0"
+                onClick={() => setSearchOpen(false)}
+                tabIndex={-1}
+                aria-label="Close search"
+              >
+                <X size={16} />
+              </Button>
+            </div>
+          )} */}
+          <Menubar style={{height:"6vh", justifyContent:"center"}} className="w-fit mx-auto bg-background border-border">
+            {/* Main filter categories (first 8) */}
+            {mainFilterCategories.map((cat) => (
+              <MenubarMenu key={cat.key}>
+                <MenubarTrigger style={{padding:10, marginRight:-2.5}} className="focus:bg-muted hover:bg-muted data-[state=open]:bg-muted">
+                  <cat.icon className="mr-2 h-4 w-4" />
+                  {cat.title}
+                </MenubarTrigger>
+                <MenubarContent className="bg-background border-border max-h-[50vh] overflow-hidden relative">
+                  <div className="max-h-[50vh] overflow-y-auto">
+                    {(MASTER_FILTERS[cat.key] || []).map((item) => {
+                      const value = item.label || item.name;
+                      const ItemIcon = item.Icon || item.icon;
+                      return (
+                        <MenubarCheckboxItem
+                          key={value}
+                          checked={cat.selected.includes(value)}
+                          onCheckedChange={() => toggleFilter(cat.selected, cat.setSelected, value)}
+                          className="focus:bg-muted hover:bg-muted data-[state=checked]:bg-muted flex-col items-start py-1.5 px-2 h-auto relative"
+                        >
+                          <div className="flex items-center w-full justify-between">
+                            <div className="flex items-center">
+                              {ItemIcon && <ItemIcon className="mr-1.5 h-3.5 w-3.5" />}
+                              <span className="font-medium text-sm">{addSpacing(value)}</span>
+                            </div>
+                            {cat.selected.includes(value) && (
+                              <div className="w-4 h-4 rounded-sm bg-primary flex items-center justify-center ml-2">
+                                <svg className="w-2.5 h-2.5 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+                          {item.desc && (
+                            <div className="text-xs text-muted-foreground mt-0.5 ml-5 leading-tight">
+                              {item.desc}
+                            </div>
+                          )}
+                        </MenubarCheckboxItem>
+                      );
+                    })}
+                  </div>
+                  {/* Scroll indicator - only show if content is scrollable */}
+                  {MASTER_FILTERS[cat.key].length > 6 && (
+                    <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-background to-transparent pointer-events-none flex items-end justify-center pb-1">
+                      <ChevronDown className="h-4 w-4 text-muted-foreground animate-bounce" />
+                    </div>
+                  )}
+                </MenubarContent>
+              </MenubarMenu>
+            ))}
+
+            {/* "More" submenu for additional filters */}
+            <MenubarMenu>
+              <MenubarTrigger style={{padding:10, marginRight:-2.5}} className="focus:bg-muted hover:bg-muted data-[state=open]:bg-muted">
+                <MoreHorizontal className="mr-2 h-4 w-4" />
+                More
+                {additionalFilterCategories.some(cat => cat.selected && cat.selected.length > 0) && (
+                  <span className="ml-1 text-xs text-pink-500">•</span>
+                )}
+              </MenubarTrigger>
+              <MenubarContent className="bg-background border-border w-56">
+                {additionalFilterCategories.map((cat) => (
+                  <MenubarSub key={cat.key}>
+                    <MenubarSubTrigger className={`${
+                      cat.selected && cat.selected.length > 0 
+                        ? 'text-pink-500 font-medium' 
+                        : 'text-gray-700'
+                    }`}>
+                      <cat.icon className="mr-2 h-4 w-4" />
+                      {cat.title}
+                      {cat.selected && cat.selected.length > 0 && (
+                        <span className="ml-1 text-xs">({cat.selected.length})</span>
+                      )}
+                    </MenubarSubTrigger>
+                    <MenubarSubContent className="bg-background border-border max-h-[50vh] overflow-hidden relative">
+                      <div className="max-h-[50vh] overflow-y-auto">
+                        {(MASTER_FILTERS[cat.key] || []).map((item) => {
+                          const value = item.label || item.name;
+                          const ItemIcon = item.Icon || item.icon;
+                          return (
+                            <MenubarCheckboxItem
+                              key={value}
+                              checked={cat.selected.includes(value)}
+                              onCheckedChange={() => toggleFilter(cat.selected, cat.setSelected, value)}
+                              className="focus:bg-muted hover:bg-muted data-[state=checked]:bg-muted flex-col items-start py-1.5 px-2 h-auto relative"
+                            >
+                              <div className="flex items-center w-full justify-between">
+                                <div className="flex items-center">
+                                  {ItemIcon && <ItemIcon className="mr-1.5 h-3.5 w-3.5" />}
+                                  <span className="font-medium text-sm">{addSpacing(value)}</span>
+                                </div>
+                                {cat.selected.includes(value) && (
+                                  <div className="w-4 h-4 rounded-sm bg-primary flex items-center justify-center ml-2">
+                                    <svg className="w-2.5 h-2.5 text-primary-foreground" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                  </div>
+                                )}
+                              </div>
+                              {item.desc && (
+                                <div className="text-xs text-muted-foreground mt-0.5 ml-5 leading-tight">
+                                  {item.desc}
+                                </div>
+                              )}
+                            </MenubarCheckboxItem>
+                          );
+                        })}
+                      </div>
+                      {/* Scroll indicator - only show if content is scrollable */}
+                      {MASTER_FILTERS[cat.key].length > 6 && (
+                        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-background to-transparent pointer-events-none flex items-end justify-center pb-1">
+                          <ChevronDown className="h-4 w-4 text-muted-foreground animate-bounce" />
+                        </div>
+                      )}
+                    </MenubarSubContent>
+                  </MenubarSub>
+                ))}
+              </MenubarContent>
+            </MenubarMenu>
+          </Menubar>
+
+        </div>
+
+        {/* Table view for tips (from profile screen) */}
+        <div className="w-full lg:m-2.5 lg:mt-0 flex flex-col">
+          
+          
+          {/* Active Filters Display */}
+          {(selectedAsset.length > 0 || selectedSector.length > 0 || selectedSentiment.length > 0 || 
+            selectedStrategies.length > 0 || selectedRisk.length > 0 || selectedExpectedReturn.length > 0 || 
+            selectedMarketCap.length > 0 || selectedDividendYield.length > 0 || selectedHolding.length > 0 || selectedDuration.length > 0 || 
+            selectedRegions.length > 0 || selectedValuationMetrics.length > 0 || selectedGrowthMetrics.length > 0 || 
+            selectedTechnicalIndicators.length > 0 || selectedEsgRatings.length > 0 || selectedAnalysisType.length > 0 || 
+            selectedVolatility.length > 0 || selectedLiquidity.length > 0 || selectedConviction.length > 0 || 
+            selectedCatalyst.length > 0 || selectedValuation.length > 0 || selectedTechnical.length > 0 || 
+            selectedDiversification.length > 0 || selectedPerformance.length > 0 || (search && search.trim() !== '')) && (
+            <div className={`${isMobile ? 'mx-4 mb-4' : 'mx-0 mb-4 mr-5'} p-4 border border-border rounded-xl sticky lg:top-[72px] top-0 z-[19] bg-background/95 backdrop-blur-sm shadow-sm`}>
+              <div className="flex flex-wrap gap-2">
+                {/* Show search query as a filter tag if present */}
+                {search && search.trim() !== '' && (
+                  <Badge 
+                    variant="secondary" 
+                    className={`cursor-pointer ${isMobile ? 'h-8 text-xs' : 'h-8'} rounded-full px-3`}
+                    onClick={() => openInfoSheet('search')}
+                  >
+                    <Search size={12} className="mr-1" />
+                    {search}
+                    <Button 
+                      className="ml-2 p-0 h-4 w-4 rounded-full hover:bg-destructive/20"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSearch('');
+                      }}
+                      size="sm"
+                      variant="ghost"
+                    >
+                      <X size={10} />
+                    </Button>
+                  </Badge>
+                )}
+                
+                {/* Asset Filters */}
+                {selectedAsset.map(filter => (
+                  <Badge key={filter} variant="outline" className={`cursor-pointer ${isMobile ? 'h-8 text-xs' : 'h-8'} rounded-full px-3 border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100`}>
+                    <ChartPie size={12} className="mr-1" />
+                    {filter}
+                    <Button 
+                      className="ml-2 p-0 h-4 w-4 rounded-full hover:bg-destructive/20"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFilter(selectedAsset, setSelectedAsset, filter);
+                      }}
+                      size="sm"
+                      variant="ghost"
+                    >
+                      <X size={10} />
+                    </Button>
+                  </Badge>
+                ))}
+                
+                {/* Sector Filters */}
+                {selectedSector.map(filter => (
+                  <Badge key={filter} variant="outline" className={`cursor-pointer ${isMobile ? 'h-8 text-xs' : 'h-8'} rounded-full px-3 border-green-200 text-green-700 bg-green-50 hover:bg-green-100`}>
+                    <Laptop size={12} className="mr-1" />
+                    {filter}
+                    <Button 
+                      className="ml-2 p-0 h-4 w-4 rounded-full hover:bg-destructive/20"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFilter(selectedSector, setSelectedSector, filter);
+                      }}
+                      size="sm"
+                      variant="ghost"
+                    >
+                      <X size={10} />
+                    </Button>
+                  </Badge>
+                ))}
+                
+                {/* Sentiment Filters */}
+                {selectedSentiment.map(filter => (
+                  <Badge key={filter} variant="outline" className={`cursor-pointer ${isMobile ? 'h-8 text-xs' : 'h-8'} rounded-full px-3 border-purple-200 text-purple-700 bg-purple-50 hover:bg-purple-100`}>
+                    <TrendingUp size={12} className="mr-1" />
+                    {filter}
+                    <Button 
+                      className="ml-2 p-0 h-4 w-4 rounded-full hover:bg-destructive/20"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFilter(selectedSentiment, setSelectedSentiment, filter);
+                      }}
+                      size="sm"
+                      variant="ghost"
+                    >
+                      <X size={10} />
+                    </Button>
+                  </Badge>
+                ))}
+                
+                {/* All Other Filters - comprehensive with consistent styling */}
+                {[
+                  { filters: selectedStrategies, setter: setSelectedStrategies, label: 'Strategy', icon: Gauge, colorClass: 'border-orange-200 text-orange-700 bg-orange-50 hover:bg-orange-100' },
+                  { filters: selectedRisk, setter: setSelectedRisk, label: 'Risk', icon: AlertTriangle, colorClass: 'border-red-200 text-red-700 bg-red-50 hover:bg-red-100' },
+                  { filters: selectedExpectedReturn, setter: setSelectedExpectedReturn, label: 'Return', icon: TrendingUp, colorClass: 'border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100' },
+                  { filters: selectedMarketCap, setter: setSelectedMarketCap, label: 'Market Cap', icon: Building, colorClass: 'border-slate-200 text-slate-700 bg-slate-50 hover:bg-slate-100' },
+                  { filters: selectedDividendYield, setter: setSelectedDividendYield, label: 'Dividend', icon: DollarSign, colorClass: 'border-green-200 text-green-700 bg-green-50 hover:bg-green-100' },
+                  { filters: selectedHolding, setter: setSelectedHolding, label: 'Holding', icon: Calendar, colorClass: 'border-indigo-200 text-indigo-700 bg-indigo-50 hover:bg-indigo-100' },
+                  { filters: selectedDuration, setter: setSelectedDuration, label: 'Duration', icon: Clock, colorClass: 'border-pink-200 text-pink-700 bg-pink-50 hover:bg-pink-100' },
+                  { filters: selectedRegions, setter: setSelectedRegions, label: 'Region', icon: Globe, colorClass: 'border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100' },
+                  { filters: selectedValuationMetrics, setter: setSelectedValuationMetrics, label: 'Valuation', icon: Calculator, colorClass: 'border-violet-200 text-violet-700 bg-violet-50 hover:bg-violet-100' },
+                  { filters: selectedGrowthMetrics, setter: setSelectedGrowthMetrics, label: 'Growth', icon: ArrowUpRight, colorClass: 'border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-100' },
+                  { filters: selectedTechnicalIndicators, setter: setSelectedTechnicalIndicators, label: 'Technical', icon: BarChart3, colorClass: 'border-amber-200 text-amber-700 bg-amber-50 hover:bg-amber-100' },
+                  { filters: selectedEsgRatings, setter: setSelectedEsgRatings, label: 'ESG', icon: Leaf, colorClass: 'border-lime-200 text-lime-700 bg-lime-50 hover:bg-lime-100' },
+                  { filters: selectedAnalysisType, setter: setSelectedAnalysisType, label: 'Analysis', icon: FileText, colorClass: 'border-gray-200 text-gray-700 bg-gray-50 hover:bg-gray-100' },
+                  { filters: selectedVolatility, setter: setSelectedVolatility, label: 'Volatility', icon: Activity, colorClass: 'border-rose-200 text-rose-700 bg-rose-50 hover:bg-rose-100' },
+                  { filters: selectedLiquidity, setter: setSelectedLiquidity, label: 'Liquidity', icon: Droplets, colorClass: 'border-sky-200 text-sky-700 bg-sky-50 hover:bg-sky-100' },
+                  { filters: selectedConviction, setter: setSelectedConviction, label: 'Conviction', icon: Shield, colorClass: 'border-cyan-200 text-cyan-700 bg-cyan-50 hover:bg-cyan-100' },
+                  { filters: selectedCatalyst, setter: setSelectedCatalyst, label: 'Catalyst', icon: Zap, colorClass: 'border-yellow-200 text-yellow-700 bg-yellow-50 hover:bg-yellow-100' },
+                  { filters: selectedValuation, setter: setSelectedValuation, label: 'Value', icon: Target, colorClass: 'border-fuchsia-200 text-fuchsia-700 bg-fuchsia-50 hover:bg-fuchsia-100' },
+                  { filters: selectedTechnical, setter: setSelectedTechnical, label: 'Tech Analysis', icon: LineChart, colorClass: 'border-purple-200 text-purple-700 bg-purple-50 hover:bg-purple-100' },
+                  { filters: selectedDiversification, setter: setSelectedDiversification, label: 'Diversification', icon: Shuffle, colorClass: 'border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100' },
+                  { filters: selectedPerformance, setter: setSelectedPerformance, label: 'Performance', icon: Trophy, colorClass: 'border-orange-200 text-orange-700 bg-orange-50 hover:bg-orange-100' },
+                ].map(({ filters, setter, label, icon: Icon, colorClass }) => 
+                  filters.map(filter => (
+                    <Badge key={`${label}-${filter}`} variant="outline" className={`cursor-pointer ${isMobile ? 'h-8 text-xs' : 'h-8'} rounded-full px-3 ${colorClass}`}>
+                      <Icon size={12} className="mr-1" />
+                      {filter}
+                      <Button 
+                        className="ml-2 p-0 h-4 w-4 rounded-full hover:bg-destructive/20"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFilter(filters, setter, filter);
+                        }}
+                        size="sm"
+                        variant="ghost"
+                      >
+                        <X size={10} />
+                      </Button>
+                    </Badge>
+                  ))
+                )}
+                
+                {/* Clear All Filters button */}
+                {(selectedAsset.length > 0 || selectedSector.length > 0 || selectedSentiment.length > 0 || 
+                  selectedStrategies.length > 0 || selectedRisk.length > 0 || selectedExpectedReturn.length > 0 || 
+                  selectedMarketCap.length > 0 || selectedDividendYield.length > 0 || selectedHolding.length > 0 || selectedDuration.length > 0 || 
+                  selectedRegions.length > 0 || selectedValuationMetrics.length > 0 || selectedGrowthMetrics.length > 0 || 
+                  selectedTechnicalIndicators.length > 0 || selectedEsgRatings.length > 0 || selectedAnalysisType.length > 0 || 
+                  selectedVolatility.length > 0 || selectedLiquidity.length > 0 || selectedConviction.length > 0 || 
+                  selectedCatalyst.length > 0 || selectedValuation.length > 0 || selectedTechnical.length > 0 || 
+                  selectedDiversification.length > 0 || selectedPerformance.length > 0) && (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => {
+                      setSelectedAsset([]);
+                      setSelectedSector([]);
+                      setSelectedSentiment([]);
+                      setSelectedStrategies([]);
+                      setSelectedRisk([]);
+                      setSelectedExpectedReturn([]);
+                      setSelectedMarketCap([]);
+                      setSelectedDividendYield([]);
+                      setSelectedHolding([]);
+                      setSelectedDuration([]);
+                      setSelectedRegions([]);
+                      setSelectedValuationMetrics([]);
+                      setSelectedGrowthMetrics([]);
+                      setSelectedTechnicalIndicators([]);
+                      setSelectedEsgRatings([]);
+                      setSelectedAnalysisType([]);
+                      setSelectedVolatility([]);
+                      setSelectedLiquidity([]);
+                      setSelectedConviction([]);
+                      setSelectedCatalyst([]);
+                      setSelectedValuation([]);
+                      setSelectedTechnical([]);
+                      setSelectedDiversification([]);
+                      setSelectedPerformance([]);
+                    }}
+                    className={`ml-auto rounded-full ${isMobile ? 'h-8 text-xs' : 'h-8'} px-4 border-destructive/30 text-destructive hover:bg-destructive/10`}
+                  >
+                    <X size={12} className="mr-1" />
+                    Clear all
+                  </Button>
+                )}
+              </div>
+              
+              {/* Results summary */}
+              <div className="mt-3 text-xs text-muted-foreground text-center">
+                {filteredTips.length} {filteredTips.length === 1 ? 'tip' : 'tips'} match your criteria
+              </div>
+            </div>
+          )}
+
+          <div 
+            ref={tableContainerRef}
+            className="lg:rounded-lg border border-border lg:max-h-[calc(100vh-92px)] max-h-[calc(100vh-60px)] overflow-y-auto bg-background shadow-sm" 
+            style={{ marginLeft: isMobile ? '0' : '2vw', marginRight: isMobile ? '0' : '2vw' }}
+          >
+            <table className={`w-full ${isMobile ? '' : 'min-w-[1000px]'}`}>
+              <thead style={{ position: 'sticky', top: 0, zIndex: 18 }} className={`${isMobile ? 'bg-muted/90 backdrop-blur-sm' : 'bg-muted'} border-border`}>
+                {isMobile ? (
+                  <tr className="bg-muted/90 backdrop-blur-sm">
+                    {selectedColumns.map((colKey) => {
+                      const col = availableColumns.find(c => c.key === colKey);
+                      const clickableColumns = ['asset', 'risk', 'return', 'sentiment', 'conviction', 'symbol', 'holding', 'time', 'advisor', 'investment'];
+                      const isClickable = clickableColumns.includes(colKey);
+                      
+                      return (
+                        <th 
+                          key={colKey} 
+                          className={`px-3 py-4 ${colKey === 'investment' ? 'text-center' : 'text-left'} font-semibold text-xs text-muted-foreground uppercase tracking-wide border-b border-border ${isClickable ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
+                          onClick={isClickable ? () => openInfoSheet(colKey === 'return' ? 'returns' : colKey) : undefined}
+                        >
+                          {col?.label}
+                        </th>
+                      );
+                    })}
+                  </tr>
+                ) : (
+                  <tr className="bg-muted">
+                    {selectedColumns.map((colKey) => {
+                      const col = availableColumns.find(c => c.key === colKey);
+                      const clickableColumns = ['asset', 'risk', 'return', 'sentiment', 'conviction', 'symbol', 'holding', 'time', 'advisor', 'investment'];
+                      const isClickable = clickableColumns.includes(colKey);
+                      
+                      return (
+                        <th 
+                          key={colKey} 
+                          className={`${col?.minWidth} px-4 py-3 text-center font-bold border-r border-border text-sm ${isClickable ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
+                          onClick={isClickable ? () => openInfoSheet(colKey === 'return' ? 'returns' : colKey) : undefined}
+                        >
+                          {col?.label}
+                        </th>
+                      );
+                    })}
+                  </tr>
+                )}
+              </thead>
+              <tbody className={isMobile ? 'divide-y divide-border' : ''}>
+                {displayedTips.length === 0 ? (
+                  <tr>
+                    <td colSpan={selectedColumns.length} className={`text-center ${isMobile ? 'p-12' : 'p-8'} text-muted-foreground`}>
+                      <div className="flex flex-col items-center gap-3">
+                        <Search size={32} className="text-muted-foreground/50" />
+                        <div className="text-sm font-medium">No results found</div>
+                        <div className="text-xs text-muted-foreground">Try adjusting your filters or search terms</div>
+                      </div>
+                    </td>
+                  </tr>
+                ) : displayedTips.map((tip, idx) => (
+                    <tr key={tip.id || idx} className={`${isMobile ? 'hover:bg-muted/30 transition-colors' : idx % 2 ? 'bg-muted/5' : ''}`}>
+                      {selectedColumns.map((colKey) => renderTableCell(tip, colKey, idx, isMobile))}
+                    </tr>
+                ))}
+              </tbody>
+            </table>
+            
+            {/* Loading Indicator */}
+            {loadingMore && (
+              <div className="sticky bottom-0 left-0 right-0 flex items-center justify-center py-4 border-t-2 border-primary/20 bg-background/95 backdrop-blur-sm shadow-lg z-10">
+                <div className="flex items-center gap-3 text-sm font-medium">
+                  <div className="relative">
+                    <Loader2 size={18} className="animate-spin text-primary" />
+                    <div className="absolute inset-0 animate-ping">
+                      <Loader2 size={18} className="text-primary/20" />
+                    </div>
+                  </div>
+                  <span className="text-foreground">Loading more tips...</span>
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce"></div>
+                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                    <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+        </div>
+
+        <Sheet open={mobileTipSheetOpen} onOpenChange={setMobileTipSheetOpen}>
+          <SheetContent side="right" className="max-h-[100vh] w-full lg:w-[50%] overflow-y-auto">
+            {selectedTipForMobile && (
+              <div className="space-y-6 p-2">
+                {/* Header */}
+                <div className="p-2 border-b border-border">
+                  <div className="flex items-center gap-3 text-lg font-semibold mb-3">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <Target size={20} className="text-primary" />
+                    </div>
+                    Investment Advisory
+                  </div>
+                  <div className="text-sm text-muted-foreground leading-relaxed">
+                    Copy this exact configuration to achieve the projected results. Professional analysis with precise entry, exit, and risk parameters for {selectedTipForMobile.symbol}.
+                  </div>
+                </div>
+                  
+
+                  {/* Live Chart Section */}
+                  <div className="space-y-4 p-2">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                      <BarChart2 size={14} />
+                      Live Chart Analysis
+                    </h3>
+                    
+                    <div className="rounded-xl border border-border bg-card overflow-hidden">
+                      {/* Header */}
+                      <div className="px-4 py-3 bg-muted/40 border-b border-border">
+                        <div className="flex items-center gap-2">
+                          <Activity size={16} className="text-blue-600" />
+                          <span className="text-sm font-medium">Real-time Price Chart</span>
+                        </div>
+                      </div>
+                      
+                      {/* Chart Content */}
+                      <div className="p-0">
+                        <div className="overflow-hidden border border-border">
+                          <div style={{ height: '320px', width: '100%' , margin:-1}}>
+                            <TradingViewWidget
+                              symbol={selectedTipForMobile?.symbol}
+                              theme={'light'}
+                              height={"100%"}
+                              width="100%"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Footer */}
+                      <div className="px-4 py-2 bg-muted/20 border-t border-border">
+                        <div className="text-xs text-muted-foreground text-center">
+                          Interactive chart with technical indicators and market data
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Investment Strategy Section */}
+                  <div className="space-y-4 p-2">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                      <BookOpen size={14} />
+                      Investment Strategy
+                    </h3>
+                    
+                    <div className="rounded-xl border border-border bg-card overflow-hidden">
+                      {/* Header */}
+                      <div className="px-4 py-3 bg-muted/40 border-b border-border">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <FileText size={16} className="text-blue-600" />
+                            <span className="text-sm font-medium">Asset Overview</span>
+                          </div>
+                          <Badge variant="outline" className="text-xs">
+                            {selectedTipForMobile.asset_type}
+                          </Badge>
+                        </div>
+                      </div>
+                      
+                      {/* Content */}
+                      <div className="p-4 space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <div className="text-xs text-muted-foreground">Symbol</div>
+                            <div className="font-bold text-lg text-primary">{selectedTipForMobile.symbol}</div>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="text-xs text-muted-foreground">Sector</div>
+                            <div className="font-semibold text-sm">{selectedTipForMobile.sector}</div>
+                          </div>
+                        </div>
+                        
+                        <div className="p-4 rounded-lg bg-muted/30 border border-dashed border-border">
+                          <div className="flex items-start gap-2 mb-2">
+                            <BookOpen size={14} className="text-primary mt-0.5" />
+                            <span className="text-sm font-medium">Investment Thesis</span>
+                          </div>
+                          <div className="text-sm text-muted-foreground leading-relaxed">
+                            {selectedTipForMobile.tip}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Footer */}
+                      <div className="px-4 py-2 bg-muted/20 border-t border-border">
+                        <div className="text-xs text-muted-foreground text-center">
+                          Research-backed investment opportunity with clear rationale
+                        </div>
+                      </div>
+                    </div>
+                  </div>                    {/* Trade Configuration Section */}
+                    <div className="space-y-4  p-2">
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                        <Target size={14} />
+                        Trade Configuration
+                      </h3>
+                      
+                      {/* Price Targets Card */}
+                      <div className="rounded-xl border border-border bg-card overflow-hidden">
+                        <div className="px-4 py-3 bg-muted/40 border-b border-border">
+                          <div className="flex items-center gap-2">
+                            <Target size={16} className="text-green-600" />
+                            <span className="text-sm font-medium">Price Targets</span>
+                          </div>
+                        </div>
+                        
+                        <div className="p-4">
+                          <div className="grid grid-cols-3 gap-4">
+                            <div className="text-center p-3 rounded-lg bg-green-50 border border-green-200">
+                              <div className="text-xs text-green-700 mb-1">Entry Point</div>
+                              <div className="font-bold text-lg text-green-700">${selectedTipForMobile.entry_price}</div>
+                            </div>
+                            <div className="text-center p-3 rounded-lg bg-blue-50 border border-blue-200">
+                              <div className="text-xs text-blue-700 mb-1">Target Price</div>
+                              <div className="font-bold text-lg text-blue-700">${selectedTipForMobile.exit_price}</div>
+                            </div>
+                            <div className="text-center p-3 rounded-lg bg-red-50 border border-red-200">
+                              <div className="text-xs text-red-700 mb-1">Stop Loss</div>
+                              <div className="font-bold text-lg text-red-700">${selectedTipForMobile.stop_loss}</div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="px-4 py-2 bg-muted/20 border-t border-border">
+                          <div className="text-xs text-muted-foreground text-center">
+                            Execute trades at these precise price levels for optimal results
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Position Management Card */}
+                      <div className="rounded-xl border border-border bg-card overflow-hidden">
+                        <div className="px-4 py-3 bg-muted/40 border-b border-border">
+                          <div className="flex items-center gap-2">
+                            <PieChart size={16} className="text-purple-600" />
+                            <span className="text-sm font-medium">Position Management</span>
+                          </div>
+                        </div>
+                        
+                        <div className="p-4">
+                          <div className="grid grid-cols-3 gap-4">
+                            <div className="text-center p-3 rounded-lg bg-muted/30">
+                              <div className="text-xs text-muted-foreground mb-1">Expected Return</div>
+                              <div className="font-bold text-sm text-green-600">{selectedTipForMobile.expected_return}</div>
+                            </div>
+                            <div className="text-center p-3 rounded-lg bg-muted/30">
+                              <div className="text-xs text-muted-foreground mb-1">Allocation</div>
+                              <div className="font-bold text-sm">{selectedTipForMobile.allocation}</div>
+                            </div>
+                            <div className="text-center p-3 rounded-lg bg-muted/30">
+                              <div className="text-xs text-muted-foreground mb-1">Time Horizon</div>
+                              <div className="font-bold text-sm">{selectedTipForMobile.target_duration}</div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="px-4 py-2 bg-muted/20 border-t border-border">
+                          <div className="text-xs text-muted-foreground text-center">
+                            Follow allocation guidelines for risk-adjusted returns
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Market Intelligence Section */}
+                    <div className="space-y-4 p-2">
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                        <BarChart2 size={14} />
+                        Market Intelligence
+                      </h3>
+                      
+                      {/* Analysis Card */}
+                      <div className="rounded-xl border border-border bg-card overflow-hidden">
+                        <div className="px-4 py-3 bg-muted/40 border-b border-border">
+                          <div className="flex items-center gap-2">
+                            <Activity size={16} className="text-orange-600" />
+                            <span className="text-sm font-medium">Fundamental & Technical Analysis</span>
+                          </div>
+                        </div>
+                        
+                        <div className="p-4 space-y-4">
+                          <div className="grid grid-cols-1 gap-3">
+                            <div className="p-3 rounded-lg bg-muted/30 border border-dashed border-border">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-xs text-muted-foreground">Key Catalyst</span>
+                                <Zap size={12} className="text-yellow-600" />
+                              </div>
+                              <div className="font-medium text-sm">{selectedTipForMobile.catalyst}</div>
+                            </div>
+                            
+                            <div className="p-3 rounded-lg bg-muted/30 border border-dashed border-border">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-xs text-muted-foreground">Valuation Method</span>
+                                <DollarSign size={12} className="text-green-600" />
+                              </div>
+                              <div className="font-medium text-sm">{selectedTipForMobile.valuation}</div>
+                            </div>
+                            
+                            <div className="p-3 rounded-lg bg-muted/30 border border-dashed border-border">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-xs text-muted-foreground">Technical Setup</span>
+                                <Activity size={12} className="text-blue-600" />
+                              </div>
+                              <div className="font-medium text-sm">{selectedTipForMobile.technical}</div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="px-4 py-2 bg-muted/20 border-t border-border">
+                          <div className="text-xs text-muted-foreground text-center">
+                            Multi-factor analysis supporting investment decision
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Risk & Confidence Assessment */}
+                    <div className="space-y-4  p-2">
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                        <Shield size={14} />
+                        Risk Assessment
+                      </h3>
+                      
+                      <div className="rounded-xl border border-border bg-card overflow-hidden">
+                        <div className="px-4 py-3 bg-muted/40 border-b border-border">
+                          <div className="flex items-center gap-2">
+                            <Shield size={16} className="text-red-600" />
+                            <span className="text-sm font-medium">Risk & Confidence Metrics</span>
+                          </div>
+                        </div>
+                        
+                        <div className="p-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="text-center p-4 rounded-lg border border-border bg-muted/20">
+                              <Shield size={20} className="mx-auto mb-2 text-muted-foreground" />
+                              <div className="text-xs text-muted-foreground mb-2">Risk Level</div>
+                              <Badge 
+                                variant="outline" 
+                                className={`text-sm font-medium px-3 py-1 ${
+                                  selectedTipForMobile.risk === 'High' 
+                                    ? 'border-red-500 text-red-600 bg-red-50'
+                                    : selectedTipForMobile.risk === 'Medium' 
+                                      ? 'border-yellow-500 text-yellow-600 bg-yellow-50'
+                                      : 'border-green-500 text-green-600 bg-green-50'
+                                }`}
+                              >
+                                {selectedTipForMobile.risk}
+                              </Badge>
+                            </div>
+                            
+                            <div className="text-center p-4 rounded-lg border border-border bg-muted/20">
+                              <Award size={20} className="mx-auto mb-2 text-muted-foreground" />
+                              <div className="text-xs text-muted-foreground mb-2">Conviction</div>
+                              <Badge 
+                                variant="outline" 
+                                className={`text-sm font-medium px-3 py-1 ${
+                                  selectedTipForMobile.conviction === 'Strong' 
+                                    ? 'border-green-500 text-green-600 bg-green-50'
+                                    : selectedTipForMobile.conviction === 'Moderate' 
+                                      ? 'border-yellow-500 text-yellow-600 bg-yellow-50'
+                                      : 'border-blue-500 text-blue-600 bg-blue-50'
+                                }`}
+                              >
+                                {selectedTipForMobile.conviction}
+                              </Badge>
+                            </div>
+                          </div>
+                          
+                          <div className="mt-4 p-3 rounded-lg bg-muted/30 border border-dashed border-border">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs text-muted-foreground">Market Sentiment</span>
+                              <TrendingUp size={12} className="text-primary" />
+                            </div>
+                            <Badge variant="outline" className="text-sm bg-background">
+                              {selectedTipForMobile.sentiment}
+                            </Badge>
+                          </div>
+                        </div>
+                        
+                        <div className="px-4 py-2 bg-muted/20 border-t border-border">
+                          <div className="text-xs text-muted-foreground text-center">
+                            Risk-adjusted strategy with clear confidence indicators
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                      {/* Advisor Information Section */}
+                    <div className="space-y-4 p-2">
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                        <User size={14} />
+                        Investment Advisor
+                      </h3>
+                      
+                      <div className="rounded-xl border border-border bg-card overflow-hidden">
+                        {/* Header */}
+                        <div className="px-4 py-3 bg-muted/40 border-b border-border">
+                          <div className="flex items-center gap-2">
+                            <ShieldCheck size={16} className="text-green-600" />
+                            <span className="text-sm font-medium">Professional Credentials</span>
+                          </div>
+                        </div>
+                        
+                        {/* Content */}
+                        <div className="p-4">
+                          <div className="flex items-start gap-4 mb-4">
+                            <img 
+                              src={selectedTipForMobile.avatar} 
+                              alt={selectedTipForMobile.name} 
+                              className="w-14 h-14 rounded-full border-2 border-border shadow-sm" 
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="font-bold text-base text-foreground mb-1">
+                                {selectedTipForMobile.name}
+                              </div>
+                              <div className="text-sm text-muted-foreground mb-2">
+                                {selectedTipForMobile.advisor_title || 'Certified Financial Advisor'}
+                              </div>
+                              {selectedTipForMobile.advisor_sebi_registered && (
+                                <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                                  <ShieldCheck size={12} className="mr-1" />
+                                  SEBI Registered
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-3 gap-4">
+                            <div className="text-center p-3 rounded-lg bg-muted/30">
+                              <div className="font-bold text-lg text-primary">{selectedTipForMobile.advisor_total_tips || '127'}</div>
+                              <div className="text-xs text-muted-foreground mt-1">Total Tips</div>
+                            </div>
+                            <div className="text-center p-3 rounded-lg bg-muted/30">
+                              <div className="font-bold text-lg text-green-600">{selectedTipForMobile.advisor_win_rate || selectedTipForMobile.win_rate || '84'}%</div>
+                              <div className="text-xs text-muted-foreground mt-1">Success Rate</div>
+                            </div>
+                            <div className="text-center p-3 rounded-lg bg-muted/30">
+                              <div className="font-bold text-lg text-blue-600">{selectedTipForMobile.experience || '7'}+</div>
+                              <div className="text-xs text-muted-foreground mt-1">Years Exp</div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Footer */}
+                        <div className="px-4 py-2 bg-muted/20 border-t border-border">
+                          <div className="text-xs text-muted-foreground text-center">
+                            Verified professional with proven track record
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                
+                {/* Footer */}
+                <div className="py-4 border-t  bg-muted/20 ">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Target size={14} className="text-primary" />
+                    <span className="text-sm font-medium">Professional Investment Advisory</span>
+                  </div>
+                  <div className="text-xs text-center text-muted-foreground leading-relaxed">
+                    This configuration is designed for optimal risk-adjusted returns.<br />
+                    <span className="font-medium">Always conduct your own due diligence before investing.</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </SheetContent>
+        </Sheet>
+
+        {/* Filter Sheet */}
+        {/* <Sheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
+          <SheetContent side="bottom" className="h-[70vh]">
+            <SheetHeader>
+              <SheetTitle>Filters</SheetTitle>
+            </SheetHeader>
+            
+            <ScrollArea className="h-[calc(70vh-80px)] mt-2">
+              <SheetDescription className="mt-[-15px] m-2.5">
+                <Accordion 
+                  type="single" 
+                  collapsible 
+                  value={activeFilter} 
+                  onValueChange={setActiveFilter}
+                  
+                  >
+                <AccordionItem value="Asset">
+                  <AccordionTrigger>Asset</AccordionTrigger>
+                  <AccordionContent>
+                    {renderFilterCarousel(
+                      MASTER_FILTERS.assets,
+                      selectedAsset,
+                      (v) => toggleFilter(selectedAsset, setSelectedAsset, v),
+                      (item, selected) => (
+                        <div className="flex flex-col items-center space-y-2">
+                          <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+                            selected 
+                              ? 'bg-primary border-primary'
+                              : 'bg-transparent border-border hover:border-primary/50'
+                          }`}>
+                            <LucideIcon 
+                              className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
+                              Icon={item.Icon} 
+                              size={20} 
+                            />
+                          </div>
+                          <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{addSpacing(item.name)}</span>
+                        </div>
+                      )
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="Sector">
+                  <AccordionTrigger>Sector</AccordionTrigger>
+                  <AccordionContent>
+                    {renderFilterCarousel(
+                      MASTER_FILTERS.sectors,
+                      selectedSector,
+                      (v) => toggleFilter(selectedSector, setSelectedSector, v),
+                      (item, selected) => (
+                        <div className="flex flex-col items-center space-y-2">
+                          <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+                            selected 
+                              ? 'bg-primary border-primary'
+                              : 'bg-transparent border-border hover:border-primary/50'
+                          }`}>
+                            <LucideIcon 
+                              className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
+                              Icon={item.Icon} 
+                              size={20} 
+                            />
+                          </div>
+                          <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{addSpacing(item.name)}</span>
+                        </div>
+                      )
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="Sentiment">
+                  <AccordionTrigger>Sentiment</AccordionTrigger>
+                  <AccordionContent>
+                    {renderFilterCarousel(
+                      MASTER_FILTERS.sentiments,
+                      selectedSentiment,
+                      (v) => toggleFilter(selectedSentiment, setSelectedSentiment, v),
+                      (item, selected) => {
+                        const IconComponent = item.Icon;
+                        return (
+                          <div className="flex flex-col items-center space-y-2">
+                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+                              selected 
+                                ? 'bg-primary border-primary'
+                                : 'bg-transparent border-border hover:border-primary/50'
+                            }`}>
+                              <IconComponent 
+                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
+                                size={20} 
+                              />
+                            </div>
+                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
+                          </div>
+                        );
+                      }
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="Strategies">
+                  <AccordionTrigger>Strategies</AccordionTrigger>
+                  <AccordionContent>
+                    {renderFilterCarousel(
+                      MASTER_FILTERS.strategies,
+                      selectedStrategies,
+                      (v) => toggleFilter(selectedStrategies, setSelectedStrategies, v),
+                      (item, selected) => {
+                        const IconComponent = item.Icon;
+                        return (
+                          <div className="flex flex-col items-center space-y-2">
+                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+                              selected 
+                                ? 'bg-primary border-primary'
+                                : 'bg-transparent border-border hover:border-primary/50'
+                            }`}>
+                              <IconComponent 
+                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
+                                size={20} 
+                              />
+                            </div>
+                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
+                          </div>
+                        );
+                      }
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="Risk">
+                  <AccordionTrigger>Risk</AccordionTrigger>
+                  <AccordionContent>
+                    {renderFilterCarousel(
+                      MASTER_FILTERS.risk,
+                      selectedRisk,
+                      (v) => toggleFilter(selectedRisk, setSelectedRisk, v),
+                      (item, selected) => {
+                        const IconComponent = item.Icon;
+                        return (
+                          <div className="flex flex-col items-center space-y-2">
+                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+                              selected 
+                                ? 'bg-primary border-primary'
+                                : 'bg-transparent border-border hover:border-primary/50'
+                            }`}>
+                              <IconComponent 
+                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
+                                size={20} 
+                              />
+                            </div>
+                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
+                          </div>
+                        );
+                      }
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="ExpectedReturn">
+                  <AccordionTrigger>Expected Return</AccordionTrigger>
+                  <AccordionContent>
+                    {renderFilterCarousel(
+                      MASTER_FILTERS.expectedReturn,
+                      selectedExpectedReturn,
+                      (v) => toggleFilter(selectedExpectedReturn, setSelectedExpectedReturn, v),
+                      (item, selected) => (
+                        <div className="flex flex-col items-center space-y-2">
+                          <Badge 
+                            variant={selected ? "default" : "outline"}
+                            className="cursor-pointer px-4 py-2"
+                          >
+                            {item.label}
+                          </Badge>
+                          <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.label}</span>
+                        </div>
+                      )
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="MarketCap">
+                  <AccordionTrigger>Market Cap</AccordionTrigger>
+                  <AccordionContent>
+                    {renderFilterCarousel(
+                      MASTER_FILTERS.marketCap,
+                      selectedMarketCap,
+                      (v) => toggleFilter(selectedMarketCap, setSelectedMarketCap, v),
+                      (item, selected) => {
+                        const IconComponent = item.Icon;
+                        return (
+                          <div className="flex flex-col items-center space-y-2">
+                            <div className={`p-4 rounded-full border transition-colors ${
+                              selected 
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'bg-transparent border-border'
+                            }`}>
+                              <IconComponent className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} size={17.5} />
+                            </div>
+                            <span className="text-xs font-medium" style={{marginBottom: 5}}>{toCamelCase(item.name)}</span>
+                          </div>
+                        );
+                      }
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="DividendYield">
+                  <AccordionTrigger>Dividend Yield</AccordionTrigger>
+                  <AccordionContent>
+                    {renderFilterCarousel(
+                      MASTER_FILTERS.dividendYield,
+                      selectedDividendYield,
+                      (v) => toggleFilter(selectedDividendYield, setSelectedDividendYield, v),
+                      (item, selected) => (
+                        <div className="flex flex-col items-center space-y-2">
+                          <Badge 
+                            variant={selected ? "default" : "outline"}
+                            className="cursor-pointer px-4 py-2"
+                          >
+                            {item.label}
+                          </Badge>
+                          <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.label}</span>
+                        </div>
+                      )
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="Holding">
+                  <AccordionTrigger>Holding</AccordionTrigger>
+                  <AccordionContent>
+                    {renderFilterCarousel(
+                      MASTER_FILTERS.holding,
+                      selectedHolding,
+                      (v) => toggleFilter(selectedHolding, setSelectedHolding, v),
+                      (item, selected) => {
+                        const IconComponent = item.Icon;
+                        return (
+                          <div className="flex flex-col items-center space-y-2">
+                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+                              selected 
+                                ? 'bg-primary border-primary'
+                                : 'bg-transparent border-border hover:border-primary/50'
+                            }`}>
+                              <IconComponent 
+                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
+                                size={20} 
+                              />
+                            </div>
+                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
+                          </div>
+                        );
+                      }
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="Duration">
+                  <AccordionTrigger>Duration</AccordionTrigger>
+                  <AccordionContent>
+                    {renderFilterCarousel(
+                      MASTER_FILTERS.duration,
+                      selectedDuration,
+                      (v) => toggleFilter(selectedDuration, setSelectedDuration, v),
+                      (item, selected) => {
+                        const IconComponent = item.Icon;
+                        return (
+                          <div className="flex flex-col items-center space-y-2">
+                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+                              selected 
+                                ? 'bg-primary border-primary'
+                                : 'bg-transparent border-border hover:border-primary/50'
+                            }`}>
+                              <IconComponent 
+                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
+                                size={20} 
+                              />
+                            </div>
+                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
+                          </div>
+                        );
+                      }
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="Regions">
+                  <AccordionTrigger>Regions</AccordionTrigger>
+                  <AccordionContent>
+                    {renderFilterCarousel(
+                      MASTER_FILTERS.regions,
+                      selectedRegions,
+                      (v) => toggleFilter(selectedRegions, setSelectedRegions, v),
+                      (item, selected) => {
+                        const IconComponent = item.Icon;
+                        return (
+                          <div className="flex flex-col items-center space-y-2">
+                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+                              selected 
+                                ? 'bg-primary border-primary'
+                                : 'bg-transparent border-border hover:border-primary/50'
+                            }`}>
+                              <IconComponent 
+                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
+                                size={20} 
+                              />
+                            </div>
+                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
+                          </div>
+                        );
+                      }
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="ValuationMetrics">
+                  <AccordionTrigger>Valuation Metrics</AccordionTrigger>
+                  <AccordionContent>
+                    {renderFilterCarousel(
+                      MASTER_FILTERS.valuationMetrics,
+                      selectedValuationMetrics,
+                      (v) => toggleFilter(selectedValuationMetrics, setSelectedValuationMetrics, v),
+                      (item, selected) => {
+                        const IconComponent = item.Icon;
+                        return (
+                          <div className="flex flex-col items-center space-y-2">
+                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+                              selected 
+                                ? 'bg-primary border-primary'
+                                : 'bg-transparent border-border hover:border-primary/50'
+                            }`}>
+                              <IconComponent 
+                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
+                                size={20} 
+                              />
+                            </div>
+                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
+                          </div>
+                        );
+                      }
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="GrowthMetrics">
+                  <AccordionTrigger>Growth Metrics</AccordionTrigger>
+                  <AccordionContent>
+                    {renderFilterCarousel(
+                      MASTER_FILTERS.growthMetrics,
+                      selectedGrowthMetrics,
+                      (v) => toggleFilter(selectedGrowthMetrics, setSelectedGrowthMetrics, v),
+                      (item, selected) => (
+                        <div className="flex flex-col items-center space-y-2">
+                          <Badge 
+                            variant={selected ? "default" : "outline"}
+                            className="cursor-pointer px-4 py-2"
+                          >
+                            {item.label}
+                          </Badge>
+                          <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.label}</span>
+                        </div>
+                      )
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="TechnicalIndicators">
+                  <AccordionTrigger>Technical Indicators</AccordionTrigger>
+                  <AccordionContent>
+                    {renderFilterCarousel(
+                      MASTER_FILTERS.technicalIndicators,
+                      selectedTechnicalIndicators,
+                      (v) => toggleFilter(selectedTechnicalIndicators, setSelectedTechnicalIndicators, v),
+                      (item, selected) => {
+                        const IconComponent = item.Icon;
+                        return (
+                          <div className="flex flex-col items-center space-y-2">
+                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+                              selected 
+                                ? 'bg-primary border-primary'
+                                : 'bg-transparent border-border hover:border-primary/50'
+                            }`}>
+                              <IconComponent 
+                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
+                                size={20} 
+                              />
+                            </div>
+                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
+                          </div>
+                        );
+                      }
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="EsgRatings">
+                  <AccordionTrigger>ESG Ratings</AccordionTrigger>
+                  <AccordionContent>
+                    {renderFilterCarousel(
+                      MASTER_FILTERS.esgRatings,
+                      selectedEsgRatings,
+                      (v) => toggleFilter(selectedEsgRatings, setSelectedEsgRatings, v),
+                      (item, selected) => {
+                        const IconComponent = item.Icon;
+                        return (
+                          <div className="flex flex-col items-center space-y-2">
+                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+                              selected 
+                                ? 'bg-primary border-primary'
+                                : 'bg-transparent border-border hover:border-primary/50'
+                            }`}>
+                              <IconComponent 
+                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
+                                size={20} 
+                              />
+                            </div>
+                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
+                          </div>
+                        );
+                      }
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="AnalysisType">
+                  <AccordionTrigger>Analysis Type</AccordionTrigger>
+                  <AccordionContent>
+                    {renderFilterCarousel(
+                      MASTER_FILTERS.analysisType,
+                      selectedAnalysisType,
+                      (v) => toggleFilter(selectedAnalysisType, setSelectedAnalysisType, v),
+                      (item, selected) => {
+                        const IconComponent = item.Icon;
+                        return (
+                          <div className="flex flex-col items-center space-y-2">
+                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+                              selected 
+                                ? 'bg-primary border-primary'
+                                : 'bg-transparent border-border hover:border-primary/50'
+                            }`}>
+                              <IconComponent 
+                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
+                                size={20} 
+                              />
+                            </div>
+                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
+                          </div>
+                        );
+                      }
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="Volatility">
+                  <AccordionTrigger>Volatility</AccordionTrigger>
+                  <AccordionContent>
+                    {renderFilterCarousel(
+                      MASTER_FILTERS.volatility,
+                      selectedVolatility,
+                      (v) => toggleFilter(selectedVolatility, setSelectedVolatility, v),
+                      (item, selected) => {
+                        const IconComponent = item.Icon;
+                        return (
+                          <div className="flex flex-col items-center space-y-2">
+                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+                              selected 
+                                ? 'bg-primary border-primary'
+                                : 'bg-transparent border-border hover:border-primary/50'
+                            }`}>
+                              <IconComponent 
+                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
+                                size={20} 
+                              />
+                            </div>
+                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
+                          </div>
+                        );
+                      }
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="Liquidity">
+                  <AccordionTrigger>Liquidity</AccordionTrigger>
+                  <AccordionContent>
+                    {renderFilterCarousel(
+                      MASTER_FILTERS.liquidity,
+                      selectedLiquidity,
+                      (v) => toggleFilter(selectedLiquidity, setSelectedLiquidity, v),
+                      (item, selected) => {
+                        const IconComponent = item.Icon;
+                        return (
+                          <div className="flex flex-col items-center space-y-2">
+                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+                              selected 
+                                ? 'bg-primary border-primary'
+                                : 'bg-transparent border-border hover:border-primary/50'
+                            }`}>
+                              <IconComponent 
+                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
+                                size={20} 
+                              />
+                            </div>
+                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
+                          </div>
+                        );
+                      }
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="Conviction">
+                  <AccordionTrigger>Conviction</AccordionTrigger>
+                  <AccordionContent>
+                    {renderFilterCarousel(
+                      MASTER_FILTERS.conviction,
+                      selectedConviction,
+                      (v) => toggleFilter(selectedConviction, setSelectedConviction, v),
+                      (item, selected) => {
+                        const IconComponent = item.Icon;
+                        return (
+                          <div className="flex flex-col items-center space-y-2">
+                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+                              selected 
+                                ? 'bg-primary border-primary'
+                                : 'bg-transparent border-border hover:border-primary/50'
+                            }`}>
+                              <IconComponent 
+                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
+                                size={20} 
+                              />
+                            </div>
+                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
+                          </div>
+                        );
+                      }
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="Catalyst">
+                  <AccordionTrigger>Catalyst</AccordionTrigger>
+                  <AccordionContent>
+                    {renderFilterCarousel(
+                      MASTER_FILTERS.catalyst,
+                      selectedCatalyst,
+                      (v) => toggleFilter(selectedCatalyst, setSelectedCatalyst, v),
+                      (item, selected) => {
+                        const IconComponent = item.Icon;
+                        return (
+                          <div className="flex flex-col items-center space-y-2">
+                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+                              selected 
+                                ? 'bg-primary border-primary'
+                                : 'bg-transparent border-border hover:border-primary/50'
+                            }`}>
+                              <IconComponent 
+                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
+                                size={20} 
+                              />
+                            </div>
+                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
+                          </div>
+                        );
+                      }
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="Valuation">
+                  <AccordionTrigger>Valuation</AccordionTrigger>
+                  <AccordionContent>
+                    {renderFilterCarousel(
+                      MASTER_FILTERS.valuation,
+                      selectedValuation,
+                      (v) => toggleFilter(selectedValuation, setSelectedValuation, v),
+                      (item, selected) => {
+                        const IconComponent = item.Icon;
+                        return (
+                          <div className="flex flex-col items-center space-y-2">
+                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+                              selected 
+                                ? 'bg-primary border-primary'
+                                : 'bg-transparent border-border hover:border-primary/50'
+                            }`}>
+                              <IconComponent 
+                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
+                                size={20} 
+                              />
+                            </div>
+                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
+                          </div>
+                        );
+                      }
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="Technical">
+                  <AccordionTrigger>Technical</AccordionTrigger>
+                  <AccordionContent>
+                    {renderFilterCarousel(
+                      MASTER_FILTERS.technical,
+                      selectedTechnical,
+                      (v) => toggleFilter(selectedTechnical, setSelectedTechnical, v),
+                      (item, selected) => {
+                        const IconComponent = item.Icon;
+                        return (
+                          <div className="flex flex-col items-center space-y-2">
+                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+                              selected 
+                                ? 'bg-primary border-primary'
+                                : 'bg-transparent border-border hover:border-primary/50'
+                            }`}>
+                              <IconComponent 
+                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
+                                size={20} 
+                              />
+                            </div>
+                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
+                          </div>
+                        );
+                      }
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="Diversification">
+                  <AccordionTrigger>Diversification</AccordionTrigger>
+                  <AccordionContent>
+                    {renderFilterCarousel(
+                      MASTER_FILTERS.diversification,
+                      selectedDiversification,
+                      (v) => toggleFilter(selectedDiversification, setSelectedDiversification, v),
+                      (item, selected) => {
+                        const IconComponent = item.Icon;
+                        return (
+                          <div className="flex flex-col items-center space-y-2">
+                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+                              selected 
+                                ? 'bg-primary border-primary'
+                                : 'bg-transparent border-border hover:border-primary/50'
+                            }`}>
+                              <IconComponent 
+                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
+                                size={20} 
+                              />
+                            </div>
+                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
+                          </div>
+                        );
+                      }
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+
+                <AccordionItem value="Performance">
+                  <AccordionTrigger>Performance</AccordionTrigger>
+                  <AccordionContent>
+                    {renderFilterCarousel(
+                      MASTER_FILTERS.performance,
+                      selectedPerformance,
+                      (v) => toggleFilter(selectedPerformance, setSelectedPerformance, v),
+                      (item, selected) => {
+                        const IconComponent = item.Icon;
+                        return (
+                          <div className="flex flex-col items-center space-y-2">
+                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
+                              selected 
+                                ? 'bg-primary border-primary'
+                                : 'bg-transparent border-border hover:border-primary/50'
+                            }`}>
+                              <IconComponent 
+                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
+                                size={20} 
+                              />
+                            </div>
+                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
+                          </div>
+                        );
+                      }
+                    )}
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+              </SheetDescription>
+            </ScrollArea>
+
+             
+           
+          </SheetContent>
+        </Sheet> */}
+
+        {/* Info Sheet */}
+        <Sheet open={infoSheetOpen} onOpenChange={setInfoSheetOpen}>
+          <SheetContent side="bottom" className="h-[48vh]">
+            <SheetHeader>
+              <SheetTitle className="text-center text-primary">
+                How to use LollipopIcons to unlock tips
+              </SheetTitle>
+            </SheetHeader>
+            <div className="flex flex-col items-center justify-center space-y-6 mt-6">
+              {/* Visual flow */}
+              <div className="flex items-center justify-center space-x-4">
+                <Lock size={32} />
+                <ArrowRight size={28} />
+                <img src={LollipopSVG} alt="Lollipop" className="w-9 h-9 text-primary" />
+                <ArrowRight size={28} />
+                <LockOpen size={32} className="text-primary" />
+              </div>
+              {/* Explanations */}
+              <div className="space-y-4 text-center max-w-md">
+                <p className="text-base font-medium">
+                  <span className="text-primary">Locked tips</span> show a LollipopIcon icon. 
+                  Tap the unlock button and 1 LollipopIcon will be used to reveal the tip instantly.
+                </p>
+                <p className="text-sm opacity-80">
+                  You can earn LollipopIcons by engaging with the app or purchase them directly. 
+                  Your available LollipopIcons are shown in your wallet/profile.
+                </p>
+                <p className="text-sm opacity-80">
+                  Once unlocked, tips remain accessible in your account forever.
+                </p>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        {/* Column Selector Sheet */}
+        <Sheet open={columnSelectorOpen} onOpenChange={setColumnSelectorOpen}>
+          <SheetContent side="right" className="w-[400px]">
+            <SheetHeader>
+              <SheetTitle>Select Columns</SheetTitle>
+              <SheetDescription>
+                Choose up to 8 columns to display in the table.
+              </SheetDescription>
+            </SheetHeader>
+            
+            <div className="mt-6 space-y-4">
+              <div className="text-sm text-muted-foreground mb-4">
+                Selected: {selectedColumns.length}/8 columns
+              </div>
+              
+              <div className="space-y-2 max-h-[60vh] overflow-y-auto">
+                {availableColumns.map((column) => (
+                  <div key={column.key} className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id={column.key}
+                      checked={selectedColumns.includes(column.key)}
+                      onChange={(e) => {
+                        if (e.target.checked && selectedColumns.length < 8) {
+                          setSelectedColumns([...selectedColumns, column.key]);
+                        } else if (!e.target.checked) {
+                          setSelectedColumns(selectedColumns.filter(col => col !== column.key));
+                        }
+                      }}
+                      disabled={!selectedColumns.includes(column.key) && selectedColumns.length >= 8}
+                      className="rounded border-border"
+                    />
+                    <label 
+                      htmlFor={column.key} 
+                      className={`text-sm cursor-pointer ${
+                        !selectedColumns.includes(column.key) && selectedColumns.length >= 8 
+                          ? 'text-muted-foreground' 
+                          : 'text-foreground'
+                      }`}
+                    >
+                      {column.label}
+                    </label>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="flex gap-2 pt-4 border-t">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setSelectedColumns(['time', 'advisor', 'asset', 'symbol', 'return', 'risk', 'holding', 'sentiment']);
+                  }}
+                >
+                  Reset to Default
+                </Button>
+                <Button 
+                  size="sm"
+                  onClick={() => setColumnSelectorOpen(false)}
+                  className="ml-auto"
+                >
+                  Apply Changes
+                </Button>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
+
+        <ProfileEditPopover />
+
+        {/* Mobile Symbol Chart Sheet */}
+        <Sheet open={showSymbolSheet && !!selectedSymbolForMobile} onOpenChange={(open) => !open && setShowSymbolSheet(false)}>
+          <SheetContent side="right" className="lg:hidden max-h-[100vh] min-w-[100vw] p-0 flex flex-col">
+            {/* Enhanced Header */}
+            <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border">
+              <div className="flex items-center justify-between p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-muted border border-border flex items-center justify-center">
+                    <ChartPie size={16} className="text-foreground" />
+                  </div>
+                  <div>
+                    <div className="font-bold text-lg">{selectedSymbolForMobile}</div>
+                    <div className="text-xs text-muted-foreground">Interactive Chart</div>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowSymbolSheet(false)}
+                  className="w-8 h-8 p-0 rounded-full"
+                >
+                  <X size={16} />
+                </Button>
+              </div>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto pb-16">
+              <div className="p-4 space-y-4">
+                {/* Chart Container */}
+                <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
+                  <div className="p-3 border-b border-border bg-muted/30">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                        <span className="font-medium text-sm">Live Chart</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Clock size={12} />
+                        <span>Real-time data</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="h-[50vh] bg-background">
+                    <TradingViewWidget
+                      symbol={selectedSymbolForMobile}
+                      theme={isDarkTheme ? 'dark' : 'light'}
+                      height={"50vh"}
+                      width={'100%'}
+                    />
+                  </div>
+                </div>
+
+                {/* Quick Actions Section */}
+                <div className="bg-card rounded-xl border border-border p-4 shadow-sm">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Zap size={16} className="text-muted-foreground" />
+                    <span className="font-semibold text-sm">Quick Actions</span>
+                  </div>
+                  <div className="space-y-3">
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between gap-3 h-14 px-4 py-3"
+                      onClick={() => {
+                        // Add to watchlist functionality
+                        toast.success(`${selectedSymbolForMobile} added to watchlist`);
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-muted border border-border flex items-center justify-center">
+                          <Eye size={14} className="text-foreground" />
+                        </div>
+                        <div className="flex-1 text-left">
+                          <div className="font-medium text-sm">Add to Watchlist</div>
+                          <div className="text-xs text-muted-foreground">Track this symbol</div>
+                        </div>
+                      </div>
+                      <ArrowRight size={16} className="text-muted-foreground flex-shrink-0" />
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between gap-3 h-14 px-4 py-3"
+                      onClick={() => {
+                        // View related tips functionality
+                        setSearch(selectedSymbolForMobile);
+                        setShowSymbolSheet(false);
+                        toast.success(`Searching tips for ${selectedSymbolForMobile}`);
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-muted border border-border flex items-center justify-center">
+                          <Search size={14} className="text-foreground" />
+                        </div>
+                        <div className="flex-1 text-left">
+                          <div className="font-medium text-sm">Find Related Tips</div>
+                          <div className="text-xs text-muted-foreground">Search tips for this symbol</div>
+                        </div>
+                      </div>
+                      <ArrowRight size={16} className="text-muted-foreground flex-shrink-0" />
+                    </Button>
+                    
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between gap-3 h-14 px-4 py-3"
+                      onClick={() => {
+                        // Share chart functionality
+                        if (navigator.share) {
+                          navigator.share({
+                            title: `${selectedSymbolForMobile} Chart`,
+                            text: `Check out the chart for ${selectedSymbolForMobile}`,
+                            url: window.location.href
+                          });
+                        } else {
+                          navigator.clipboard.writeText(window.location.href);
+                          toast.success('Chart link copied to clipboard');
+                        }
+                      }}
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-muted border border-border flex items-center justify-center">
+                          <Share2 size={14} className="text-foreground" />
+                        </div>
+                        <div className="flex-1 text-left">
+                          <div className="font-medium text-sm">Share Chart</div>
+                          <div className="text-xs text-muted-foreground">Share with others</div>
+                        </div>
+                      </div>
+                      <ArrowRight size={16} className="text-muted-foreground flex-shrink-0" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Chart Features Section */}
+                <div className="bg-card rounded-xl border border-border p-4 shadow-sm">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Settings size={16} className="text-muted-foreground" />
+                    <span className="font-semibold text-sm">Chart Features</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-muted/30 rounded-lg p-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <TrendingUp size={14} className="text-green-500" />
+                        <span className="text-xs font-medium">Technical Analysis</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Advanced indicators and tools</p>
+                    </div>
+                    <div className="bg-muted/30 rounded-lg p-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <BarChart2 size={14} className="text-blue-500" />
+                        <span className="text-xs font-medium">Multiple Timeframes</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">From 1m to yearly charts</p>
+                    </div>
+                    <div className="bg-muted/30 rounded-lg p-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Activity size={14} className="text-purple-500" />
+                        <span className="text-xs font-medium">Volume Analysis</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Price and volume correlation</p>
+                    </div>
+                    <div className="bg-muted/30 rounded-lg p-3">
+                      <div className="flex items-center gap-2 mb-1">
+                        <ArrowLeftRight size={14} className="text-orange-500" />
+                        <span className="text-xs font-medium">Compare Stocks</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Side-by-side comparison</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Sticky Footer */}
+            <div className="sticky bottom-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t border-border p-3">
+              <div className="text-center text-xs text-muted-foreground">
+                Zoom, pan, and apply technical indicators directly on the chart
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        {/* Mobile Paywall Info Sheet */}
+        <Sheet open={showPaywallSheet && !!selectedPaywallTip} onOpenChange={(open) => !open && setShowPaywallSheet(false)}>
+          <SheetContent side="right" className="max-h-[100vh] w-full lg:w-[35vw] overflow-hidden flex flex-col">
+            {/* Header */}
+            <SheetHeader className="pb-4 border-b border-border">
+              <SheetTitle className="flex items-center gap-2">
+                <Lock size={20} />
+                Premium Content Access
+              </SheetTitle>
+              <SheetDescription className="text-left">
+                      This tip is paywalled for 24 hours after posting. You can unlock it to view all details including entry points, targets, and risk management.
+              </SheetDescription>
+            </SheetHeader>
+            
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="p-4 space-y-6">
+                
+                
+               
+                
+                {/* Cost Breakdown */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                    <Coins size={14} />
+                    Unlock Cost Breakdown
+                  </h3>
+                  
+                  <div className="rounded-lg border border-border bg-card overflow-hidden">
+                    {/* Header */}
+                    <div className="px-4 py-3 bg-muted/40 border-b border-border">
+                      <div className="flex items-center gap-2">
+                        <Wallet size={16} className="text-primary" />
+                        <span className="text-sm font-medium">Lollipop Credits Required</span>
+                      </div>
+                    </div>
+                    
+                    {/* Cost Items */}
+                    <div className="p-4 space-y-3">
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-4 h-4" />
+                          <span>Base unlock</span>
+                        </div>
+                        <span className="font-medium">1</span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="flex gap-1">
+                            <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-4 h-4" />
+                            <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-4 h-4" />
+                          </div>
+                          <span>SEBI Registered</span>
+                        </div>
+                        <span className="font-medium">2</span>
+                      </div>
+                      
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center gap-2">
+                          <div className="flex gap-1">
+                            <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-4 h-4" />
+                            <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-4 h-4" />
+                          </div>
+                          <span>{selectedPaywallTip?.successRate || '68%'} Success Rate</span>
+                        </div>
+                        <span className="font-medium">2</span>
+                      </div>
+                      
+                      <div className="border-t pt-3 flex items-center justify-between font-medium">
+                        <div className="flex items-center gap-2">
+                          <div className="flex gap-1">
+                            {[...Array(5)].map((_, i) => (
+                              <img key={i} src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-4 h-4" />
+                            ))}
+                          </div>
+                          <span>Total Cost</span>
+                        </div>
+                        <span className="text-lg">5</span>
+                      </div>
+                    </div>
+                    
+                    {/* Footer */}
+                    <div className="px-4 py-3 bg-muted/40 border-t border-border">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>Available Credits</span>
+                        <span className="font-medium">{userData?.credits || 0} Lollipops</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                 {/* Advisor Details */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                    <UserCheck size={14} />
+                    Advisor Information
+                  </h3>
+                  
+                  <div className="rounded-lg border border-border bg-card overflow-hidden">
+                    {/* Header */}
+                    <div className="px-4 py-3 bg-muted/40 border-b border-border">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                          <img src={selectedPaywallTip?.avatar || UserCheck} alt="User Check" className="text-primary rounded-full" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-bold text-base text-foreground mb-1">
+                            {selectedPaywallTip?.name || 'Professional Advisor'}
+                          </div>
+                          <div className="text-sm text-muted-foreground mb-2">
+                            {selectedPaywallTip?.advisor_title || 'Certified Financial Advisor'}
+                          </div>
+                          {selectedPaywallTip?.advisor_sebi_registered && (
+                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                              <ShieldCheck size={12} className="mr-1" />
+                              SEBI Registered
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Stats Grid */}
+                    <div className="p-4">
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="text-center p-3 rounded-lg bg-muted/30">
+                          <div className="font-bold text-lg text-primary">{selectedPaywallTip?.advisor_total_tips || '127'}</div>
+                          <div className="text-xs text-muted-foreground mt-1">Total Tips</div>
+                        </div>
+                        <div className="text-center p-3 rounded-lg bg-muted/30">
+                          <div className="font-bold text-lg text-green-600">{selectedPaywallTip?.advisor_win_rate || selectedPaywallTip?.win_rate || '84'}</div>
+                          <div className="text-xs text-muted-foreground mt-1">Success Rate</div>
+                        </div>
+                        <div className="text-center p-3 rounded-lg bg-muted/30">
+                          <div className="font-bold text-lg text-blue-600">{selectedPaywallTip?.advisor_experience || '7'}+</div>
+                          <div className="text-xs text-muted-foreground mt-1">Years Exp</div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Footer */}
+                    <div className="px-4 py-3 bg-muted/40 border-t border-border">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>Professional Analysis</span>
+                        <span className="flex items-center gap-1">
+                          <GraduationCap size={12} />
+                          Verified Expert
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Footer */}
+            <div className="p-4 border-t border-border bg-muted/20">
+              <Button 
+                className="w-full font-medium"
+                size="lg"
+                variant={userData?.credits >= 5 ? "default" : "outline"}
+                onClick={() => {
+                  if (userData?.credits >= 5) {
+                    handleUnlockTip(selectedPaywallTip);
+                    setShowPaywallSheet(false);
+                    toast("Tip unlocked successfully!", {
+                      duration: 3000,
+                      position: "top-center",
+                    });
+                  } else {
+                    toast("Not enough Lollipops! You need 5 Lollipops to unlock this tip.", {
+                      duration: 3000,
+                      position: "top-center",
+                    });
+                  }
+                }}
+                disabled={userData?.credits < 5}
+              >
+                <div  className="flex items-center justify-center gap-2 p-10">
+                  {userData?.credits >= 5 ? (
+                    <>
+                      <img src={LollipopSVGWhite } alt="Lollipop" className="w-4 h-4" />
+                      <span>Unlock Now</span>
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="w-4 h-4" />
+                      <span>Insufficient Credits</span>
+                    </>
+                  )}
+                </div>
+              </Button>
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        {/* Advisor Info Sheet */}
+        <Sheet open={showAdvisorSheet && !!selectedAdvisorForMobile} onOpenChange={(open) => !open && setShowAdvisorSheet(false)}>
+          <SheetContent side="right" className="max-h-[100vh] w-full lg:w-[35vw] overflow-hidden flex flex-col">
+            {/* Header */}
+            <SheetHeader className="pb-4 border-b border-border">
+              <SheetTitle className="flex items-center gap-3">
+                <img 
+                  src={selectedAdvisorForMobile?.avatar} 
+                  alt={selectedAdvisorForMobile?.name} 
+                  className="w-12 h-12 rounded-xl object-cover border-2 border-border shadow-sm" 
+                />
+                <div className="text-left flex-1">
+                  <div className="font-bold text-lg">{selectedAdvisorForMobile?.name}</div>
+                  <div className="text-sm text-muted-foreground font-normal mb-1">
+                    {selectedAdvisorForMobile?.advisor_title || 'Investment Advisor'}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    {selectedAdvisorForMobile?.advisor_sebi_registered ? (
+                      <ShieldCheck size={14} className="text-green-500" />
+                    ) : (
+                      <ShieldAlert size={14} className="text-red-500" />
+                    )}
+                    <span className={`text-xs font-medium ${selectedAdvisorForMobile?.advisor_sebi_registered ? 'text-green-600' : 'text-red-600'}`}>
+                      {selectedAdvisorForMobile?.advisor_sebi_registered ? 'SEBI Registered' : 'Not SEBI Registered'}
+                    </span>
+                  </div>
+                </div>
+              </SheetTitle>
+              <SheetDescription className="text-left">
+                Professional investment advisor profile with expertise, performance metrics, and verified credentials
+              </SheetDescription>
+            </SheetHeader>
+            
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="p-4 space-y-4">
+                {/* Performance Metrics */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                    Performance Metrics
+                  </h3>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="p-4 rounded-xl border border-border bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900">
+                          <Award size={16} className="text-green-600 dark:text-green-400" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-xs text-muted-foreground">Win Rate</div>
+                          <div className="font-bold text-lg text-green-600 dark:text-green-400">
+                            {selectedAdvisorForMobile?.advisor_win_rate || selectedAdvisorForMobile?.win_rate || 'N/A'}%
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Success rate of investment recommendations
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 rounded-xl border border-border bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950">
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900">
+                          <BarChart2 size={16} className="text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-xs text-muted-foreground">Total Tips</div>
+                          <div className="font-bold text-lg text-blue-600 dark:text-blue-400">
+                            {selectedAdvisorForMobile?.advisor_total_tips || 'N/A'}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        Investment tips shared with community
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Professional Information */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                    Professional Information
+                  </h3>
+                  
+                  <div className="space-y-3">
+                    <div className="p-4 rounded-xl border border-border bg-muted/30">
+                      <div className="flex items-center gap-3 mb-2">
+                        <User size={16} className="text-orange-500" />
+                        <span className="font-medium text-sm">Experience & Background</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-4 mt-3">
+                        <div>
+                          <div className="text-xs text-muted-foreground">Age</div>
+                          <div className="font-semibold text-sm">{selectedAdvisorForMobile?.advisor_age || 'N/A'} years</div>
+                        </div>
+                        <div>
+                          <div className="text-xs text-muted-foreground">Experience</div>
+                          <div className="font-semibold text-sm">{selectedAdvisorForMobile?.advisor_experience || 'N/A'} years</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 rounded-xl border border-border bg-muted/30">
+                      <div className="flex items-center gap-3 mb-2">
+                        <Briefcase size={16} className="text-purple-500" />
+                        <span className="font-medium text-sm">Professional Title</span>
+                      </div>
+                      <div className="text-sm text-foreground">
+                        {selectedAdvisorForMobile?.advisor_title || 'Investment Advisor'}
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Specialized in providing investment guidance and market analysis
+                      </div>
+                    </div>
+
+                    {selectedAdvisorForMobile?.advisor_sebi_registered && (
+                      <div className="p-4 rounded-xl border border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/30">
+                        <div className="flex items-center gap-3 mb-2">
+                          <ShieldCheck size={16} className="text-green-600" />
+                          <span className="font-medium text-sm text-green-700 dark:text-green-400">SEBI Registration</span>
+                        </div>
+                        <div className="text-xs text-green-600 dark:text-green-400">
+                          This advisor is registered with the Securities and Exchange Board of India (SEBI), ensuring compliance with regulatory standards and professional ethics.
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                    Actions
+                  </h3>
+                  
+                  <Button
+                    variant="default"
+                    className="w-full justify-start p-4 h-auto rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
+                    onClick={() => {
+                      handleViewAllTips(selectedAdvisorForMobile?.name);
+                    }}
+                  >
+                    <Eye size={20} className="mr-4" />
+                    <div className="text-left flex-1">
+                      <div className="font-medium">View All Tips</div>
+                      <div className="text-xs text-primary-foreground/80">See complete investment portfolio and track record</div>
+                    </div>
+                    <ArrowUpRight size={16} className="text-primary-foreground/80" />
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start p-4 h-auto rounded-xl border border-border hover:bg-muted/50"
+                    onClick={() => {
+                      // Future: Follow advisor functionality
+                      toast("Follow feature coming soon!", {
+                        duration: 2000,
+                        position: "top-center",
+                      });
+                    }}
+                  >
+                    <User size={20} className="mr-4" />
+                    <div className="text-left flex-1">
+                      <div className="font-medium">Follow Advisor</div>
+                      <div className="text-xs text-muted-foreground">Get notified about new tips and updates</div>
+                      <Badge variant="secondary" className="text-xs px-2 py-1 mt-2 bg-orange-100 text-orange-600 border-orange-200 w-fit">
+                        Coming Soon
+                      </Badge>
+                    </div>
+                    <ArrowUpRight size={16} className="text-muted-foreground" />
+                  </Button>
+
+                  {/* Contact Advisor Section */}
+                  <div className="space-y-3 pt-3">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                      Contact Advisor
+                    </h3>
+                    
+                    {/* Contact Buttons Row */}
+                    <div className="grid grid-cols-3 gap-2">
+                      {/* Call Button */}
+                      <Button
+                        variant="outline"
+                        className="flex flex-col items-center justify-center p-3 h-auto rounded-xl border border-border hover:bg-muted/50"
+                        onClick={() => {
+                          toast("Call feature coming soon!", {
+                            duration: 2000,
+                            position: "top-center",
+                          });
+                        }}
+                      >
+                        <Phone size={18} className="mb-1" />
+                        <div className="text-xs font-medium">Call</div>
+                      </Button>
+
+                      {/* Email Button */}
+                      <Button
+                        variant="outline"
+                        className="flex flex-col items-center justify-center p-3 h-auto rounded-xl border border-border hover:bg-muted/50"
+                        onClick={() => {
+                          toast("Email feature coming soon!", {
+                            duration: 2000,
+                            position: "top-center",
+                          });
+                        }}
+                      >
+                        <Mail size={18} className="mb-1" />
+                        <div className="text-xs font-medium">Email</div>
+                      </Button>
+
+                      {/* Website Button */}
+                      <Button
+                        variant="outline"
+                        className="flex flex-col items-center justify-center p-3 h-auto rounded-xl border border-border hover:bg-muted/50"
+                        onClick={() => {
+                          toast("Website feature coming soon!", {
+                            duration: 2000,
+                            position: "top-center",
+                          });
+                        }}
+                      >
+                        <Globe size={18} className="mb-1" />
+                        <div className="text-xs font-medium">Website</div>
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            {/* Footer */}
+            <div className="p-4 border-t border-border bg-muted/20">
+              <div className="text-xs text-center text-muted-foreground">
+                Connect with professional advisors for expert investment guidance
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        {/* Mobile Alert/Notifications Sheet */}
+        <Sheet open={showMobileAlertSheet} onOpenChange={setShowMobileAlertSheet}>
+          <SheetContent side="right" className="max-h-[100vh] w-full lg:w-[35vw] overflow-hidden flex flex-col">
+            {/* Header */}
+            <SheetHeader className="pb-4 border-b border-border">
+              <SheetTitle className="flex items-center gap-2">
+                <Bell size={20} />
+                Notifications & Alerts
+              </SheetTitle>
+              <SheetDescription className="text-left">
+                Stay updated with market movements, tip updates, and personalized alerts
+              </SheetDescription>
+            </SheetHeader>
+            
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="p-4 space-y-4">
+                {/* Alert Categories */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                    Alert Types
+                  </h3>
+                  
+                  <div className="space-y-2">
+                    {/* Market Alerts */}
+                    <div className="p-3 rounded-lg border border-border bg-muted/30">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <TrendingUp size={16} className="text-green-500" />
+                          <span className="font-medium text-sm">Market Alerts</span>
+                        </div>
+                        <Badge variant="secondary" className="text-xs">Coming Soon</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Get notified about significant market movements, breakouts, and sector rotations
+                      </p>
+                    </div>
+
+                    {/* Tip Updates */}
+                    <div className="p-3 rounded-lg border border-border bg-muted/30">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <AlertTriangle size={16} className="text-orange-500" />
+                          <span className="font-medium text-sm">Tip Updates</span>
+                        </div>
+                        <Badge variant="secondary" className="text-xs">Coming Soon</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Updates on your unlocked tips, price targets hit, and advisor recommendations
+                      </p>
+                    </div>
+
+                    {/* Portfolio Alerts */}
+                    <div className="p-3 rounded-lg border border-border bg-muted/30">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <BarChart2 size={16} className="text-blue-500" />
+                          <span className="font-medium text-sm">Portfolio Alerts</span>
+                        </div>
+                        <Badge variant="secondary" className="text-xs">Coming Soon</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Track performance of your followed tips and get exit signal notifications
+                      </p>
+                    </div>
+
+                    {/* New Advisor Tips */}
+                    <div className="p-3 rounded-lg border border-border bg-muted/30">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <User size={16} className="text-purple-500" />
+                          <span className="font-medium text-sm">Advisor Alerts</span>
+                        </div>
+                        <Badge variant="secondary" className="text-xs">Coming Soon</Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        New tips from your favorite advisors and SEBI registered professionals
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Recent Activity */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                    Recent Activity
+                  </h3>
+                  
+                  <div className="p-4 rounded-lg border border-dashed border-border bg-muted/20 text-center">
+                    <Bell size={24} className="mx-auto mb-2 text-muted-foreground" />
+                    <div className="text-sm font-medium mb-1">No New Notifications</div>
+                    <div className="text-xs text-muted-foreground">
+                      We'll notify you here when there are updates on your tips, market alerts, or new content from your followed advisors.
+                    </div>
+                  </div>
+                </div>
+
+                {/* Notification Settings */}
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                    Settings
+                  </h3>
+                  
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start p-3 h-auto rounded-xl border border-border hover:bg-muted/50"
+                    onClick={() => {
+                      // Future: Navigate to notification settings
+                      toast("Notification settings coming soon!", {
+                        duration: 2000,
+                        position: "top-center",
+                      });
+                    }}
+                  >
+                    <Settings size={16} className="mr-3" />
+                    <div className="text-left">
+                      <div className="font-medium text-sm">Notification Preferences</div>
+                      <div className="text-xs text-muted-foreground">Customize your alert settings</div>
+                    </div>
+                    <ArrowUpRight size={14} className="ml-auto text-muted-foreground" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+            
+            {/* Footer */}
+            <div className="p-4 border-t border-border bg-muted/20">
+              <div className="text-xs text-center text-muted-foreground">
+                Stay connected to never miss important market opportunities
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        {/* Mobile User Profile Sheet */}
+        <Sheet open={showMobileUserSheet} onOpenChange={setShowMobileUserSheet}>
+          <SheetContent side="right" className="max-h-[100vh] w-full lg:w-[35vw] overflow-hidden flex flex-col">
+            {/* Header */}
+            <SheetHeader className="pb-4 border-b border-border">
+              <SheetTitle className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  {userData?.avatar ? (
+                    <img 
+                      src={userData.avatar} 
+                      alt={userData.name} 
+                      className="w-10 h-10 rounded-full border-2 border-border"
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
+                      <User size={20} />
+                    </div>
+                  )}
+                  <div className="text-left">
+                    <div className="font-bold text-lg">
+                      {userData?.name || 'Guest User'}
+                    </div>
+                    <div className="text-sm text-muted-foreground font-normal">
+                      {userData?.email || 'Not logged in'}
+                    </div>
+                  </div>
+                </div>
+                
+              </SheetTitle>
+            </SheetHeader>
+            
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-4">
+              {userData && userData.id ? (
+                <div className="space-y-6">
+                  {/* Account Balance Section */}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                      Account Balance
+                    </h3>
+                    <div 
+                      className="p-4 rounded-xl border-2"
+                      style={{
+                        background: isDarkTheme ? 'linear-gradient(135deg, #1f2937 0%, #374151 100%)' : 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
+                        borderColor: isDarkTheme ? '#374151' : '#e2e8f0'
+                      }}
+                    >
+                      <div className="flex items-center justify-center gap-3 mb-3">
+                        <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-8 h-8" />
+                        <div className="text-center">
+                          <div className="text-2xl font-bold">{userData.credits || 0}</div>
+                          <div className="text-sm text-muted-foreground">Lollipops</div>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        className="w-full bg-primary text-primary-foreground hover:bg-primary/90 border-primary"
+                        onClick={() => {
+                          window.open('https://wa.me/918939350442?text=Hi%20I%20want%20to%20recharge%20my%20Lollipops', '_blank');
+                          setShowMobileUserSheet(false);
+                        }}
+                      >
+                        <Plus size={16} className="mr-2" />
+                        Recharge Lollipops
+                      </Button>
+                      <div className="text-xs text-muted-foreground mt-3 text-center leading-relaxed">
+                        Lollipops are credits used to unlock premium investment tips from our expert advisors.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Account Actions Section */}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                      Account
+                    </h3>
+                    <div className="space-y-2">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start p-4 h-auto rounded-xl border border-border hover:bg-muted/50"
+                        onClick={() => {
+                          // Handle profile edit
+                          setShowMobileUserSheet(false);
+                        }}
+                      >
+                        <User size={20} className="mr-4" />
+                        <div className="text-left">
+                          <div className="font-medium">Edit Profile</div>
+                          <div className="text-xs text-muted-foreground">Update your personal information</div>
+                        </div>
+                      </Button>
+                      
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start p-4 h-auto rounded-xl border border-border hover:bg-muted/50"
+                        onClick={() => {
+                          window.location.href = 'mailto:shubh@1qr.co.in';
+                          setShowMobileUserSheet(false);
+                        }}
+                      >
+                        <MessageSquare size={20} className="mr-4" />
+                        <div className="text-left">
+                          <div className="font-medium">Support</div>
+                          <div className="text-xs text-muted-foreground">Get help and contact us</div>
+                        </div>
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Professional Tools Section */}
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                      Professional Tools
+                    </h3>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start p-4 h-auto rounded-xl border border-border hover:bg-muted/50"
+                      onClick={() => {
+                        window.location.href = '/dashboard';
+                        setShowMobileUserSheet(false);
+                      }}
+                    >
+                      <Briefcase size={20} className="mr-4" />
+                      <div className="text-left flex-1">
+                        <div className="font-medium">RIA Dashboard</div>
+                        <div className="text-xs text-muted-foreground leading-relaxed">
+                          Upload and manage investment tips as a<br />Registered Investment Advisor
+                        </div>
+                      </div>
+                      <ArrowUpRight size={16} className="text-muted-foreground" />
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                /* Not Logged In State */
+                <div className="flex flex-col items-center justify-center py-8 px-4 text-center space-y-6">
+                  <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center">
+                    <User size={32} className="text-muted-foreground" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-lg font-semibold">Welcome to Lollipop</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Sign in to access premium investment tips, track your portfolio, and connect with expert advisors.
+                    </p>
+                  </div>
+                  <div className="w-full space-y-3">
+                    <Button
+                      variant="default"
+                      className="w-full py-3"
+                      onClick={() => {
+                        window.location.href = '/login';
+                        setShowMobileUserSheet(false);
+                      }}
+                    >
+                      <LogIn size={16} className="mr-2" />
+                      Sign In
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full py-3"
+                      onClick={() => {
+                        window.location.href = '/login';
+                        setShowMobileUserSheet(false);
+                      }}
+                    >
+                      <User size={16} className="mr-2" />
+                      Create Account
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            {userData?.id && (
+              <div className="pt-4 border-t border-border">
+                <Button
+                  variant="ghost"
+                  className="w-full justify-center p-3 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
+                  onClick={() => {
+                    // Handle logout
+                    localStorage.removeItem('sb-bhgqrtskwqjhlhbpnqjz-auth-token');
+                    window.location.href = '/login';
+                  }}
+                >
+                  <LogOut size={16} className="mr-2" />
+                  Sign Out
+                </Button>
+                <div className="text-xs text-center text-muted-foreground mt-2 pb-2">
+                  App Version 1.0.0 • © 2025 Lollipop
+                </div>
+              </div>
+            )}
+          </SheetContent>
+        </Sheet>
+
+        {/* Information Explanation Sheet */}
+        <Sheet open={showInfoSheet} onOpenChange={setShowInfoSheet}>
+          <SheetContent side="right" className="max-h-[100vh] w-full lg:w-[45vw] overflow-hidden flex flex-col">
+            
+            
+            {/* Header - Fixed at top */}
+            <div className="flex items-center gap-4 p-2 border-b ">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center p-2">
+                {infoSheetData?.iconComponent}
+              </div>
+              <div>
+                <div className="text-xl font-bold text-foreground">{infoSheetData?.title}</div>
+                <div className="text-sm text-muted-foreground mt-1">
+                  {infoSheetData?.description}
+                </div>
+              </div>
+            </div>
+
+            {/* Scrollable Content Area */}
+            <div className="flex-1 overflow-y-auto p-2">
+              {/* Content Sections */}
+              <div className="space-y-4">
+                {infoSheetData?.content?.map((section, index) => (
+                  <div key={index} className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+                    {/* Section Header */}
+                    <div className="bg-muted/50 px-3 py-2 border-b border-border">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                          {getSectionIcon(section.section, index)}
+                        </div>
+                        <h3 className="font-semibold text-foreground text-base">
+                          {section.section}
+                        </h3>
+                      </div>
+                    </div>
+
+                    {/* Section Content */}
+                    <div className="p-3">
+                      {section.text && (
+                        <div className="mb-3">
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            {section.text}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {section.items && (
+                        <div className="space-y-2">
+                          {section.items.map((item, itemIndex) => (
+                            <div key={itemIndex} className="bg-muted/30 rounded-lg border border-border/50 overflow-hidden hover:shadow-md transition-all duration-200">
+                              {/* Item Header */}
+                              <div className="bg-background/80 px-2 py-1.5 border-b border-border/30">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
+                                    {getItemIcon(item.name, itemIndex)}
+                                  </div>
+                                  <div className="font-medium text-foreground text-sm">
+                                    {item.name}
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Item Content */}
+                              <div className="px-2 py-1.5">
+                                <div className="text-xs text-muted-foreground leading-relaxed">
+                                  {item.desc}
+                                </div>
+                              </div>
+
+                              {/* Item Footer */}
+                              <div className="bg-muted/20 px-2 py-1 border-t border-border/20">
+                                <div className="flex items-center gap-1">
+                                  <div className="w-3 h-3 rounded-full bg-primary/20 flex items-center justify-center">
+                                    <div className="w-1 h-1 rounded-full bg-primary"></div>
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {getItemFooter(item.name)}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Section Footer */}
+                    <div className="bg-muted/20 px-3 py-2 border-t border-border">
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded-full bg-green-100 flex items-center justify-center">
+                          <div className="w-2 h-2 rounded-full bg-green-600"></div>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {getSectionFooter(section.section)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Bottom spacing for scroll */}
+             
+            </div>
+
+            {/* Fixed Footer - Always visible at bottom */}
+            
+              <div className="bg-muted/20 px-3 py-2 border-t border-border">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded-full bg-green-100 flex items-center justify-center">
+                    <div className="w-2 h-2 rounded-full bg-green-600"></div>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {infoSheetData?.footer}
+                  </div>
+                </div>
+              </div>
+           
+          </SheetContent>
+        </Sheet>
+
+        {/* Platform Information Sheet */}
+        <Sheet open={showPlatformInfoSheet} onOpenChange={setShowPlatformInfoSheet}>
+          <SheetContent side="right" className="max-h-[100vh] w-full lg:w-[50vw] overflow-hidden flex flex-col">
+            {/* Scrollable Content Area with Header */}
+            <div className="flex-1 overflow-y-auto">
+              {/* Header - Scrollable with content */}
+              <div className="flex items-center gap-4 p-4 border-b border-border">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center p-2">
+                  {platformInformationData?.iconComponent}
+                </div>
+                <div>
+                  <div className="text-xl font-bold text-foreground">{platformInformationData?.title}</div>
+                  <div className="text-sm text-muted-foreground mt-1">
+                    {platformInformationData?.description}
+                  </div>
+                </div>
+              </div>
+
+              {/* Content Sections */}
+              <div className="space-y-4 p-2">
+                {platformInformationData?.content?.map((section, index) => (
+                  <div key={index} className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+                    {/* Section Header */}
+                    <div className="bg-muted/50 px-3 py-2 border-b border-border">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                          {getSectionIcon(section.section, index)}
+                        </div>
+                        <h3 className="font-semibold text-foreground text-base">
+                          {section.section}
+                        </h3>
+                      </div>
+                    </div>
+
+                    {/* Section Content */}
+                    <div className="p-3">
+                      {section.text && (
+                        <div className="mb-3">
+                          <p className="text-sm text-muted-foreground leading-relaxed">
+                            {section.text}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {section.items && (
+                        <div className="space-y-2">
+                          {section.items.map((item, itemIndex) => (
+                            <div key={itemIndex} className="bg-muted/30 rounded-lg border border-border/50 overflow-hidden hover:shadow-md transition-all duration-200">
+                              {/* Item Header */}
+                              <div className="bg-background/80 px-2 py-1.5 border-b border-border/30">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
+                                    {getItemIcon(item.name, itemIndex)}
+                                  </div>
+                                  <div className="font-medium text-foreground text-sm">
+                                    {item.name}
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Item Content */}
+                              <div className="px-2 py-1.5">
+                                <div className="text-xs text-muted-foreground leading-relaxed">
+                                  {item.desc}
+                                </div>
+                              </div>
+
+                              {/* Item Footer */}
+                              <div className="bg-muted/20 px-2 py-1 border-t border-border/20">
+                                <div className="flex items-center gap-1">
+                                  <div className="w-3 h-3 rounded-full bg-primary/20 flex items-center justify-center">
+                                    <div className="w-1 h-1 rounded-full bg-primary"></div>
+                                  </div>
+                                  <div className="text-xs text-muted-foreground">
+                                    {getItemFooter(item.name)}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Section Footer */}
+                    <div className="bg-muted/20 px-3 py-2 border-t border-border">
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded-full bg-green-100 flex items-center justify-center">
+                          <div className="w-2 h-2 rounded-full bg-green-600"></div>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {getSectionFooter(section.section)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              {/* Bottom spacing for scroll */}
+        
+            </div>
+
+            {/* Fixed Footer - Always visible at bottom */}
+            <div className="flex-shrink-0 mt-[-15px] bg-card border border-border shadow-sm overflow-hidden">
+              
+              
+              <div className="bg-muted/20 px-3 py-2 border-t border-border">
+                <div className="flex items-center gap-2">
+                  <div className="w-12 h-8 p-1 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Rocket size={12} className="text-primary" />
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Start your investment journey with confidence - every feature is designed to help you succeed
+                  </div>
+                </div>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        
+ 
+    </div>
+  );
+}

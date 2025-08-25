@@ -10,6 +10,10 @@ import Login from './Login.jsx';
 import UserPosts from './UserPosts.jsx';
 import SinglePost from './SinglePost.jsx';
 import Page from './analysts/Page.jsx';
+import TipScreen from './TipScreen.jsx';
+import TipDetail from './TipDetail.jsx';
+import ProfileScreen from './ProfileScreen.jsx';
+import TipDetailCard from './components/TipDetailCard.jsx';
 
 
 createRoot(document.getElementById('root')).render(
@@ -17,6 +21,9 @@ createRoot(document.getElementById('root')).render(
     <Router>
       <Routes>
         <Route path="/" element={<RootApp />} />
+        <Route path="/tips" element={<TipScreen />} />
+        <Route path="/tip" element={<TipDetailCard />} />
+        <Route path="/profile/:userId" element={<ProfileScreen />} />
         <Route path="/headline-to-news" element={<NewsGenerator />} />
         <Route path="/login" element={<Login />} />
         <Route path="/dashboard" element={<Page  />} />

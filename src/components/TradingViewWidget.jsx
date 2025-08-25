@@ -20,7 +20,7 @@ function TradingViewWidget({ symbol , compareSymbol, isChatExpanded , theme, onE
          "autosize": true,
   "symbol": "${symbol}",
   "timezone": "Etc/UTC",
-  "theme": "light",
+
   "style": "2",
   "locale": "en",
   "withdateranges": true,
@@ -41,7 +41,7 @@ function TradingViewWidget({ symbol , compareSymbol, isChatExpanded , theme, onE
           "autosize": true,
   "symbol": "${symbol}",
   "timezone": "Etc/UTC",
-  "theme": "light",
+  "theme": "${theme}",
   "style": "2",
   "locale": "en",
   "withdateranges": true,
