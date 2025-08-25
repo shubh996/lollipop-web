@@ -106,7 +106,9 @@ import {
   Users,
   Smartphone,
   Rocket,
-  AlertCircle
+  PlusCircle,
+  ChevronRight,
+  LockOpenIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -3544,320 +3546,416 @@ export default function TipScreen() {
         </div>
 
         <Sheet open={mobileTipSheetOpen} onOpenChange={setMobileTipSheetOpen}>
-          <SheetContent side="right" className="max-h-[100vh] w-full lg:w-[50%] overflow-hidden flex flex-col">
+          <SheetContent side="right" className="max-h-[100vh] w-full lg:w-[50%] overflow-y-auto">
             {selectedTipForMobile && (
-              <>
+              <div className="space-y-6 p-2">
                 {/* Header */}
-                <div className="p-4 border-b border-border bg-red-50 dark:bg-red-950">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-lg bg-red-100 dark:bg-red-900 flex items-center justify-center">
-                      <AlertTriangle className="w-5 h-5 text-red-600" />
+                <div className="p-2 border-b border-border">
+                  <div className="flex items-center gap-3 text-lg font-semibold mb-3">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <Target size={20} className="text-primary" />
                     </div>
-                    <div>
-                      <div className="text-lg font-bold text-red-800 dark:text-red-200">TRADE ADVISORY: {selectedTipForMobile.symbol}</div>
-                      <div className="text-sm text-red-600 dark:text-red-400">
-                        Professional Investment Configuration - Execute Exactly as Specified
-                      </div>
-                    </div>
+                    Investment Advisory
                   </div>
-                  <div className="bg-red-100 dark:bg-red-900 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                    <div className="flex items-start gap-2">
-                      <Info className="w-4 h-4 text-red-600 mt-0.5" />
-                      <div className="text-sm text-red-800 dark:text-red-200">
-                        <span className="font-semibold">Important:</span> This is a complete trade setup configuration. 
-                        Follow each step precisely to replicate the advisor's strategy. Copy all price levels, 
-                        allocation percentages, and risk parameters exactly as shown.
-                      </div>
-                    </div>
+                  <div className="text-sm text-muted-foreground leading-relaxed">
+                    Copy this exact configuration to achieve the projected results. Professional analysis with precise entry, exit, and risk parameters for {selectedTipForMobile.symbol}.
                   </div>
                 </div>
+                  
 
-                {/* Content */}
-                <div className="flex-1 overflow-y-auto p-4">
-                  <div className="space-y-6">
+                  {/* Live Chart Section */}
+                  <div className="space-y-4 p-2">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                      <BarChart2 size={14} />
+                      Live Chart Analysis
+                    </h3>
                     
-                    {/* Step 1: Pre-Trade Setup */}
-                    <div className="bg-blue-50 dark:bg-blue-950 border-l-4 border-blue-500 rounded-lg p-4">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center font-bold text-sm">1</div>
-                        <h3 className="text-lg font-bold text-blue-800 dark:text-blue-200">PRE-TRADE SETUP</h3>
+                    <div className="rounded-xl border border-border bg-card overflow-hidden">
+                      {/* Header */}
+                      <div className="px-4 py-3 bg-muted/40 border-b border-border">
+                        <div className="flex items-center gap-2">
+                          <Activity size={16} className="text-blue-600" />
+                          <span className="text-sm font-medium">Real-time Price Chart</span>
+                        </div>
                       </div>
-                      <div className="space-y-3">
-                        <div className="bg-white dark:bg-slate-900 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
-                          <div className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-2">Asset Information</div>
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <div className="text-xs text-muted-foreground">Symbol</div>
-                              <div className="font-bold text-lg text-blue-700 dark:text-blue-300">{selectedTipForMobile.symbol}</div>
-                            </div>
-                            <div>
-                              <div className="text-xs text-muted-foreground">Asset Type</div>
-                              <div className="font-medium text-sm">{selectedTipForMobile.asset_type}</div>
-                            </div>
-                            <div>
-                              <div className="text-xs text-muted-foreground">Sector</div>
-                              <div className="font-medium text-sm">{selectedTipForMobile.sector}</div>
-                            </div>
-                            <div>
-                              <div className="text-xs text-muted-foreground">Trade Type</div>
-                              <div className="font-medium text-sm">{selectedTipForMobile.trade_type || 'Long Position'}</div>
-                            </div>
+                      
+                      {/* Chart Content */}
+                      <div className="p-0">
+                        <div className="overflow-hidden border border-border">
+                          <div style={{ height: '320px', width: '100%' , margin:-1}}>
+                            <TradingViewWidget
+                              symbol={selectedTipForMobile?.symbol}
+                              theme={'light'}
+                              height={"100%"}
+                              width="100%"
+                            />
                           </div>
                         </div>
-                        <div className="bg-white dark:bg-slate-900 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
-                          <div className="text-sm font-semibold text-blue-800 dark:text-blue-200 mb-2">Trade Rationale</div>
+                      </div>
+                      
+                      {/* Footer */}
+                      <div className="px-4 py-2 bg-muted/20 border-t border-border">
+                        <div className="text-xs text-muted-foreground text-center">
+                          Interactive chart with technical indicators and market data
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Investment Strategy Section */}
+                  <div className="space-y-4 p-2">
+                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                      <BookOpen size={14} />
+                      Investment Strategy
+                    </h3>
+                    
+                    <div className="rounded-xl border border-border bg-card overflow-hidden">
+                      {/* Header */}
+                      <div className="px-4 py-3 bg-muted/40 border-b border-border">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <FileText size={16} className="text-blue-600" />
+                            <span className="text-sm font-medium">Asset Overview</span>
+                          </div>
+                          <Badge variant="outline" className="text-xs">
+                            {selectedTipForMobile.asset_type}
+                          </Badge>
+                        </div>
+                      </div>
+                      
+                      {/* Content */}
+                      <div className="p-4 space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <div className="text-xs text-muted-foreground">Symbol</div>
+                            <div className="font-bold text-lg text-primary">{selectedTipForMobile.symbol}</div>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="text-xs text-muted-foreground">Sector</div>
+                            <div className="font-semibold text-sm">{selectedTipForMobile.sector}</div>
+                          </div>
+                        </div>
+                        
+                        <div className="p-4 rounded-lg bg-muted/30 border border-dashed border-border">
+                          <div className="flex items-start gap-2 mb-2">
+                            <BookOpen size={14} className="text-primary mt-0.5" />
+                            <span className="text-sm font-medium">Investment Thesis</span>
+                          </div>
                           <div className="text-sm text-muted-foreground leading-relaxed">
                             {selectedTipForMobile.tip}
                           </div>
                         </div>
                       </div>
-                    </div>
-
-                    {/* Step 2: Trade Configuration */}
-                    <div className="bg-green-50 dark:bg-green-950 border-l-4 border-green-500 rounded-lg p-4">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center font-bold text-sm">2</div>
-                        <h3 className="text-lg font-bold text-green-800 dark:text-green-200">TRADE CONFIGURATION</h3>
+                      
+                      {/* Footer */}
+                      <div className="px-4 py-2 bg-muted/20 border-t border-border">
+                        <div className="text-xs text-muted-foreground text-center">
+                          Research-backed investment opportunity with clear rationale
+                        </div>
                       </div>
-                      <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-green-200 dark:border-green-800">
-                        <div className="text-sm font-semibold text-green-800 dark:text-green-200 mb-3 flex items-center gap-2">
-                          <Target className="w-4 h-4" />
-                          Copy These Exact Price Levels
-                        </div>
-                        <div className="grid grid-cols-3 gap-3 mb-4">
-                          <div className="text-center p-3 rounded-lg bg-green-100 dark:bg-green-900 border border-green-300 dark:border-green-700">
-                            <div className="text-xs text-green-700 dark:text-green-300 mb-1 font-medium">ENTRY PRICE</div>
-                            <div className="font-bold text-xl text-green-800 dark:text-green-200">${selectedTipForMobile.entry_price}</div>
-                            <div className="text-xs text-green-600 dark:text-green-400 mt-1">Place buy order here</div>
-                          </div>
-                          <div className="text-center p-3 rounded-lg bg-blue-100 dark:bg-blue-900 border border-blue-300 dark:border-blue-700">
-                            <div className="text-xs text-blue-700 dark:text-blue-300 mb-1 font-medium">TARGET PRICE</div>
-                            <div className="font-bold text-xl text-blue-800 dark:text-blue-200">${selectedTipForMobile.exit_price}</div>
-                            <div className="text-xs text-blue-600 dark:text-blue-400 mt-1">Set sell order here</div>
-                          </div>
-                          <div className="text-center p-3 rounded-lg bg-red-100 dark:bg-red-900 border border-red-300 dark:border-red-700">
-                            <div className="text-xs text-red-700 dark:text-red-300 mb-1 font-medium">STOP LOSS</div>
-                            <div className="font-bold text-xl text-red-800 dark:text-red-200">${selectedTipForMobile.stop_loss}</div>
-                            <div className="text-xs text-red-600 dark:text-red-400 mt-1">Risk management</div>
+                    </div>
+                  </div>                    {/* Trade Configuration Section */}
+                    <div className="space-y-4  p-2">
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                        <Target size={14} />
+                        Trade Configuration
+                      </h3>
+                      
+                      {/* Price Targets Card */}
+                      <div className="rounded-xl border border-border bg-card overflow-hidden">
+                        <div className="px-4 py-3 bg-muted/40 border-b border-border">
+                          <div className="flex items-center gap-2">
+                            <Target size={16} className="text-green-600" />
+                            <span className="text-sm font-medium">Price Targets</span>
                           </div>
                         </div>
-                        <div className="bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg p-3">
-                          <div className="flex items-start gap-2">
-                            <AlertCircle className="w-4 h-4 text-yellow-600 mt-0.5" />
-                            <div className="text-sm text-yellow-800 dark:text-yellow-200">
-                              <span className="font-semibold">Action Required:</span> Set these three orders simultaneously. 
-                              Entry price for position opening, target for profit booking, stop-loss for risk protection.
+                        
+                        <div className="p-4">
+                          <div className="grid grid-cols-3 gap-4">
+                            <div className="text-center p-3 rounded-lg bg-green-50 border border-green-200">
+                              <div className="text-xs text-green-700 mb-1">Entry Point</div>
+                              <div className="font-bold text-lg text-green-700">${selectedTipForMobile.entry_price}</div>
+                            </div>
+                            <div className="text-center p-3 rounded-lg bg-blue-50 border border-blue-200">
+                              <div className="text-xs text-blue-700 mb-1">Target Price</div>
+                              <div className="font-bold text-lg text-blue-700">${selectedTipForMobile.exit_price}</div>
+                            </div>
+                            <div className="text-center p-3 rounded-lg bg-red-50 border border-red-200">
+                              <div className="text-xs text-red-700 mb-1">Stop Loss</div>
+                              <div className="font-bold text-lg text-red-700">${selectedTipForMobile.stop_loss}</div>
                             </div>
                           </div>
                         </div>
+                        
+                        <div className="px-4 py-2 bg-muted/20 border-t border-border">
+                          <div className="text-xs text-muted-foreground text-center">
+                            Execute trades at these precise price levels for optimal results
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Position Management Card */}
+                      <div className="rounded-xl border border-border bg-card overflow-hidden">
+                        <div className="px-4 py-3 bg-muted/40 border-b border-border">
+                          <div className="flex items-center gap-2">
+                            <PieChart size={16} className="text-purple-600" />
+                            <span className="text-sm font-medium">Position Management</span>
+                          </div>
+                        </div>
+                        
+                        <div className="p-4">
+                          <div className="grid grid-cols-3 gap-4">
+                            <div className="text-center p-3 rounded-lg bg-muted/30">
+                              <div className="text-xs text-muted-foreground mb-1">Expected Return</div>
+                              <div className="font-bold text-sm text-green-600">{selectedTipForMobile.expected_return}</div>
+                            </div>
+                            <div className="text-center p-3 rounded-lg bg-muted/30">
+                              <div className="text-xs text-muted-foreground mb-1">Allocation</div>
+                              <div className="font-bold text-sm">{selectedTipForMobile.allocation}</div>
+                            </div>
+                            <div className="text-center p-3 rounded-lg bg-muted/30">
+                              <div className="text-xs text-muted-foreground mb-1">Time Horizon</div>
+                              <div className="font-bold text-sm">{selectedTipForMobile.target_duration}</div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="px-4 py-2 bg-muted/20 border-t border-border">
+                          <div className="text-xs text-muted-foreground text-center">
+                            Follow allocation guidelines for risk-adjusted returns
+                          </div>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Step 3: Position Sizing */}
-                    <div className="bg-purple-50 dark:bg-purple-950 border-l-4 border-purple-500 rounded-lg p-4">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-8 h-8 rounded-full bg-purple-500 text-white flex items-center justify-center font-bold text-sm">3</div>
-                        <h3 className="text-lg font-bold text-purple-800 dark:text-purple-200">POSITION SIZING</h3>
-                      </div>
-                      <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
-                        <div className="text-sm font-semibold text-purple-800 dark:text-purple-200 mb-3 flex items-center gap-2">
-                          <PieChart className="w-4 h-4" />
-                          Calculate Your Position Size
-                        </div>
-                        <div className="grid grid-cols-3 gap-3 mb-3">
-                          <div className="text-center p-3 rounded-lg bg-purple-100 dark:bg-purple-900">
-                            <div className="text-xs text-purple-700 dark:text-purple-300 mb-1">Allocation</div>
-                            <div className="font-bold text-lg text-purple-800 dark:text-purple-200">{selectedTipForMobile.allocation}</div>
-                          </div>
-                          <div className="text-center p-3 rounded-lg bg-purple-100 dark:bg-purple-900">
-                            <div className="text-xs text-purple-700 dark:text-purple-300 mb-1">Expected Return</div>
-                            <div className="font-bold text-lg text-green-600">{selectedTipForMobile.expected_return}</div>
-                          </div>
-                          <div className="text-center p-3 rounded-lg bg-purple-100 dark:bg-purple-900">
-                            <div className="text-xs text-purple-700 dark:text-purple-300 mb-1">Time Horizon</div>
-                            <div className="font-bold text-lg text-purple-800 dark:text-purple-200">{selectedTipForMobile.target_duration}</div>
+                    {/* Market Intelligence Section */}
+                    <div className="space-y-4 p-2">
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                        <BarChart2 size={14} />
+                        Market Intelligence
+                      </h3>
+                      
+                      {/* Analysis Card */}
+                      <div className="rounded-xl border border-border bg-card overflow-hidden">
+                        <div className="px-4 py-3 bg-muted/40 border-b border-border">
+                          <div className="flex items-center gap-2">
+                            <Activity size={16} className="text-orange-600" />
+                            <span className="text-sm font-medium">Fundamental & Technical Analysis</span>
                           </div>
                         </div>
-                        <div className="bg-purple-100 dark:bg-purple-900 border border-purple-300 dark:border-purple-700 rounded-lg p-3">
-                          <div className="text-sm text-purple-800 dark:text-purple-200">
-                            <span className="font-semibold">Portfolio Allocation:</span> Invest only {selectedTipForMobile.allocation} of your total portfolio in this trade. 
-                            Do not exceed this percentage to maintain proper risk management.
+                        
+                        <div className="p-4 space-y-4">
+                          <div className="grid grid-cols-1 gap-3">
+                            <div className="p-3 rounded-lg bg-muted/30 border border-dashed border-border">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-xs text-muted-foreground">Key Catalyst</span>
+                                <Zap size={12} className="text-yellow-600" />
+                              </div>
+                              <div className="font-medium text-sm">{selectedTipForMobile.catalyst}</div>
+                            </div>
+                            
+                            <div className="p-3 rounded-lg bg-muted/30 border border-dashed border-border">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-xs text-muted-foreground">Valuation Method</span>
+                                <DollarSign size={12} className="text-green-600" />
+                              </div>
+                              <div className="font-medium text-sm">{selectedTipForMobile.valuation}</div>
+                            </div>
+                            
+                            <div className="p-3 rounded-lg bg-muted/30 border border-dashed border-border">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-xs text-muted-foreground">Technical Setup</span>
+                                <Activity size={12} className="text-blue-600" />
+                              </div>
+                              <div className="font-medium text-sm">{selectedTipForMobile.technical}</div>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="px-4 py-2 bg-muted/20 border-t border-border">
+                          <div className="text-xs text-muted-foreground text-center">
+                            Multi-factor analysis supporting investment decision
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* Step 4: Risk Management */}
-                    <div className="bg-orange-50 dark:bg-orange-950 border-l-4 border-orange-500 rounded-lg p-4">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold text-sm">4</div>
-                        <h3 className="text-lg font-bold text-orange-800 dark:text-orange-200">RISK ASSESSMENT</h3>
-                      </div>
-                      <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-orange-200 dark:border-orange-800">
-                        <div className="grid grid-cols-2 gap-4 mb-3">
-                          <div className="text-center p-3 rounded-lg bg-orange-100 dark:bg-orange-900 border border-orange-300 dark:border-orange-700">
-                            <Shield className="w-6 h-6 mx-auto mb-2 text-orange-600" />
-                            <div className="text-xs text-orange-700 dark:text-orange-300 mb-1">Risk Level</div>
-                            <Badge 
-                              className={`font-bold ${
-                                selectedTipForMobile.risk === 'High' 
-                                  ? 'bg-red-100 text-red-800 border-red-300'
-                                  : selectedTipForMobile.risk === 'Medium' 
-                                    ? 'bg-yellow-100 text-yellow-800 border-yellow-300'
-                                    : 'bg-green-100 text-green-800 border-green-300'
-                              }`}
-                            >
-                              {selectedTipForMobile.risk}
+                    {/* Risk & Confidence Assessment */}
+                    <div className="space-y-4  p-2">
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                        <Shield size={14} />
+                        Risk Assessment
+                      </h3>
+                      
+                      <div className="rounded-xl border border-border bg-card overflow-hidden">
+                        <div className="px-4 py-3 bg-muted/40 border-b border-border">
+                          <div className="flex items-center gap-2">
+                            <Shield size={16} className="text-red-600" />
+                            <span className="text-sm font-medium">Risk & Confidence Metrics</span>
+                          </div>
+                        </div>
+                        
+                        <div className="p-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="text-center p-4 rounded-lg border border-border bg-muted/20">
+                              <Shield size={20} className="mx-auto mb-2 text-muted-foreground" />
+                              <div className="text-xs text-muted-foreground mb-2">Risk Level</div>
+                              <Badge 
+                                variant="outline" 
+                                className={`text-sm font-medium px-3 py-1 ${
+                                  selectedTipForMobile.risk === 'High' 
+                                    ? 'border-red-500 text-red-600 bg-red-50'
+                                    : selectedTipForMobile.risk === 'Medium' 
+                                      ? 'border-yellow-500 text-yellow-600 bg-yellow-50'
+                                      : 'border-green-500 text-green-600 bg-green-50'
+                                }`}
+                              >
+                                {selectedTipForMobile.risk}
+                              </Badge>
+                            </div>
+                            
+                            <div className="text-center p-4 rounded-lg border border-border bg-muted/20">
+                              <Award size={20} className="mx-auto mb-2 text-muted-foreground" />
+                              <div className="text-xs text-muted-foreground mb-2">Conviction</div>
+                              <Badge 
+                                variant="outline" 
+                                className={`text-sm font-medium px-3 py-1 ${
+                                  selectedTipForMobile.conviction === 'Strong' 
+                                    ? 'border-green-500 text-green-600 bg-green-50'
+                                    : selectedTipForMobile.conviction === 'Moderate' 
+                                      ? 'border-yellow-500 text-yellow-600 bg-yellow-50'
+                                      : 'border-blue-500 text-blue-600 bg-blue-50'
+                                }`}
+                              >
+                                {selectedTipForMobile.conviction}
+                              </Badge>
+                            </div>
+                          </div>
+                          
+                          <div className="mt-4 p-3 rounded-lg bg-muted/30 border border-dashed border-border">
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs text-muted-foreground">Market Sentiment</span>
+                              <TrendingUp size={12} className="text-primary" />
+                            </div>
+                            <Badge variant="outline" className="text-sm bg-background">
+                              {selectedTipForMobile.sentiment}
                             </Badge>
                           </div>
-                          <div className="text-center p-3 rounded-lg bg-orange-100 dark:bg-orange-900 border border-orange-300 dark:border-orange-700">
-                            <Award className="w-6 h-6 mx-auto mb-2 text-orange-600" />
-                            <div className="text-xs text-orange-700 dark:text-orange-300 mb-1">Conviction</div>
-                            <Badge 
-                              className={`font-bold ${
-                                selectedTipForMobile.conviction === 'Strong' 
-                                  ? 'bg-green-100 text-green-800 border-green-300'
-                                  : selectedTipForMobile.conviction === 'Moderate' 
-                                    ? 'bg-yellow-100 text-yellow-800 border-yellow-300'
-                                    : 'bg-blue-100 text-blue-800 border-blue-300'
-                              }`}
-                            >
-                              {selectedTipForMobile.conviction}
-                            </Badge>
-                          </div>
                         </div>
-                        <div className="bg-orange-100 dark:bg-orange-900 border border-orange-300 dark:border-orange-700 rounded-lg p-3">
-                          <div className="text-sm text-orange-800 dark:text-orange-200">
-                            <span className="font-semibold">Risk Management:</span> This trade carries {selectedTipForMobile.risk.toLowerCase()} risk. 
-                            Strictly follow the stop-loss and position sizing to protect your capital.
+                        
+                        <div className="px-4 py-2 bg-muted/20 border-t border-border">
+                          <div className="text-xs text-muted-foreground text-center">
+                            Risk-adjusted strategy with clear confidence indicators
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* Step 5: Market Intelligence */}
-                    <div className="bg-slate-50 dark:bg-slate-950 border-l-4 border-slate-500 rounded-lg p-4">
-                      <div className="flex items-center gap-3 mb-3">
-                        <div className="w-8 h-8 rounded-full bg-slate-500 text-white flex items-center justify-center font-bold text-sm">5</div>
-                        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-200">TRADE INTELLIGENCE</h3>
-                      </div>
-                      <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-slate-200 dark:border-slate-800">
-                        <div className="space-y-3">
-                          <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-lg">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Zap className="w-4 h-4 text-amber-600" />
-                              <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">Key Catalyst</span>
-                            </div>
-                            <div className="text-sm text-slate-700 dark:text-slate-300">{selectedTipForMobile.catalyst}</div>
-                          </div>
-                          <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-lg">
-                            <div className="flex items-center gap-2 mb-2">
-                              <Activity className="w-4 h-4 text-blue-600" />
-                              <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">Technical Analysis</span>
-                            </div>
-                            <div className="text-sm text-slate-700 dark:text-slate-300">{selectedTipForMobile.technical}</div>
-                          </div>
-                          <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-lg">
-                            <div className="flex items-center gap-2 mb-2">
-                              <DollarSign className="w-4 h-4 text-green-600" />
-                              <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">Valuation Method</span>
-                            </div>
-                            <div className="text-sm text-slate-700 dark:text-slate-300">{selectedTipForMobile.valuation}</div>
+                      {/* Advisor Information Section */}
+                    <div className="space-y-4 p-2">
+                      <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+                        <User size={14} />
+                        Investment Advisor
+                      </h3>
+                      
+                      <div className="rounded-xl border border-border bg-card overflow-hidden">
+                        {/* Header */}
+                        <div className="px-4 py-3 bg-muted/40 border-b border-border">
+                          <div className="flex items-center gap-2">
+                            <ShieldCheck size={16} className="text-green-600" />
+                            <span className="text-sm font-medium">Professional Credentials</span>
                           </div>
                         </div>
-                      </div>
-                    </div>
-
-                    {/* Advisory Information */}
-                    <div className="bg-emerald-50 dark:bg-emerald-950 border-l-4 border-emerald-500 rounded-lg p-4">
-                      <div className="flex items-center gap-3 mb-3">
-                        <ShieldCheck className="w-8 h-8 text-emerald-600" />
-                        <h3 className="text-lg font-bold text-emerald-800 dark:text-emerald-200">ADVISOR CREDENTIALS</h3>
-                      </div>
-                      <div className="bg-white dark:bg-slate-900 rounded-lg p-4 border border-emerald-200 dark:border-emerald-800">
-                        <div className="flex items-center gap-4 mb-3 cursor-pointer hover:bg-emerald-50 dark:hover:bg-emerald-950 rounded-lg p-2 -m-2 transition-colors"
-                          onClick={() => {
-                            setSelectedAdvisorForMobile(selectedTipForMobile);
-                            setShowAdvisorSheet(true);
-                            setSelectedTipForMobile(null);
-                          }}
-                        >
-                          <img 
-                            src={selectedTipForMobile.avatar} 
-                            alt={selectedTipForMobile.name} 
-                            className="w-12 h-12 rounded-full border-2 border-emerald-200 dark:border-emerald-800" 
-                          />
-                          <div className="flex-1">
-                            <div className="font-bold text-emerald-800 dark:text-emerald-200">{selectedTipForMobile.name}</div>
-                            <div className="text-sm text-emerald-600 dark:text-emerald-400">{selectedTipForMobile.advisor_title || 'Certified Financial Advisor'}</div>
-                          </div>
-                          <ArrowUpRight className="w-5 h-5 text-emerald-600" />
-                        </div>
-                        <div className="grid grid-cols-3 gap-3">
-                          <div 
-                            className="text-center p-3 rounded-lg bg-emerald-100 dark:bg-emerald-900 cursor-pointer hover:bg-emerald-200 dark:hover:bg-emerald-800 transition-colors"
+                        
+                        {/* Content */}
+                        <div className="p-4">
+                          <div className="flex items-start gap-4 mb-4 relative group cursor-pointer hover:bg-muted/30 rounded-lg p-3 -m-3 transition-colors"
                             onClick={() => {
-                              handleViewAllTips(selectedTipForMobile.advisor_name || selectedTipForMobile.name);
+                              setSelectedAdvisorForMobile(selectedTipForMobile);
+                              setShowAdvisorSheet(true);
                               setSelectedTipForMobile(null);
                             }}
                           >
-                            <div className="font-bold text-lg text-emerald-800 dark:text-emerald-200">{selectedTipForMobile.advisor_total_tips || '127'}</div>
-                            <div className="text-xs text-emerald-600 dark:text-emerald-400">Total Tips</div>
+                            <img 
+                              src={selectedTipForMobile.avatar} 
+                              alt={selectedTipForMobile.name} 
+                              className="w-14 h-14 rounded-full border-2 border-border shadow-sm" 
+                            />
+                            <div className="flex-1 min-w-0">
+                              <div className="font-bold text-base text-foreground mb-1">
+                                {selectedTipForMobile.name}
+                              </div>
+                              <div className="text-sm text-muted-foreground mb-2">
+                                {selectedTipForMobile.advisor_title || 'Certified Financial Advisor'}
+                              </div>
+                              {selectedTipForMobile.advisor_sebi_registered && (
+                                <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
+                                  <ShieldCheck size={12} className="mr-1" />
+                                  SEBI Registered
+                                </Badge>
+                              )}
+                            </div>
+                            <ArrowUpRight 
+                              size={16} 
+                              className="absolute top-2 right-2 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity hover:text-primary" 
+                              title="View advisor profile"
+                            />
                           </div>
-                          <div className="text-center p-3 rounded-lg bg-emerald-100 dark:bg-emerald-900">
-                            <div className="font-bold text-lg text-emerald-800 dark:text-emerald-200">{selectedTipForMobile.advisor_win_rate || selectedTipForMobile.win_rate || '84'}%</div>
-                            <div className="text-xs text-emerald-600 dark:text-emerald-400">Success Rate</div>
+                          
+                          <div className="grid grid-cols-3 gap-4">
+                            <div 
+                              className="text-center p-3 rounded-lg bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors relative group"
+                              onClick={() => {
+                                handleViewAllTips(selectedTipForMobile.advisor_name || selectedTipForMobile.name);
+                                setSelectedTipForMobile(null);
+                              }}
+                            >
+                              <div className="font-bold text-lg text-primary">{selectedTipForMobile.advisor_total_tips || '127'}</div>
+                              <div className="text-xs text-muted-foreground mt-1">Total Tips</div>
+                              <ArrowUpRight 
+                                size={14} 
+                                className="absolute top-2 right-2 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:text-primary" 
+                                onClick={(e) => {
+                                  e.stopPropagation(); // Prevent the main div click
+                                  setSelectedAdvisorForMobile(selectedTipForMobile);
+                                  setShowAdvisorSheet(true);
+                                  setSelectedTipForMobile(null);
+                                }}
+                                title="View advisor profile"
+                              />
+                            </div>
+                            <div className="text-center p-3 rounded-lg bg-muted/30">
+                              <div className="font-bold text-lg text-green-600">{selectedTipForMobile.advisor_win_rate || selectedTipForMobile.win_rate || '84'}%</div>
+                              <div className="text-xs text-muted-foreground mt-1">Success Rate</div>
+                            </div>
+                            <div className="text-center p-3 rounded-lg bg-muted/30">
+                              <div className="font-bold text-lg text-blue-600">{selectedTipForMobile.experience || '7'}+</div>
+                              <div className="text-xs text-muted-foreground mt-1">Years Exp</div>
+                            </div>
                           </div>
-                          <div className="text-center p-3 rounded-lg bg-emerald-100 dark:bg-emerald-900">
-                            <div className="font-bold text-lg text-emerald-800 dark:text-emerald-200">{selectedTipForMobile.experience || '7'}+</div>
-                            <div className="text-xs text-emerald-600 dark:text-emerald-400">Years Exp</div>
+                        </div>
+                        
+                        {/* Footer */}
+                        <div className="px-4 py-2 bg-muted/20 border-t border-border">
+                          <div className="text-xs text-muted-foreground text-center">
+                            Verified professional with proven track record
                           </div>
                         </div>
                       </div>
                     </div>
-
-                  </div>
-                </div>
-
+                
                 {/* Footer */}
-                <div className="p-4 border-t border-border bg-green-50 dark:bg-green-950">
-                  <div className="bg-green-100 dark:bg-green-900 border border-green-300 dark:border-green-700 rounded-lg p-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center">
-                        <CheckCircle className="w-5 h-5" />
-                      </div>
-                      <div>
-                        <div className="font-bold text-green-800 dark:text-green-200">EXECUTION CHECKLIST</div>
-                        <div className="text-sm text-green-600 dark:text-green-400">Before placing the trade</div>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
-                        <CheckCircle className="w-3 h-3" />
-                        <span>Entry price: ${selectedTipForMobile.entry_price}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
-                        <CheckCircle className="w-3 h-3" />
-                        <span>Target: ${selectedTipForMobile.exit_price}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
-                        <CheckCircle className="w-3 h-3" />
-                        <span>Stop-loss: ${selectedTipForMobile.stop_loss}</span>
-                      </div>
-                      <div className="flex items-center gap-2 text-green-700 dark:text-green-300">
-                        <CheckCircle className="w-3 h-3" />
-                        <span>Allocation: {selectedTipForMobile.allocation}</span>
-                      </div>
-                    </div>
-                    <div className="mt-3 pt-3 border-t border-green-200 dark:border-green-800">
-                      <div className="text-center text-xs text-green-700 dark:text-green-300">
-                        ⚠️ <span className="font-semibold">DISCLAIMER:</span> This is professional advisory. 
-                        Past performance does not guarantee future results. Invest responsibly.
-                      </div>
-                    </div>
+                <div className="py-4 border-t  bg-muted/20 ">
+                  <div className="flex items-center justify-center gap-2 mb-2">
+                    <Target size={14} className="text-primary" />
+                    <span className="text-sm font-medium">Professional Investment Advisory</span>
+                  </div>
+                  <div className="text-xs text-center text-muted-foreground leading-relaxed">
+                    This configuration is designed for optimal risk-adjusted returns.<br />
+                    <span className="font-medium">Always conduct your own due diligence before investing.</span>
                   </div>
                 </div>
-              </>
+              </div>
             )}
           </SheetContent>
         </Sheet>
@@ -4846,203 +4944,251 @@ export default function TipScreen() {
         <Sheet open={showPaywallSheet && !!selectedPaywallTip} onOpenChange={(open) => !open && setShowPaywallSheet(false)}>
           <SheetContent side="right" className="max-h-[100vh] w-full lg:w-[35vw] overflow-hidden flex flex-col">
             {/* Header */}
-            <SheetHeader className="pb-4 border-b border-border">
-              <SheetTitle className="flex items-center gap-2">
-                <Lock size={20} />
-                Premium Content Access
-              </SheetTitle>
-              <SheetDescription className="text-left">
-                      This tip is paywalled for 24 hours after posting. You can unlock it to view all details including entry points, targets, and risk management.
-              </SheetDescription>
-            </SheetHeader>
-            
+            <div className="flex items-center gap-4 p-4 border-b border-border">
+              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center p-2">
+                <Lock size={20} className="text-600" />
+              </div>
+              <div>
+                <div className="text-xl font-bold text-foreground">Premium Investment Access</div>
+                <div className="text-sm text-muted-foreground">
+                  Unlock professional-grade investment insights
+                </div>
+              </div>
+            </div>
+
             {/* Content */}
-            <div className="flex-1 overflow-y-auto">
-              <div className="p-4 space-y-6">
+            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+              {/* Unlock Requirements Section */}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground">Unlock Requirements</h3>
+                  <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                    Investment credits needed to access this premium tip
+                  </p>
+                </div>
                 
-                
-               
-                
-                {/* Cost Breakdown */}
                 <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
-                    <Coins size={14} />
-                    Unlock Cost Breakdown
-                  </h3>
-                  
-                  <div className="rounded-lg border border-border bg-card overflow-hidden">
-                    {/* Header */}
-                    <div className="px-4 py-3 bg-muted/40 border-b border-border">
+                  <div className="p-3 rounded-lg border bg-green-50 dark:bg-gold-950 border-green-200 dark:border-green-800">
+                    <div className="flex items-center justify-between text-sm">
                       <div className="flex items-center gap-2">
-                        <Wallet size={16} className="text-primary" />
-                        <span className="text-sm font-medium">Lollipop Credits Required</span>
+                        <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-4 h-4" />
+                        <span>Base unlock</span>
                       </div>
-                    </div>
-                    
-                    {/* Cost Items */}
-                    <div className="p-4 space-y-3">
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2">
-                          <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-4 h-4" />
-                          <span>Base unlock</span>
-                        </div>
-                        <span className="font-medium">1</span>
-                      </div>
-                      
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2">
-                          <div className="flex gap-1">
-                            <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-4 h-4" />
-                            <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-4 h-4" />
-                          </div>
-                          <span>SEBI Registered</span>
-                        </div>
-                        <span className="font-medium">2</span>
-                      </div>
-                      
-                      <div className="flex items-center justify-between text-sm">
-                        <div className="flex items-center gap-2">
-                          <div className="flex gap-1">
-                            <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-4 h-4" />
-                            <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-4 h-4" />
-                          </div>
-                          <span>{selectedPaywallTip?.successRate || '68%'} Success Rate</span>
-                        </div>
-                        <span className="font-medium">2</span>
-                      </div>
-                      
-                      <div className="border-t pt-3 flex items-center justify-between font-medium">
-                        <div className="flex items-center gap-2">
-                          <div className="flex gap-1">
-                            {[...Array(5)].map((_, i) => (
-                              <img key={i} src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-4 h-4" />
-                            ))}
-                          </div>
-                          <span>Total Cost</span>
-                        </div>
-                        <span className="text-lg">5</span>
-                      </div>
-                    </div>
-                    
-                    {/* Footer */}
-                    <div className="px-4 py-3 bg-muted/40 border-t border-border">
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>Available Credits</span>
-                        <span className="font-medium">{userData?.credits || 0} Lollipops</span>
-                      </div>
+                      <span className="font-medium">1</span>
                     </div>
                   </div>
-                </div>
-
-                 {/* Advisor Details */}
-                <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
-                    <UserCheck size={14} />
-                    Advisor Information
-                  </h3>
                   
-                  <div className="rounded-lg border border-border bg-card overflow-hidden">
-                    {/* Header */}
-                    <div className="px-4 py-3 bg-muted/40 border-b border-border">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                          <img src={selectedPaywallTip?.avatar || UserCheck} alt="User Check" className="text-primary rounded-full" />
+                  <div className="p-3 rounded-lg border bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="flex gap-1">
+                          <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-4 h-4" />
+                          <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-4 h-4" />
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="font-bold text-base text-foreground mb-1">
-                            {selectedPaywallTip?.name || 'Professional Advisor'}
-                          </div>
-                          <div className="text-sm text-muted-foreground mb-2">
-                            {selectedPaywallTip?.advisor_title || 'Certified Financial Advisor'}
-                          </div>
-                          {selectedPaywallTip?.advisor_sebi_registered && (
-                            <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
-                              <ShieldCheck size={12} className="mr-1" />
-                              SEBI Registered
-                            </Badge>
-                          )}
-                        </div>
+                        <span>SEBI Registered</span>
                       </div>
+                      <span className="font-medium">2</span>
+                    </div>
+                  </div>
+                  
+                  <div className="p-3 rounded-lg border bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                    <div className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="flex gap-1">
+                          <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-4 h-4" />
+                          <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-4 h-4" />
+                        </div>
+                        <span>{selectedPaywallTip?.successRate || '68%'} Success Rate</span>
+                      </div>
+                      <span className="font-medium">2</span>
+                    </div>
+                  </div>
+                  
+                  <div className="p-4 rounded-lg border bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 border-green-300 dark:border-green-700">
+                    <div className="flex items-center justify-between font-medium">
+                      <div className="flex-col items-center gap-2">
+                        <div className="flex gap-1">
+                          {[...Array(5)].map((_, i) => (
+                            <img key={i} src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-4 h-4" />
+                          ))}
+                        </div>
+                        <span>Total Investment</span>
+                      </div>
+                      <span className="text-lg font-bold text-green-600">5 Lollipops</span>
                     </div>
                     
-                    {/* Stats Grid */}
-                    <div className="p-4">
-                      <div className="grid grid-cols-3 gap-3">
-                        <div 
-                          className="text-center p-3 rounded-lg bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors relative group"
+                    <div className="mt-3 pt-3 border-t border-green-200 dark:border-green-700">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
+                        <span>Your Available Credits</span>
+                        <span className="font-medium text-foreground">{userData?.credits || 0} Lollipops</span>
+                      </div>
+                      
+                      {/* Unlock Button */}
+                      <div className="mt-6">
+                        <Button 
+                          className="w-full font-medium relative"
+                          size="lg"
+                          variant={userData?.credits >= 5 ? "default" : "outline"}
                           onClick={() => {
-                            handleViewAllTips(selectedPaywallTip?.advisor_name || selectedPaywallTip?.name);
-                            setSelectedPaywallTip(null);
-                            setShowPaywallSheet(false);
+                            if (userData?.credits >= 5) {
+                              handleUnlockTip(selectedPaywallTip);
+                              setShowPaywallSheet(false);
+                              toast("Tip unlocked successfully!", {
+                                duration: 3000,
+                                position: "top-center",
+                              });
+                            } else {
+                              toast("Not enough Lollipops! You need 5 Lollipops to unlock this tip.", {
+                                duration: 3000,
+                                position: "top-center",
+                              });
+                            }
                           }}
+                          disabled={userData?.credits < 5}
                         >
-                          <div className="font-bold text-lg text-primary">{selectedPaywallTip?.advisor_total_tips || '127'}</div>
-                          <div className="text-xs text-muted-foreground mt-1">Total Tips</div>
-                          <ArrowUpRight size={14} className="absolute top-2 right-2 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                        </div>
-                        <div className="text-center p-3 rounded-lg bg-muted/30">
-                          <div className="font-bold text-lg text-green-600">{selectedPaywallTip?.advisor_win_rate || selectedPaywallTip?.win_rate || '84'}</div>
-                          <div className="text-xs text-muted-foreground mt-1">Success Rate</div>
-                        </div>
-                        <div className="text-center p-3 rounded-lg bg-muted/30">
-                          <div className="font-bold text-lg text-blue-600">{selectedPaywallTip?.advisor_experience || '7'}+</div>
-                          <div className="text-xs text-muted-foreground mt-1">Years Exp</div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Footer */}
-                    <div className="px-4 py-3 bg-muted/40 border-t border-border">
-                      <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>Professional Analysis</span>
-                        <span className="flex items-center gap-1">
-                          <GraduationCap size={12} />
-                          Verified Expert
-                        </span>
+                          <div className="flex items-center justify-center gap-2">
+                            {userData?.credits >= 5 ? (
+                              <>
+                                <LockOpenIcon className="w-4 h-4" />
+                                <span>Unlock Investment Tip</span>
+                              </>
+                            ) : (
+                              <>
+                                <Lock className="w-4 h-4" />
+                                <span>Insufficient Credits</span>
+                              </>
+                            )}
+                          </div>
+                        </Button>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-            
-            {/* Footer */}
-            <div className="p-4 border-t border-border bg-muted/20">
-              <Button 
-                className="w-full font-medium"
-                size="lg"
-                variant={userData?.credits >= 5 ? "default" : "outline"}
-                onClick={() => {
-                  if (userData?.credits >= 5) {
-                    handleUnlockTip(selectedPaywallTip);
-                    setShowPaywallSheet(false);
-                    toast("Tip unlocked successfully!", {
-                      duration: 3000,
-                      position: "top-center",
-                    });
-                  } else {
-                    toast("Not enough Lollipops! You need 5 Lollipops to unlock this tip.", {
-                      duration: 3000,
-                      position: "top-center",
-                    });
-                  }
-                }}
-                disabled={userData?.credits < 5}
-              >
-                <div  className="flex items-center justify-center gap-2 p-10">
-                  {userData?.credits >= 5 ? (
-                    <>
-                      <img src={LollipopSVGWhite } alt="Lollipop" className="w-4 h-4" />
-                      <span>Unlock Now</span>
-                    </>
-                  ) : (
-                    <>
-                      <Lock className="w-4 h-4" />
-                      <span>Insufficient Credits</span>
-                    </>
-                  )}
+
+              {/* Separator */}
+              <div className="border-t border-border/50"></div>
+
+              {/* Meet Your Advisor Section */}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground">Meet Your Advisor</h3>
+                  <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                    Professional credentials and track record
+                  </p>
                 </div>
-              </Button>
+                
+                <div className="p-3 rounded-lg border bg-muted/30 dark:bg-muted/10 border-border mb-4 relative">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-muted/50 dark:bg-muted/20 flex items-center justify-center">
+                      <img src={selectedPaywallTip?.avatar || UserCheck} alt="Advisor" className="text-foreground rounded-full" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-bold text-base text-foreground mb-1">
+                        {selectedPaywallTip?.name || 'Professional Advisor'}
+                      </div>
+                      <div className="text-sm text-muted-foreground mb-2">
+                        {selectedPaywallTip?.advisor_title || 'Certified Financial Advisor'}
+                      </div>
+                      {selectedPaywallTip?.advisor_sebi_registered && (
+                        <Badge variant="outline" className="text-xs bg-muted/30 text-foreground border-border">
+                          <ShieldCheck size={12} className="mr-1" />
+                          SEBI Registered
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setSelectedAdvisorForMobile(selectedPaywallTip);
+                      setShowAdvisorSheet(true);
+                    }}
+                    className="absolute top-2 right-2 p-1 rounded-md bg-primary/10 hover:bg-primary/20 transition-colors"
+                    title="View full advisor profile"
+                  >
+                    <ArrowUpRight className="w-4 h-4 text-primary" />
+                  </button>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-3 mb-4">
+                  <div className="text-center p-3 rounded-lg bg-muted/20 dark:bg-muted/10 border border-border relative cursor-pointer hover:bg-muted/30 dark:hover:bg-muted/20 transition-colors"
+                    onClick={() => {
+                      // Filter table to show only this advisor's tips
+                      const advisorName = selectedPaywallTip?.name || 'Professional Advisor';
+                      handleViewAllTips(advisorName);
+                      // Close the paywall sheet
+                      setShowPaywallSheet(false);
+                    }}
+                  >
+                    <div className="font-bold text-lg text-foreground">{selectedPaywallTip?.advisor_total_tips || '127'}</div>
+                    <div className="text-xs text-muted-foreground mt-1">Total Tips</div>
+                    <ArrowUpRight className="w-3 h-3 text-foreground absolute top-1 right-1 opacity-60" />
+                  </div>
+                  <div className="text-center p-3 rounded-lg bg-muted/20 dark:bg-muted/10 border border-border">
+                    <div className="font-bold text-lg text-foreground">{selectedPaywallTip?.advisor_win_rate || selectedPaywallTip?.win_rate || '84'}%</div>
+                    <div className="text-xs text-muted-foreground mt-1">Success Rate</div>
+                  </div>
+                  <div className="text-center p-3 rounded-lg bg-muted/20 dark:bg-muted/10 border border-border">
+                    <div className="font-bold text-lg text-foreground">{selectedPaywallTip?.advisor_experience || '7'}+</div>
+                    <div className="text-xs text-muted-foreground mt-1">Years Exp</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Separator */}
+              <div className="border-t border-border/50"></div>
+
+              {/* What You're Unlocking Section */}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground">What You're Unlocking</h3>
+                  <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                    Premium content with detailed analysis and risk management
+                  </p>
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="p-3 rounded-lg border bg-muted/20 dark:bg-muted/10 border-border">
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-md bg-muted/30 dark:bg-muted/20 flex items-center justify-center mt-0.5 flex-shrink-0">
+                        <Target className="w-4 h-4 text-foreground/70" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm text-foreground mb-1">
+                          Professional Analysis
+                        </div>
+                        <div className="text-xs text-muted-foreground leading-relaxed break-words">
+                          Complete breakdown with entry points, stop loss, and target prices
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-lg border bg-muted/20 dark:bg-muted/10 border-border">
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-md bg-muted/30 dark:bg-muted/20 flex items-center justify-center mt-0.5 flex-shrink-0">
+                        <BarChart2 className="w-4 h-4 text-foreground/70" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="font-medium text-sm text-foreground mb-1">
+                          Risk Management Plan
+                        </div>
+                        <div className="text-xs text-muted-foreground leading-relaxed break-words">
+                          Detailed risk assessment and portfolio allocation recommendations
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Footer */}
+                <div className="border-t bg-background p-4 mt-6">
+                  <div className="text-center text-xs text-muted-foreground">
+                    <p>Unlock exclusive insights from professional advisors</p>
+                    <p className="mt-1">Premium content • Expert analysis • Market strategies</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </SheetContent>
         </Sheet>
@@ -5057,247 +5203,264 @@ export default function TipScreen() {
         >
           <SheetContent side="right" className="max-h-[100vh] w-full lg:w-[45vw] overflow-hidden flex flex-col">
             {/* Header */}
-            <SheetHeader className="pb-4 border-b border-border">
-              <SheetTitle className="flex items-center gap-3">
-                <img 
-                  src={selectedAdvisorForMobile?.avatar} 
-                  alt={selectedAdvisorForMobile?.name} 
-                  className="w-12 h-12 rounded-xl object-cover border-2 border-border shadow-sm" 
-                />
-                <div className="text-left flex-1">
-                  <div className="font-bold text-lg">{selectedAdvisorForMobile?.name}</div>
-                  <div className="text-sm text-muted-foreground font-normal mb-1">
-                    {selectedAdvisorForMobile?.advisor_title || 'Investment Advisor'}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    {selectedAdvisorForMobile?.advisor_sebi_registered ? (
-                      <ShieldCheck size={14} className="text-green-500" />
-                    ) : (
-                      <ShieldAlert size={14} className="text-red-500" />
-                    )}
-                    <span className={`text-xs font-medium ${selectedAdvisorForMobile?.advisor_sebi_registered ? 'text-green-600' : 'text-red-600'}`}>
-                      {selectedAdvisorForMobile?.advisor_sebi_registered ? 'SEBI Registered' : 'Not SEBI Registered'}
-                    </span>
-                  </div>
+            <div className="flex items-center gap-4 p-4 border-b border-border">
+              <img 
+                src={selectedAdvisorForMobile?.avatar} 
+                alt={selectedAdvisorForMobile?.name} 
+                className="w-12 h-12 rounded-xl object-cover border-2 border-border shadow-sm" 
+              />
+              <div>
+                <div className="text-xl font-bold text-foreground">{selectedAdvisorForMobile?.name}</div>
+                <div className="text-sm text-muted-foreground">
+                  Professional investment advisor profile
                 </div>
-              </SheetTitle>
-              <SheetDescription className="text-left">
-                Professional investment advisor profile with expertise, performance metrics, and verified credentials
-              </SheetDescription>
-            </SheetHeader>
-            
+              </div>
+            </div>
+
             {/* Content */}
-            <div className="flex-1 overflow-y-auto">
-              <div className="p-4 space-y-4">
-                {/* Performance Metrics */}
-                <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                    Performance Metrics
-                  </h3>
-                  
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="p-4 rounded-xl border border-border bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950">
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900">
-                          <Award size={16} className="text-green-600 dark:text-green-400" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="text-xs text-muted-foreground">Win Rate</div>
-                          <div className="font-bold text-lg text-green-600 dark:text-green-400">
-                            {selectedAdvisorForMobile?.advisor_win_rate || selectedAdvisorForMobile?.win_rate || 'N/A'}%
+            <div className="flex-1 overflow-y-auto p-4 space-y-6">
+                  {/* Professional Background Section */}
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground">Professional Background</h3>
+                      <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                        Educational background, certifications, and market experience
+                      </p>
+                    </div>
+                
+                    <div className="space-y-3">
+                      <div className="p-3 rounded-lg border bg-muted/20 dark:bg-muted/10 border-border">
+                        <div className="flex items-start gap-3">
+                          <div className="w-6 h-6 rounded-md bg-muted/30 dark:bg-muted/20 flex items-center justify-center mt-0.5 flex-shrink-0">
+                            <User className="w-4 h-4 text-foreground/70" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm text-foreground mb-1">
+                              Professional Title
+                            </div>
+                            <div className="text-xs text-muted-foreground leading-relaxed break-words">
+                              {selectedAdvisorForMobile?.advisor_title || 'Investment Advisor'}
+                            </div>
                           </div>
                         </div>
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        Success rate of investment recommendations
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="p-3 rounded-lg border bg-muted/20 dark:bg-muted/10 border-border">
+                          <div className="text-xs text-muted-foreground">Age</div>
+                          <div className="font-semibold text-sm text-foreground">{selectedAdvisorForMobile?.advisor_age || 'N/A'} years</div>
+                        </div>
+                        <div className="p-3 rounded-lg border bg-muted/20 dark:bg-muted/10 border-border">
+                          <div className="text-xs text-muted-foreground">Experience</div>
+                          <div className="font-semibold text-sm text-foreground">{selectedAdvisorForMobile?.advisor_experience || 'N/A'} years</div>
+                        </div>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Separator */}
+                  <div className="border-t border-border/50"></div>
+
+                  {/* Regulatory Compliance Section */}
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground">Regulatory Compliance</h3>
+                      <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                        SEBI registration and regulatory standards compliance
+                      </p>
+                    </div>
                     
-                    <div 
-                      className="p-4 rounded-xl border border-border bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950 cursor-pointer hover:from-blue-100 hover:to-indigo-100 dark:hover:from-blue-900 dark:hover:to-indigo-900 transition-colors relative group"
+                    {selectedAdvisorForMobile?.advisor_sebi_registered ? (
+                      <div className="p-4 rounded-lg border bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                        <div className="flex items-center gap-3 mb-2">
+                          <ShieldCheck size={20} className="text-green-600" />
+                          <span className="font-medium text-sm text-green-700 dark:text-green-400">SEBI Registered Advisor</span>
+                        </div>
+                        <div className="text-xs text-green-600 dark:text-green-400 leading-relaxed break-words">
+                          This advisor is registered with the Securities and Exchange Board of India (SEBI), ensuring compliance with regulatory standards and professional ethics.
+                        </div>
+                        <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200 mt-2">
+                          <ShieldCheck size={12} className="mr-1" />
+                          Verified & Compliant
+                        </Badge>
+                      </div>
+                    ) : (
+                      <div className="p-4 rounded-lg border bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800">
+                        <div className="flex items-center gap-3 mb-2">
+                          <ShieldAlert size={20} className="text-amber-600" />
+                          <span className="font-medium text-sm text-amber-700 dark:text-amber-400">Independent Advisor</span>
+                        </div>
+                        <div className="text-xs text-amber-600 dark:text-amber-400 leading-relaxed break-words">
+                          This advisor operates independently and may not be SEBI registered. Please verify credentials independently.
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Separator */}
+                  <div className="border-t border-border/50"></div>
+
+                  {/* Performance Track Record Section */}
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground">Performance Track Record</h3>
+                      <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                        Track record and success metrics
+                      </p>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="p-4 rounded-lg border bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="p-2 rounded-lg bg-green-100 dark:bg-green-900">
+                            <Award size={16} className="text-green-600 dark:text-green-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs text-muted-foreground">Win Rate</div>
+                            <div className="font-bold text-lg text-green-600 dark:text-green-400 break-words">
+                              {selectedAdvisorForMobile?.advisor_win_rate || selectedAdvisorForMobile?.win_rate || 'N/A'}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Success rate of recommendations
+                        </div>
+                      </div>
+                      
+                      <div 
+                        className="p-4 rounded-lg border bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors relative group"
+                        onClick={() => {
+                          handleViewAllTips(selectedAdvisorForMobile?.advisor_name || selectedAdvisorForMobile?.name);
+                          setSelectedAdvisorForMobile(null);
+                          setShowAdvisorSheet(false);
+                        }}
+                      >
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900">
+                            <BarChart2 size={16} className="text-blue-600 dark:text-blue-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs text-muted-foreground">Tips</div>
+                            <div className="font-bold text-lg text-blue-600 dark:text-blue-400 break-words">
+                              {selectedAdvisorForMobile?.advisor_total_tips || 'N/A'}
+                            </div>
+                          </div>
+                          <ArrowUpRight size={16} className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity absolute top-2 right-2" />
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Investment tips shared
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* View All Tips Button */}
+                    <Button
+                      variant="default"
+                      className="w-full justify-start p-4 h-auto rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm relative group"
                       onClick={() => {
-                        handleViewAllTips(selectedAdvisorForMobile?.advisor_name || selectedAdvisorForMobile?.name);
+                        handleViewAllTips(selectedAdvisorForMobile?.name);
                         setSelectedAdvisorForMobile(null);
                         setShowAdvisorSheet(false);
                       }}
                     >
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900">
-                          <BarChart2 size={16} className="text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="text-xs text-muted-foreground">Total Tips</div>
-                          <div className="font-bold text-lg text-blue-600 dark:text-blue-400">
-                            {selectedAdvisorForMobile?.advisor_total_tips || 'N/A'}
-                          </div>
-                        </div>
-                        <ArrowUpRight size={16} className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                      <Eye size={20} className="mr-4 flex-shrink-0" />
+                      <div className="text-left flex-1 min-w-0">
+                        <div className="font-medium">View All Tips</div>
+                        <div className="text-xs text-primary-foreground/80 break-words">See complete tips track record</div>
                       </div>
-                      <div className="text-xs text-muted-foreground">
-                        Investment tips shared with community
-                      </div>
-                    </div>
+                      <ArrowUpRight size={16} className="text-primary-foreground/80 absolute top-2 right-2" />
+                    </Button>
                   </div>
-                </div>
 
-                {/* Professional Information */}
-                <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                    Professional Information
-                  </h3>
-                  
-                  <div className="space-y-3">
-                    <div className="p-4 rounded-xl border border-border bg-muted/30">
-                      <div className="flex items-center gap-3 mb-2">
-                        <User size={16} className="text-orange-500" />
-                        <span className="font-medium text-sm">Experience & Background</span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-4 mt-3">
-                        <div>
-                          <div className="text-xs text-muted-foreground">Age</div>
-                          <div className="font-semibold text-sm">{selectedAdvisorForMobile?.advisor_age || 'N/A'} years</div>
-                        </div>
-                        <div>
-                          <div className="text-xs text-muted-foreground">Experience</div>
-                          <div className="font-semibold text-sm">{selectedAdvisorForMobile?.advisor_experience || 'N/A'} years</div>
-                        </div>
-                      </div>
+                  {/* Separator */}
+                  <div className="border-t border-border/50"></div>
+
+                  {/* Connect & Engage Section */}
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground">Connect & Engage</h3>
+                      <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                        Ways to connect and follow this advisor
+                      </p>
                     </div>
-
-                    <div className="p-4 rounded-xl border border-border bg-muted/30">
-                      <div className="flex items-center gap-3 mb-2">
-                        <Briefcase size={16} className="text-purple-500" />
-                        <span className="font-medium text-sm">Professional Title</span>
-                      </div>
-                      <div className="text-sm text-foreground">
-                        {selectedAdvisorForMobile?.advisor_title || 'Investment Advisor'}
-                      </div>
-                      <div className="text-xs text-muted-foreground mt-1">
-                        Specialized in providing investment guidance and market analysis
-                      </div>
-                    </div>
-
-                    {selectedAdvisorForMobile?.advisor_sebi_registered && (
-                      <div className="p-4 rounded-xl border border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950/30">
-                        <div className="flex items-center gap-3 mb-2">
-                          <ShieldCheck size={16} className="text-green-600" />
-                          <span className="font-medium text-sm text-green-700 dark:text-green-400">SEBI Registration</span>
-                        </div>
-                        <div className="text-xs text-green-600 dark:text-green-400">
-                          This advisor is registered with the Securities and Exchange Board of India (SEBI), ensuring compliance with regulatory standards and professional ethics.
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="space-y-3">
-                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                    Actions
-                  </h3>
-                  
-                  <Button
-                    variant="default"
-                    className="w-full justify-start p-4 h-auto rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm"
-                    onClick={() => {
-                      handleViewAllTips(selectedAdvisorForMobile?.name);
-                    }}
-                  >
-                    <Eye size={20} className="mr-4" />
-                    <div className="text-left flex-1">
-                      <div className="font-medium">View All Tips</div>
-                      <div className="text-xs text-primary-foreground/80">See complete investment portfolio and track record</div>
-                    </div>
-                    <ArrowUpRight size={16} className="text-primary-foreground/80" />
-                  </Button>
-
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start p-4 h-auto rounded-xl border border-border hover:bg-muted/50"
-                    onClick={() => {
-                      // Future: Follow advisor functionality
-                      toast("Follow feature coming soon!", {
-                        duration: 2000,
-                        position: "top-center",
-                      });
-                    }}
-                  >
-                    <User size={20} className="mr-4" />
-                    <div className="text-left flex-1">
-                      <div className="font-medium">Follow Advisor</div>
-                      <div className="text-xs text-muted-foreground">Get notified about new tips and updates</div>
-                      <Badge variant="secondary" className="text-xs px-2 py-1 mt-2 bg-orange-100 text-orange-600 border-orange-200 w-fit">
-                        Coming Soon
-                      </Badge>
-                    </div>
-                    <ArrowUpRight size={16} className="text-muted-foreground" />
-                  </Button>
-
-                  {/* Contact Advisor Section */}
-                  <div className="space-y-3 pt-3">
-                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                      Contact Advisor
-                    </h3>
                     
-                    {/* Contact Buttons Row */}
-                    <div className="grid grid-cols-3 gap-2">
-                      {/* Call Button */}
+                    <div className="space-y-3">
                       <Button
                         variant="outline"
-                        className="flex flex-col items-center justify-center p-3 h-auto rounded-xl border border-border hover:bg-muted/50"
+                        className="w-full justify-start p-4 h-auto rounded-xl border border-border hover:bg-muted/50 relative group"
                         onClick={() => {
-                          toast("Call feature coming soon!", {
+                          toast("Follow feature coming soon!", {
                             duration: 2000,
                             position: "top-center",
                           });
                         }}
                       >
-                        <Phone size={18} className="mb-1" />
-                        <div className="text-xs font-medium">Call</div>
+                        <User size={20} className="mr-4 flex-shrink-0" />
+                        <div className="text-left flex-1 min-w-0">
+                          <div className="font-medium">Follow Advisor</div>
+                          <div className="text-xs text-muted-foreground break-words">Get notified about new tips and updates</div>
+                          <Badge variant="secondary" className="text-xs px-2 py-1 mt-2 bg-orange-100 text-orange-600 border-orange-200 w-fit">
+                            Coming Soon
+                          </Badge>
+                        </div>
+                        <PlusCircle size={16} className="text-muted-foreground absolute top-10 right-2" />
                       </Button>
 
-                      {/* Email Button */}
-                      <Button
-                        variant="outline"
-                        className="flex flex-col items-center justify-center p-3 h-auto rounded-xl border border-border hover:bg-muted/50"
-                        onClick={() => {
-                          toast("Email feature coming soon!", {
-                            duration: 2000,
-                            position: "top-center",
-                          });
-                        }}
-                      >
-                        <Mail size={18} className="mb-1" />
-                        <div className="text-xs font-medium">Email</div>
-                      </Button>
+                      <div className="grid grid-cols-3 gap-2 mt-1">
+                        <Button
+                          variant="outline"
+                          className="flex flex-col items-center justify-center p-3 h-auto rounded-xl border border-border hover:bg-muted/50 relative group"
+                          onClick={() => {
+                            toast("Call feature coming soon!", {
+                              duration: 2000,
+                              position: "top-center",
+                            });
+                          }}
+                        >
+                          <Phone size={18} className="mb-1" />
+                          <div className="text-xs font-medium">Call</div>
+                        </Button>
 
-                      {/* Website Button */}
-                      <Button
-                        variant="outline"
-                        className="flex flex-col items-center justify-center p-3 h-auto rounded-xl border border-border hover:bg-muted/50"
-                        onClick={() => {
-                          toast("Website feature coming soon!", {
-                            duration: 2000,
-                            position: "top-center",
-                          });
-                        }}
-                      >
-                        <Globe size={18} className="mb-1" />
-                        <div className="text-xs font-medium">Website</div>
-                      </Button>
+                        <Button
+                          variant="outline"
+                          className="flex flex-col items-center justify-center p-3 h-auto rounded-xl border border-border hover:bg-muted/50 relative group"
+                          onClick={() => {
+                            toast("Email feature coming soon!", {
+                              duration: 2000,
+                              position: "top-center",
+                            });
+                          }}
+                        >
+                          <Mail size={18} className="mb-1" />
+                          <div className="text-xs font-medium">Email</div>
+                        </Button>
+
+                        <Button
+                          variant="outline"
+                          className="flex flex-col items-center justify-center p-3 h-auto rounded-xl border border-border hover:bg-muted/50 relative group"
+                          onClick={() => {
+                            toast("Website feature coming soon!", {
+                              duration: 2000,
+                              position: "top-center",
+                            });
+                          }}
+                        >
+                          <Globe size={18} className="mb-1" />
+                          <div className="text-xs font-medium">Website</div>
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Footer */}
-            <div className="p-4 border-t border-border bg-muted/20">
-              <div className="text-xs text-center text-muted-foreground">
-                Connect with professional advisors for expert investment guidance
-              </div>
-            </div>
+                  
+                  {/* Footer */}
+                  <div className="border-t bg-background p-4 mt-6">
+                    <div className="text-center text-xs text-muted-foreground">
+                      <p>Professional advisor profiles and expertise</p>
+                      <p className="mt-1">Verified credentials • Market insights • Investment strategies</p>
+                    </div>
+                  </div>
+</div>
+              
           </SheetContent>
         </Sheet>
 
@@ -5439,317 +5602,392 @@ export default function TipScreen() {
         <Sheet open={showMobileUserSheet} onOpenChange={setShowMobileUserSheet}>
           <SheetContent side="right" className="max-h-[100vh] w-full lg:w-[35vw] overflow-hidden flex flex-col">
             {/* Header */}
-            <SheetHeader className="pb-4 border-b border-border">
-              <SheetTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {userData?.avatar ? (
-                    <img 
-                      src={userData.avatar} 
-                      alt={userData.name} 
-                      className="w-10 h-10 rounded-full border-2 border-border"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                      <User size={20} />
-                    </div>
-                  )}
-                  <div className="text-left">
-                    <div className="font-bold text-lg">
-                      {userData?.name || 'Guest User'}
-                    </div>
-                    <div className="text-sm text-muted-foreground font-normal">
-                      {userData?.email || 'Not logged in'}
-                    </div>
-                  </div>
+            <div className="flex items-center gap-4 p-4 border-b border-border">
+              {userData?.avatar ? (
+                <img 
+                  src={userData.avatar} 
+                  alt={userData.name} 
+                  className="w-12 h-12 rounded-full border-2 border-border shadow-sm"
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                  <User size={20} className="text-primary" />
                 </div>
-                
-              </SheetTitle>
-            </SheetHeader>
-            
+              )}
+              <div>
+                <div className="text-xl font-bold text-foreground">
+                  {userData?.name || 'User Profile'}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Manage your account and settings
+                </div>
+              </div>
+            </div>
+
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-4">
+            <div className="flex-1 overflow-y-auto p-4 space-y-6">
               {userData && userData.id ? (
-                <div className="space-y-6">
+                <>
                   {/* Account Balance Section */}
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                      Account Balance
-                    </h3>
-                    <div 
-                      className="p-4 rounded-xl border-2"
-                      style={{
-                        background: isDarkTheme ? 'linear-gradient(135deg, #1f2937 0%, #374151 100%)' : 'linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)',
-                        borderColor: isDarkTheme ? '#374151' : '#e2e8f0'
-                      }}
-                    >
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground">Account Balance</h3>
+                      <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                        Your Lollipop credits to unlock premium investment tips from SEBI registered advisors
+                      </p>
+                    </div>
+                    
+                    <div className="p-4 rounded-lg border bg-gradient-to-br from-primary/5 to-primary/10">
                       <div className="flex items-center justify-center gap-3 mb-3">
                         <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-8 h-8" />
                         <div className="text-center">
-                          <div className="text-2xl font-bold">{userData.credits || 0}</div>
-                          <div className="text-sm text-muted-foreground">Lollipops</div>
+                          <div className="text-3xl font-bold text-primary">{userData.credits || 0}</div>
+                          <div className="text-sm text-muted-foreground">Lollipops Available</div>
                         </div>
                       </div>
+                      
+                      <div className="text-xs text-muted-foreground text-center mb-3 px-2 leading-relaxed break-words">
+                        Each Lollipop is used to unlock premium tips with detailed analysis and target prices
+                      </div>
+                      
                       <Button
-                        variant="outline"
-                        className="w-full bg-primary text-primary-foreground hover:bg-primary/90 border-primary"
+                        variant="default"
+                        className="w-full relative rounded p-2 h-10"
                         onClick={() => {
                           window.open('https://wa.me/918939350442?text=Hi%20I%20want%20to%20recharge%20my%20Lollipops', '_blank');
                           setShowMobileUserSheet(false);
                         }}
                       >
                         <Plus size={16} className="mr-2" />
-                        Recharge Lollipops
+                        Recharge Credits
+                        <ArrowUpRight size={14} className="absolute top-21 right-2 opacity-60" />
                       </Button>
-                      <div className="text-xs text-muted-foreground mt-3 text-center leading-relaxed">
-                        Lollipops are credits used to unlock premium investment tips from our expert advisors.
-                      </div>
                     </div>
                   </div>
 
-                  {/* Account Actions Section */}
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                      Account
-                    </h3>
-                    <div className="space-y-2">
+                  {/* Separator */}
+                  <div className="border-t border-border/50"></div>
+
+                  {/* Profile Management Section */}
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground">Profile Management</h3>
+                      <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                        Manage your personal information and investment preferences
+                      </p>
+                    </div>
+                    
+                    <div className="space-y-3">
                       <Button
-                        variant="ghost"
-                        className="w-full justify-start p-4 h-auto rounded-xl border border-border hover:bg-muted/50"
+                        variant="outline"
+                        className="w-full justify-start p-6 h-auto relative rounded-xl"
                         onClick={() => {
-                          // Handle profile edit
+                          setShowProfileEdit(true);
                           setShowMobileUserSheet(false);
                         }}
                       >
-                        <User size={20} className="mr-4" />
-                        <div className="text-left">
+                        <User size={16} className="mr-3 flex-shrink-0" />
+                        <div className="text-left flex-1 min-w-0">
                           <div className="font-medium">Edit Profile</div>
-                          <div className="text-xs text-muted-foreground">Update your personal information</div>
+                          <div className="text-xs text-muted-foreground break-words">Update name, email, and investment goals</div>
                         </div>
+                        <Settings size={14} className="absolute top-8 right-5 opacity-60" />
                       </Button>
                       
                       <Button
-                        variant="ghost"
-                        className="w-full justify-start p-4 h-auto rounded-xl border border-border hover:bg-muted/50"
+                        variant="outline"
+                        className="w-full justify-start p-6 h-auto relative rounded-xl"
                         onClick={() => {
                           window.location.href = 'mailto:shubh@1qr.co.in';
                           setShowMobileUserSheet(false);
                         }}
                       >
-                        <MessageSquare size={20} className="mr-4" />
-                        <div className="text-left">
-                          <div className="font-medium">Support</div>
-                          <div className="text-xs text-muted-foreground">Get help and contact us</div>
+                        <MessageSquare size={16} className="mr-3 flex-shrink-0" />
+                        <div className="text-left flex-1 min-w-0">
+                          <div className="font-medium">Contact Support</div>
+                          <div className="text-xs text-muted-foreground break-words">Get help with account or investment questions</div>
                         </div>
+                        <ArrowUpRight size={14} className="absolute top-8 right-5 opacity-60" />
                       </Button>
                     </div>
                   </div>
 
+                  {/* Separator */}
+                  <div className="border-t border-border/50"></div>
+
                   {/* Professional Tools Section */}
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                      Professional Tools
-                    </h3>
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground">Professional Tools</h3>
+                      <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                        Access advanced tools for registered investment advisors
+                      </p>
+                    </div>
+                    
                     <Button
-                      variant="ghost"
-                      className="w-full justify-start p-4 h-auto rounded-xl border border-border hover:bg-muted/50"
+                      variant="outline"
+                      className="w-full justify-start p-6 h-auto relative rounded-xl"
                       onClick={() => {
                         window.location.href = '/dashboard';
                         setShowMobileUserSheet(false);
                       }}
                     >
-                      <Briefcase size={20} className="mr-4" />
-                      <div className="text-left flex-1">
+                      <Briefcase size={16} className="mr-3 flex-shrink-0" />
+                      <div className="text-left flex-1 min-w-0">
                         <div className="font-medium">RIA Dashboard</div>
-                        <div className="text-xs text-muted-foreground leading-relaxed">
-                          Upload and manage investment tips as a<br />Registered Investment Advisor
-                        </div>
+                        <div className="text-xs text-muted-foreground break-words">Upload tips, manage subscribers, track analytics</div>
                       </div>
-                      <ArrowUpRight size={16} className="text-muted-foreground" />
+                      <ArrowUpRight size={14} className="absolute top-8 right-5 opacity-60" />
                     </Button>
                   </div>
-                </div>
+
+                  {/* Separator */}
+                  <div className="border-t border-border/50"></div>
+
+                  {/* Account Security Section */}
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-foreground">Account Security</h3>
+                      <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                        Secure session management to keep your investment data safe
+                      </p>
+                    </div>
+                    
+                    <div className="p-3 rounded-lg border bg-muted/50">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Shield size={14} className="flex-shrink-0" />
+                        <span className="break-words">Logged in as: {userData?.email || 'Verified User'}</span>
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-1 ml-5 break-words">
+                        Your session is encrypted and auto-expires for security
+                      </div>
+                    </div>
+                    
+                    <Button
+                      variant="destructive"
+                      className="w-full bg-red-500 hover:bg-red-200 text-white border-0 relative rounded mt-3"
+                      onClick={async () => {
+                        try {
+                          // Sign out from Supabase
+                          await supabase.auth.signOut();
+                          
+                          // Clear local storage
+                          localStorage.removeItem('sb-bhgqrtskwqjhlhbpnqjz-auth-token');
+                          localStorage.clear(); // Clear all local storage for complete logout
+                          
+                          // Redirect to login
+                          window.location.href = '/login';
+                        } catch (error) {
+                          console.error('Error signing out:', error);
+                          // Fallback - still clear local storage and redirect
+                          localStorage.clear();
+                          window.location.href = '/login';
+                        }
+                      }}
+                    >
+                      <LogOut size={16} className="mr-2" />
+                      Sign Out Securely
+                      <Shield size={14} className="absolute top-2 right-2 opacity-60" />
+                    </Button>
+                    
+                    <div className="text-xs text-muted-foreground text-center break-words">
+                      Always sign out when using shared devices
+                    </div>
+                  </div>
+                </>
               ) : (
                 /* Not Logged In State */
-                <div className="flex flex-col items-center justify-center py-8 px-4 text-center space-y-6">
-                  <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center">
-                    <User size={32} className="text-muted-foreground" />
-                  </div>
-                  <div className="space-y-2">
-                    <h3 className="text-lg font-semibold">Welcome to Lollipop</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      Sign in to access premium investment tips, track your portfolio, and connect with expert advisors.
+                <div className="space-y-6">
+                  <div className="text-center space-y-2">
+                    <h3 className="text-lg font-semibold text-foreground">Welcome to Lollipop</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed break-words">
+                      Join thousands of investors accessing premium tips from SEBI registered advisors
                     </p>
                   </div>
-                  <div className="w-full space-y-3">
+                  
+                  {/* Separator */}
+                  <div className="border-t border-border/50"></div>
+                  
+                  <div className="p-4 rounded-lg border bg-primary/5">
+                    <h4 className="font-medium text-foreground mb-2">What you'll get:</h4>
+                    <ul className="text-sm text-muted-foreground space-y-1">
+                      <li>• Premium investment tips from certified advisors</li>
+                      <li>• Real-time market alerts and notifications</li>
+                      <li>• Detailed analysis with entry/exit points</li>
+                      <li>• Portfolio tracking and performance insights</li>
+                    </ul>
+                  </div>
+                  
+                  {/* Separator */}
+                  <div className="border-t border-border/50"></div>
+                  
+                  <div className="space-y-3">
                     <Button
                       variant="default"
-                      className="w-full py-3"
+                      className="w-full py-3 relative"
                       onClick={() => {
                         window.location.href = '/login';
                         setShowMobileUserSheet(false);
                       }}
                     >
                       <LogIn size={16} className="mr-2" />
-                      Sign In
+                      Sign In to Your Account
+                      <ArrowUpRight size={14} className="absolute top-2 right-2 opacity-60" />
                     </Button>
+                    
                     <Button
                       variant="outline"
-                      className="w-full py-3"
+                      className="w-full py-3 relative"
                       onClick={() => {
                         window.location.href = '/login';
                         setShowMobileUserSheet(false);
                       }}
                     >
                       <User size={16} className="mr-2" />
-                      Create Account
+                      Create New Account
+                      <Plus size={14} className="absolute top-2 right-2 opacity-60" />
                     </Button>
+                  </div>
+                  
+                  <div className="text-xs text-muted-foreground text-center leading-relaxed break-words">
+                    By signing up, you agree to our Terms of Service and Privacy Policy
                   </div>
                 </div>
               )}
             </div>
-
-            {/* Footer */}
-            {userData?.id && (
-              <div className="pt-4 border-t border-border">
-                <Button
-                  variant="ghost"
-                  className="w-full justify-center p-3 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950"
-                  onClick={() => {
-                    // Handle logout
-                    localStorage.removeItem('sb-bhgqrtskwqjhlhbpnqjz-auth-token');
-                    window.location.href = '/login';
-                  }}
-                >
-                  <LogOut size={16} className="mr-2" />
-                  Sign Out
-                </Button>
-                <div className="text-xs text-center text-muted-foreground mt-2 pb-2">
-                  App Version 1.0.0 • © 2025 Lollipop
-                </div>
-              </div>
-            )}
           </SheetContent>
         </Sheet>
 
         {/* Information Explanation Sheet */}
         <Sheet open={showInfoSheet} onOpenChange={setShowInfoSheet}>
           <SheetContent side="right" className="max-h-[100vh] w-full lg:w-[45vw] overflow-hidden flex flex-col">
-            <div className="flex-1 overflow-y-auto">
-            
-            {/* Header - Fixed at top */}
-            <div className="flex items-center gap-4 p-2 border-b my-2 ">
+            {/* Header */}
+            <div className="flex items-center gap-4 p-4 border-b border-border bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950">
               <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center p-2">
                 {infoSheetData?.iconComponent}
               </div>
-              <div style={{marginRight:"10%"}}>
-                <div className="text-xl font-bold text-foreground ">{infoSheetData?.title}</div>
+              <div>
+                <div className="text-xl font-bold text-foreground">{infoSheetData?.title}</div>
                 <div className="text-sm text-muted-foreground mt-1">
-                  {infoSheetData?.description}
+                  Your learning journey to master {infoSheetData?.title?.toLowerCase()}
                 </div>
               </div>
             </div>
 
-            {/* Scrollable Content Area */}
-            <div className="flex-1 overflow-y-auto p-2">
-              {/* Content Sections */}
-              <div className="space-y-4">
-                {infoSheetData?.content?.map((section, index) => (
-                  <div key={index} className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
-                    {/* Section Header */}
-                    <div className="bg-muted/50 px-3 py-2 border-b border-border">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                          {getSectionIcon(section.section, index)}
+            {/* Timeline Learning Journey */}
+            <div className="flex-1 overflow-y-auto p-4">
+              <div className="relative">
+                {/* Timeline Line */}
+                <div className="absolute left-8 top-0 bottom-0 w-0.5 bg-gradient-to-b from-blue-400 via-purple-400 to-green-400"></div>
+                
+                {/* Learning Steps */}
+                <div className="space-y-6">
+                  {infoSheetData?.content?.map((section, index) => (
+                    <div key={index} className="relative flex items-start gap-4">
+                   
+                      
+                      {/* Content Card */}
+                      <div className="flex-1 bg-card rounded-xl border border-border p-4 shadow-sm">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                            index === 0 ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' :
+                            index === 1 ? 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300' :
+                            index === 2 ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300' :
+                            'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                          }`}>
+                            {index + 1}
+                          </div>
+                          <span className="text-xs text-muted-foreground">
+                            {index + 1} of {infoSheetData?.content?.length}
+                          </span>
                         </div>
-                        <h3 className="font-semibold text-foreground text-base">
+                        
+                        <h3 className={`text-lg font-bold mb-3 ${
+                          index === 0 ? 'text-blue-600 dark:text-blue-400' :
+                          index === 1 ? 'text-purple-600 dark:text-purple-400' :
+                          index === 2 ? 'text-indigo-600 dark:text-indigo-400' :
+                          'text-green-600 dark:text-green-400'
+                        }`}>
                           {section.section}
                         </h3>
-                      </div>
-                    </div>
-
-                    {/* Section Content */}
-                    <div className="p-3">
-                      {section.text && (
-                        <div className="mb-3">
-                          <p className="text-sm text-muted-foreground leading-relaxed">
+                        
+                        {section.text && (
+                          <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
                             {section.text}
                           </p>
-                        </div>
-                      )}
-                      
-                      {section.items && (
-                        <div className="space-y-2">
-                          {section.items.map((item, itemIndex) => (
-                            <div key={itemIndex} className="bg-muted/30 rounded-lg border border-border/50 overflow-hidden hover:shadow-md transition-all duration-200">
-                              {/* Item Header */}
-                              <div className="bg-background/80 px-2 py-1.5 border-b border-border/30">
-                                <div className="flex items-center gap-2">
-                                  <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
-                                    {getItemIcon(item.name, itemIndex)}
+                        )}
+                        
+                        {section.items && (
+                          <div className="space-y-3">
+                            {section.items.map((item, itemIndex) => (
+                              <div key={itemIndex} className={`p-3 rounded-lg border ${
+                                index === 0 ? 'bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800' :
+                                index === 1 ? 'bg-purple-50 dark:bg-purple-950 border-purple-200 dark:border-purple-800' :
+                                index === 2 ? 'bg-indigo-50 dark:bg-indigo-950 border-indigo-200 dark:border-indigo-800' :
+                                'bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800'
+                              }`}>
+                                <div className="flex items-start gap-3">
+                                  <div className={`w-6 h-6 rounded-md flex items-center justify-center mt-0.5 ${
+                                    index === 0 ? 'bg-blue-100 dark:bg-blue-900' :
+                                    index === 1 ? 'bg-purple-100 dark:bg-purple-900' :
+                                    index === 2 ? 'bg-indigo-100 dark:bg-indigo-900' :
+                                    'bg-green-100 dark:bg-green-900'
+                                  }`}>
+                                    <div className={`w-4 h-4 ${
+                                      index === 0 ? 'text-blue-600 dark:text-blue-400' :
+                                      index === 1 ? 'text-purple-600 dark:text-purple-400' :
+                                      index === 2 ? 'text-indigo-600 dark:text-indigo-400' :
+                                      'text-green-600 dark:text-green-400'
+                                    }`}>
+                                      {getItemIcon(item.name, itemIndex)}
+                                    </div>
                                   </div>
-                                  <div className="font-medium text-foreground text-sm">
-                                    {item.name}
+                                  <div className="flex-1">
+                                    <div className="font-medium text-sm text-foreground mb-1">
+                                      {item.name}
+                                    </div>
+                                    <div className="text-xs text-muted-foreground leading-relaxed">
+                                      {item.desc}
+                                    </div>
                                   </div>
                                 </div>
                               </div>
-                              
-                              {/* Item Content */}
-                              <div className="px-2 py-1.5">
-                                <div className="text-xs text-muted-foreground leading-relaxed">
-                                  {item.desc}
-                                </div>
-                              </div>
-
-                              {/* Item Footer */}
-                              <div className="bg-muted/20 px-2 py-1 border-t border-border/20">
-                                <div className="flex items-center gap-1">
-                                  <div className="w-3 h-3 rounded-full bg-primary/20 flex items-center justify-center">
-                                    <div className="w-1 h-1 rounded-full bg-primary"></div>
-                                  </div>
-                                  <div className="text-xs text-muted-foreground">
-                                    {getItemFooter(item.name)}
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-
-                    {/* Section Footer */}
-                    <div className="bg-muted/20 px-3 py-2 border-t border-border">
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded-full bg-green-100 flex items-center justify-center">
-                          <div className="w-2 h-2 rounded-full bg-green-600"></div>
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          {getSectionFooter(section.section)}
+                            ))}
+                          </div>
+                        )}
+                        
+                        {/* Progress indicator */}
+                        <div className="mt-4 pt-3 border-t border-border/50">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className={`w-4 h-4 ${
+                              index === 0 ? 'text-blue-600' :
+                              index === 1 ? 'text-purple-600' :
+                              index === 2 ? 'text-indigo-600' :
+                              'text-green-600'
+                            }`} />
+                            <span className="text-xs text-muted-foreground">
+                              {index === infoSheetData?.content?.length - 1 ? 
+                                'You\'ve mastered this concept!' : 
+                                'Learning step completed'}
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-              
-              {/* Bottom spacing for scroll */}
-             
-            </div>
-
-            
-           </div>
-           {/* Fixed Footer - Always visible at bottom */}
-
-              <div className="bg-muted/20 px-3 py-2 border-t border-border mt-[-15px]">
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 rounded-full bg-green-100 flex items-center justify-center">
-                    <div className="w-2 h-2 rounded-full bg-green-600"></div>
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {infoSheetData?.footer}
+                  ))}
+                </div>
+                
+                {/* Completion Badge */}
+                <div className="mt-8 text-center">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950 dark:to-emerald-950 rounded border border-green-200 dark:border-green-800">
+                    <Award className="w-5 h-5 text-green-600" />
+                    <span className="text-sm font-medium text-green-700 dark:text-green-400">
+                      Congratulations! You've completed this learning journey
+                    </span>
                   </div>
                 </div>
               </div>
+            </div>
           </SheetContent>
         </Sheet>
 
