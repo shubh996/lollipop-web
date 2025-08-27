@@ -108,7 +108,10 @@ import {
   Rocket,
   PlusCircle,
   ChevronRight,
-  LockOpenIcon
+  LockOpenIcon,
+  HelpCircle,
+  Map,
+  PlayCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -120,9 +123,10 @@ import {
   AccordionTrigger 
 } from '@/components/ui/accordion';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Card, CardTitle, CardContent, CardHeader } from '@/components/ui/card';
 import TipDetailCard from './components/TipDetailCard';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
@@ -434,6 +438,8 @@ const InfoRow = ({ icon, label, value, valueComponent, isMobile }) => (
 );
 
 export default function TipScreen() {
+
+
   // State for all tips fetched from Supabase
   const [allTips, setAllTips] = useState([]);
   const [loadingTips, setLoadingTips] = useState(true);
@@ -464,15 +470,18 @@ export default function TipScreen() {
   const [unlockedTips, setUnlockedTips] = useState([]);
   const [userData, setUserData] = useState({  });
   // Fetch current user from Supabase
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   useEffect(() => {
     async function fetchUser() {
       const { data: { user }, error } = await supabase.auth.getUser();
 
-
-      // if (!user || error) {
-      //   window.location.href = '/login';
-      //   return;
-      // }
+      if (!user || error) {
+        setIsLoggedIn(false);
+        setUserData({});
+        return;
+      }
+      
+      setIsLoggedIn(true);
       // Fetch user profile from 'users' table
       const { data: userProfile, error: profileError } = await supabase
         .from('users')
@@ -489,7 +498,8 @@ export default function TipScreen() {
         });
         setUnlockedTips(userProfile.unlockedTips || []);
       } else {
-        //window.location.href = '/login';
+        setIsLoggedIn(false);
+        setUserData({});
       }
     }
     fetchUser();
@@ -556,6 +566,448 @@ export default function TipScreen() {
   
   // Platform Information Sheet
   const [showPlatformInfoSheet, setShowPlatformInfoSheet] = useState(false);
+
+  // App Walkthrough State
+  const [showWalkthrough, setShowWalkthrough] = useState(false);
+  const [walkthroughStep, setWalkthroughStep] = useState(0);
+  const [highlightPosition, setHighlightPosition] = useState({ top: 0, left: 0, width: 0, height: 0 });
+  const [cardPosition, setCardPosition] = useState({ top: '50%', left: '50%' });
+
+  // Welcome Sheet State
+  const [showWelcomeSheet, setShowWelcomeSheet] = useState(false);
+  
+  // Check if user has seen welcome sheet before
+  useEffect(() => {
+    const hasSeenWelcome = localStorage.getItem('lollipop-welcome-seen');
+    if (!hasSeenWelcome) {
+      setShowWelcomeSheet(true);
+    }
+  }, []);
+
+  // Walkthrough Steps Configuration
+  const walkthroughSteps = [
+    {
+      target: () => {
+        const isMobileDevice = window.innerWidth < 768;
+        if (isMobileDevice) {
+          // On mobile, if search is not open, target the search button, otherwise target the search input
+          const searchOpen = document.querySelector('[data-walkthrough="search"]');
+          return '[data-walkthrough="search"]';
+        } else {
+          // On desktop, target the search input directly
+          return '[data-walkthrough="search"]';
+        }
+      },
+      title: "Search & Discovery",
+      icon: <Search size={16} className="text-secondary" />,
+      content: "Try typing in the search box! Search for stocks like 'AAPL' or 'Tesla', or look for specific advisors. Click the search input to see it in action.",
+      position: "bottom",
+      action: "interact",
+      interactive: true
+    },
+    {
+      target: () => {
+        // Use device-specific filter target
+        const isMobileDevice = window.innerWidth < 768;
+        if (isMobileDevice) {
+          return '[data-walkthrough="filters"]'; // Mobile filter button
+        } else {
+          // For desktop, check if there are filter badges first
+          const filterBadges = document.querySelector('[data-walkthrough="filters-desktop"]');
+          if (filterBadges && filterBadges.children.length > 0) {
+            return '[data-walkthrough="filters-desktop"]'; // Desktop filter badges
+          } else {
+            return '[data-walkthrough="filters"]'; // Mobile filter button (used on desktop too when no filters)
+          }
+        }
+      },
+      title: "Smart Filters",
+      icon: <Target size={16} className="text-secondary"/>,
+      content: () => {
+        const isMobileDevice = window.innerWidth < 768;
+        if (isMobileDevice) {
+          return "Click the filters button to explore different investment categories. Try filtering by asset type, risk level, or expected returns to find what matches your strategy.";
+        } else {
+          return "Click the filters button to explore different investment categories. On desktop, applied filters will appear as badges above the table. Try filtering by asset type, risk level, or expected returns.";
+        }
+      },
+      position: "bottom",
+      action: "interact",
+      interactive: true
+    },
+    {
+      target: '[data-walkthrough="table-header"]',
+      title: "Investment Tips Table",
+      icon: <BarChart2 size={16} className="text-secondary"/>,
+      content: "This table shows all available investment tips. You can sort columns by clicking on the headers. Each row contains detailed information about investment opportunities.",
+      position: "bottom",
+      action: "highlight"
+    },
+    {
+      target: '[data-walkthrough="advisor-column"]',
+      title: "Advisor Information",
+      icon: <UserCheck size={16} className="text-secondary"/>,
+      content: "Click on any advisor's name to view their profile, track record, and credentials. All advisors are SEBI-registered professionals with verified performance.",
+      position: "right",
+      action: "interact",
+      interactive: true
+    },
+    {
+      target: '[data-walkthrough="symbol-column"]',
+      title: "Stock Symbols & Charts",
+      icon: <TrendingUp size={16} className="text-secondary"/>,
+      content: "Click on any stock symbol to view real-time charts and technical analysis. Hover over symbols to see live price data and trends.",
+      position: "right",
+      action: "interact",
+      interactive: true
+    },
+    {
+      target: '[data-walkthrough="investment-column"]',
+      title: "Invesmtment Tips",
+      icon: <Lock size={16} className="text-secondary"/>,
+      content: "Investment Advisors give very detailed tips with 20 parameters, inorder to make well informed decisions in trading.",
+      position: "left",
+      action: "interact",
+      interactive: true
+    },
+    {
+      target: '[data-walkthrough="credits-display"]',
+      title: "Your Lollipop Credits",
+      icon: <Coins size={16} className="text-secondary"/>,
+      content: "Your available credits are shown here. Click to view your credit balance and purchase more credits to unlock premium investment tips with detailed analysis.",
+      position: "bottom",
+      action: "highlight"
+    },
+    {
+      target: '[data-walkthrough="theme-toggle"]',
+      title: "Theme Toggle",
+      icon: <Moon size={16} className="text-secondary"/>,
+      content: "Click to switch between light and dark themes for comfortable viewing in any lighting condition. Try it now!",
+      position: "left",
+      action: "interact",
+      interactive: true
+    }
+  ];
+
+    // Add walkthrough animations
+  useEffect(() => {
+    if (showWalkthrough) {
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes walkthroughPulse {
+          0%, 100% {
+            border-color: rgb(59, 130, 246);
+            box-shadow: 
+              0 0 0 1px rgba(59, 130, 246, 0.3),
+              0 0 20px rgba(59, 130, 246, 0.6),
+              inset 0 0 20px rgba(59, 130, 246, 0.1);
+          }
+          50% {
+            border-color: rgb(99, 102, 241);
+            box-shadow: 
+              0 0 0 1px rgba(99, 102, 241, 0.4),
+              0 0 30px rgba(99, 102, 241, 0.8),
+              inset 0 0 30px rgba(99, 102, 241, 0.2);
+          }
+        }
+      `;
+      document.head.appendChild(style);
+      return () => document.head.removeChild(style);
+    }
+  }, [showWalkthrough]);
+
+  // Walkthrough Functions
+  const calculateElementPosition = (selector) => {
+    const element = document.querySelector(selector);
+    if (!element) {
+      console.warn('Walkthrough: Element not found for selector:', selector);
+      return null;
+    }
+    
+    // Check if element is visible
+    const rect = element.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) {
+      console.warn('Walkthrough: Element has no dimensions:', selector, rect);
+      return null;
+    }
+    
+    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+    
+    const position = {
+      top: rect.top + scrollTop,
+      left: rect.left + scrollLeft,
+      width: rect.width,
+      height: rect.height,
+      centerX: rect.left + scrollLeft + rect.width / 2,
+      centerY: rect.top + scrollTop + rect.height / 2
+    };
+    
+    console.log('Walkthrough: Element position calculated for', selector, position);
+    return position;
+  };
+
+  const calculateCardPosition = (elementPosition, step) => {
+    if (!elementPosition) return { top: '50%', left: '50%' };
+    
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const cardWidth = 450; // Approximate card width
+    const cardHeight = 300; // Approximate card height
+    const padding = 20;
+    
+    let top, left;
+    
+    switch (step.position) {
+      case 'top':
+        top = Math.max(padding, elementPosition.top - cardHeight - padding);
+        left = Math.max(padding, Math.min(viewportWidth - cardWidth - padding, elementPosition.centerX - cardWidth / 2));
+        break;
+      case 'bottom':
+        top = Math.min(viewportHeight - cardHeight - padding, elementPosition.top + elementPosition.height + padding);
+        left = Math.max(padding, Math.min(viewportWidth - cardWidth - padding, elementPosition.centerX - cardWidth / 2));
+        break;
+      case 'left':
+        top = Math.max(padding, Math.min(viewportHeight - cardHeight - padding, elementPosition.centerY - cardHeight / 2));
+        left = Math.max(padding, elementPosition.left - cardWidth - padding);
+        break;
+      case 'right':
+        top = Math.max(padding, Math.min(viewportHeight - cardHeight - padding, elementPosition.centerY - cardHeight / 2));
+        left = Math.min(viewportWidth - cardWidth - padding, elementPosition.left + elementPosition.width + padding);
+        break;
+      default:
+        // Center position
+        top = (viewportHeight - cardHeight) / 2;
+        left = (viewportWidth - cardWidth) / 2;
+    }
+    
+    return { top: `${top}px`, left: `${left}px` };
+  };
+
+  const updateWalkthroughPositions = () => {
+    const currentStep = walkthroughSteps[walkthroughStep];
+    if (!currentStep) return;
+    
+    // Resolve dynamic target if it's a function
+    const target = typeof currentStep.target === 'function' ? currentStep.target() : currentStep.target;
+    
+    console.log('Walkthrough: Updating positions for step', walkthroughStep, 'target:', target);
+    
+    const elementPosition = calculateElementPosition(target);
+    if (elementPosition) {
+      setHighlightPosition(elementPosition);
+      setCardPosition(calculateCardPosition(elementPosition, currentStep));
+    } else {
+      // Retry after a short delay
+      setTimeout(() => {
+        console.log('Walkthrough: Retrying position calculation for', target);
+        const retryPosition = calculateElementPosition(target);
+        if (retryPosition) {
+          setHighlightPosition(retryPosition);
+          setCardPosition(calculateCardPosition(retryPosition, currentStep));
+        } else {
+          console.warn('Walkthrough: Failed to find element after retry:', target);
+          // Set default positions
+          setHighlightPosition({ top: 0, left: 0, width: 0, height: 0 });
+          setCardPosition({ top: '50%', left: '50%' });
+        }
+      }, 500);
+    }
+  };
+
+  const startWalkthrough = () => {
+    // On desktop, show welcome dialog first
+    if (!isMobile) {
+      setShowWelcomeSheet(true);
+      return;
+    }
+    
+    // On mobile, start walkthrough directly
+    startWalkthroughDirectly();
+  };
+
+  const nextWalkthroughStep = () => {
+    if (walkthroughStep < walkthroughSteps.length - 1) {
+      const nextStepIndex = walkthroughStep + 1;
+      // If advancing to the profile step, open the profile sheet first
+      if (nextStepIndex === walkthroughSteps.length - 1) { // Last step is profile step
+        const isMobileDevice = window.innerWidth < 768;
+        if (isMobileDevice) {
+          if (typeof setShowMobileUserSheet === 'function') setShowMobileUserSheet(true);
+        } else {
+          // If you have a desktop profile sheet, open it here
+          // Example: if (typeof setShowProfileSheet === 'function') setShowProfileSheet(true);
+        }
+      }
+      setWalkthroughStep(nextStepIndex);
+    } else {
+      endWalkthrough();
+    }
+  };
+
+  const previousWalkthroughStep = () => {
+    if (walkthroughStep > 0) {
+      setWalkthroughStep(walkthroughStep - 1);
+    }
+  };
+
+  const handleInteractiveClick = (event) => {
+    if (!showWalkthrough) return;
+    
+    const currentStep = walkthroughSteps[walkthroughStep];
+    if (!currentStep || !currentStep.interactive) return;
+    
+    // Resolve dynamic target if it's a function
+    const target = typeof currentStep.target === 'function' ? currentStep.target() : currentStep.target;
+    const targetElement = document.querySelector(target);
+    if (!targetElement) return;
+    
+    // Check if the clicked element is the highlighted element or its child
+    if (targetElement.contains(event.target) || targetElement === event.target) {
+      // Prevent default behavior for walkthrough
+      event.preventDefault();
+      event.stopPropagation();
+      
+      // Add visual feedback
+      const originalStyle = {
+        backgroundColor: targetElement.style.backgroundColor,
+        transform: targetElement.style.transform,
+        transition: targetElement.style.transition
+      };
+      
+      targetElement.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+      targetElement.style.transform = 'scale(1.02)';
+      targetElement.style.transition = 'all 0.2s ease';
+      
+      setTimeout(() => {
+        targetElement.style.backgroundColor = originalStyle.backgroundColor;
+        targetElement.style.transform = originalStyle.transform;
+        targetElement.style.transition = originalStyle.transition;
+      }, 300);
+      
+      // Auto-advance to next step after interaction
+      setTimeout(() => {
+        nextWalkthroughStep();
+      }, 600);
+    }
+  };
+
+  const endWalkthrough = () => {
+    setShowWalkthrough(false);
+    setWalkthroughStep(0);
+    toast("Walkthrough completed! You're ready to start investing.", {
+      duration: 4000,
+      position: "top-center",
+      icon: <CheckCircle size={16} className="text-green-600" />,
+    });
+  };
+
+  // Auto-scroll to highlighted element and update positions
+  useEffect(() => {
+    if (showWalkthrough && walkthroughSteps[walkthroughStep]) {
+      const currentStep = walkthroughSteps[walkthroughStep];
+      const target = typeof currentStep.target === 'function' ? currentStep.target() : currentStep.target;
+      const targetElement = document.querySelector(target);
+      if (targetElement) {
+        targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Update positions after scroll animation
+        setTimeout(updateWalkthroughPositions, 800);
+      }
+    }
+  }, [walkthroughStep, showWalkthrough]);
+
+  // Handle window resize for walkthrough
+  useEffect(() => {
+    if (showWalkthrough) {
+      const handleResize = () => {
+        updateWalkthroughPositions();
+      };
+      
+      const handleKeydown = (event) => {
+        switch (event.key) {
+          case 'ArrowRight':
+          case 'Space':
+            event.preventDefault();
+            nextWalkthroughStep();
+            break;
+          case 'ArrowLeft':
+            event.preventDefault();
+            previousWalkthroughStep();
+            break;
+          case 'Escape':
+            event.preventDefault();
+            endWalkthrough();
+            break;
+        }
+      };
+      
+      // Add click listener for interactive elements
+      document.addEventListener('click', handleInteractiveClick, true);
+      document.addEventListener('keydown', handleKeydown);
+      window.addEventListener('resize', handleResize);
+      
+      return () => {
+        document.removeEventListener('click', handleInteractiveClick, true);
+        document.removeEventListener('keydown', handleKeydown);
+        window.removeEventListener('resize', handleResize);
+      };
+    }
+  }, [showWalkthrough, walkthroughStep]);
+
+  // Welcome Sheet Functions
+  const startWalkthroughDirectly = () => {
+    setShowWalkthrough(true);
+    setWalkthroughStep(0);
+    
+    // Debug: Check if all target elements exist
+    console.log('Walkthrough: Starting walkthrough, checking all target elements...');
+    walkthroughSteps.forEach((step, index) => {
+      const target = typeof step.target === 'function' ? step.target() : step.target;
+      const element = document.querySelector(target);
+      console.log(`Step ${index + 1} (${step.title}): Element found:`, !!element, element);
+      if (element) {
+        console.log('Element details:', {
+          tagName: element.tagName,
+          className: element.className,
+          id: element.id,
+          rect: element.getBoundingClientRect()
+        });
+      }
+    });
+    
+    // Update positions after a brief delay
+    setTimeout(updateWalkthroughPositions, 100);
+  };
+
+  const handleStartWalkthrough = () => {
+    localStorage.setItem('lollipop-welcome-seen', 'true');
+    setShowWelcomeSheet(false);
+    startWalkthroughDirectly();
+    toast("Welcome to Lollipop! Let's explore the platform together.", {
+      duration: 3000,
+      position: "top-center",
+      icon: <PlayCircle size={16} className="text-primary" />,
+    });
+  };
+
+  const handleSkipWalkthrough = () => {
+    setShowWelcomeSheet(false);
+    toast("You can start the walkthrough anytime using the Guide button.", {
+      duration: 3000,
+      position: "top-center",
+      icon: <HelpCircle size={16} className="text-muted-foreground" />,
+    });
+  };
+
+  const handleNeverShowAgain = () => {
+    localStorage.setItem('lollipop-welcome-seen', 'true');
+    setShowWelcomeSheet(false);
+    toast("Welcome message disabled. You can always access the guide from the toolbar.", {
+      duration: 4000,
+      position: "top-center", 
+      icon: <X size={16} className="text-muted-foreground" />,
+    });
+  };
 
   // Information data for different elements
   const informationData = {
@@ -1746,7 +2198,7 @@ export default function TipScreen() {
         
         if (isMobile) {
           return (
-            <td key={columnKey} className={cellClasses}>
+            <td key={columnKey} className={cellClasses} data-walkthrough="advisor-column">
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -1771,7 +2223,7 @@ export default function TipScreen() {
           );
         } else {
           return (
-            <td key={columnKey} className="min-w-[180px] px-4 py-2 border-r border-b border-border text-center h-12">
+            <td key={columnKey} className="min-w-[180px] px-4 py-2 border-r border-b border-border text-center h-12" data-walkthrough="advisor-column">
               <div 
                 className="flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden text-ellipsis cursor-pointer hover:bg-muted/50 rounded-md p-1 transition-colors"
                 onClick={() => {
@@ -1812,7 +2264,7 @@ export default function TipScreen() {
       case 'symbol':
         if (isMobile) {
           return (
-            <td key={columnKey} className={`${cellClasses} font-medium`}>
+            <td key={columnKey} className={`${cellClasses} font-medium`} data-walkthrough="symbol-column">
               <Button variant="ghost" size="sm" className="p-1 pl-2 pr-2 flex items-center gap-1.5" onClick={() => {
                 setSelectedSymbolForMobile(tip.symbol);
                 setShowSymbolSheet(true);
@@ -1824,7 +2276,7 @@ export default function TipScreen() {
           );
         } else {
           return (
-            <td key={columnKey} className="min-w-[90px] px-4 py-2 border-r border-b border-border text-center whitespace-nowrap h-12 overflow-hidden text-ellipsis font-light text-[13.5px]">
+            <td key={columnKey} className="min-w-[90px] px-4 py-2 border-r border-b border-border text-center whitespace-nowrap h-12 overflow-hidden text-ellipsis font-light text-[13.5px]" data-walkthrough="symbol-column">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button 
@@ -1918,7 +2370,7 @@ export default function TipScreen() {
         const paywalled = diffHours < 24;
         const unlocked = isUnlocked(tip);
         return (
-          <td key={columnKey} className={isMobile ? "px-2 py-2 border-b border-border text-center" : "min-w-[80px] px-4 py-2 border-r border-b border-border text-center h-12"}>
+          <td key={columnKey} className={isMobile ? "px-2 py-2 border-b border-border text-center" : "min-w-[80px] px-4 py-2 border-r border-b border-border text-center h-12"} >
             <div className="flex items-center justify-center gap-1">
               <span>{tip.investment }</span>
               {paywalled && !unlocked ? (
@@ -2438,7 +2890,7 @@ export default function TipScreen() {
 
       {/* Center: Desktop always shows search input, mobile shows icon toggle */}
         
-        <div className="h-[3vh] relative flex items-center w-[80%] max-w-[20%] ml-20">
+        <div className="h-[3vh] relative flex items-center w-[80%] max-w-[20%] ml-20" data-walkthrough="search">
           {/* Desktop: always show search input */}
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground block">
             {search && debouncedSearch !== search ? (
@@ -2502,7 +2954,7 @@ export default function TipScreen() {
                 variant="ghost"
                 size="sm"
                 onClick={() => { setSearchOpen(true); setSearch(''); }}
-
+                data-walkthrough="search"
               >
                 <Search size={17.5} />
               </Button>
@@ -2528,11 +2980,13 @@ export default function TipScreen() {
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
+            
             <Button 
               variant="ghost" 
               size="sm"
               className="flex items-center border border-border rounded-full w-[30px] h-[30px] justify-center"
               onClick={() => setIsDarkTheme(!isDarkTheme)}
+              data-walkthrough="theme-toggle"
             >
               {isDarkTheme ? <Sun size={17.5} /> : <Moon size={17.5} />}
             </Button>
@@ -2544,7 +2998,7 @@ export default function TipScreen() {
             >
               <Bell size={17.5} />
             </Button>
-            <div className="relative">
+            <div data-walkthrough="credits-display" className="relative">
               {userData && userData.id ? (
                 <Button
                   variant="ghost"
@@ -2779,7 +3233,7 @@ export default function TipScreen() {
                   <Bell size={18} />
                 </Button>
                 {/* User Profile Button */}
-                <Button
+                <Button data-walkthrough="credits-display"
                   variant="ghost"
                   size="sm"
                   className="p-2.5 h-10 w-10 rounded-full hover:bg-muted/80 transition-colors"
@@ -2814,6 +3268,7 @@ export default function TipScreen() {
                     placeholder="Search tips, symbols, advisors, etc ..."
                     className="pl-10 pr-10 pt-5 pb-5 w-full text-sm border-border rounded-md bg-background shadow-sm"
                     autoFocus={searchOpen}
+                    data-walkthrough="search"
                   />
                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground cursor-pointer hover:text-primary transition-colors" onClick={() => openInfoSheet('search')}>
                     {search && debouncedSearch !== search ? (
@@ -2840,6 +3295,7 @@ export default function TipScreen() {
                 className="p-2.5 h-10 w-10 rounded-full hover:bg-muted/80 transition-colors relative flex-shrink-0"
                 onClick={() => setFilterSheetOpen(true)}
                 aria-label="Filters"
+                data-walkthrough="filters"
               >
                 <Settings2 size={40} className='w-20 h-30' style={{width: '22.5px', height: '22.5px'}}/>
                 {/* Active filters indicator */}
@@ -3040,7 +3496,7 @@ export default function TipScreen() {
 
             {/* Mobile Search Input (expandable) */}
             {searchOpen && (
-              <div className="px-4 pb-4 border-b border-border bg-muted/20">
+              <div className="px-4 pb-4 border-b border-border bg-muted/20" data-walkthrough="search">
                 <div className="relative">
                   <Input
                     value={search}
@@ -3143,7 +3599,7 @@ export default function TipScreen() {
               </Button>
             </div>
           )} */}
-          <Menubar style={{height:"6vh", justifyContent:"center"}} className="w-fit mx-auto bg-background border-border">
+          <Menubar data-walkthrough={"filters-desktop"} style={{height:"6vh", justifyContent:"center"}} className="w-fit mx-auto bg-background border-border">
             {/* Main filter categories (first 8) */}
             {mainFilterCategories.map((cat) => (
               <MenubarMenu key={cat.key}>
@@ -3280,7 +3736,10 @@ export default function TipScreen() {
             selectedVolatility.length > 0 || selectedLiquidity.length > 0 || selectedConviction.length > 0 || 
             selectedCatalyst.length > 0 || selectedValuation.length > 0 || selectedTechnical.length > 0 || 
             selectedDiversification.length > 0 || selectedPerformance.length > 0 || (search && search.trim() !== '')) && (
-            <div className={`${isMobile ? 'mx-4 mb-4' : 'mx-0 mb-4 mr-5'} p-4 border border-border rounded-xl sticky lg:top-[72px] top-0 z-[19] bg-background/95 backdrop-blur-sm shadow-sm`}>
+            <div 
+              className={`${isMobile ? 'mx-4 mb-4' : 'mx-0 mb-4 mr-5'} p-4 border border-border rounded-xl sticky lg:top-[72px] top-0 z-[19] bg-background/95 backdrop-blur-sm shadow-sm`}
+              data-walkthrough="filters-desktop"
+            >
               <div className="flex flex-wrap gap-2">
                 {/* Show search query as a filter tag if present */}
                 {search && search.trim() !== '' && (
@@ -3464,7 +3923,7 @@ export default function TipScreen() {
             style={{ marginLeft: isMobile ? '0' : '2vw', marginRight: isMobile ? '0' : '2vw' }}
           >
             <table className={`w-full ${isMobile ? '' : 'min-w-[1000px]'}`}>
-              <thead style={{ position: 'sticky', top: 0, zIndex: 18 }} className={`${isMobile ? 'bg-muted/90 backdrop-blur-sm' : 'bg-muted'} border-border`}>
+              <thead style={{ position: 'sticky', top: 0, zIndex: 18 }} className={`${isMobile ? 'bg-muted/90 backdrop-blur-sm' : 'bg-muted'} border-border`} data-walkthrough="table-header">
                 {isMobile ? (
                   <tr className="bg-muted/90 backdrop-blur-sm">
                     {selectedColumns.map((colKey) => {
@@ -3484,7 +3943,7 @@ export default function TipScreen() {
                     })}
                   </tr>
                 ) : (
-                  <tr className="bg-muted">
+                  <tr  className="bg-muted">
                     {selectedColumns.map((colKey) => {
                       const col = availableColumns.find(c => c.key === colKey);
                       const clickableColumns = ['asset', 'risk', 'return', 'sentiment', 'conviction', 'symbol', 'holding', 'time', 'advisor', 'investment'];
@@ -3492,6 +3951,8 @@ export default function TipScreen() {
                       
                       return (
                         <th 
+                          data-walkthrough={ col.label == "Investment" ? "investment-column" : undefined }
+
                           key={colKey} 
                           className={`${col?.minWidth} px-4 py-3 text-center font-bold border-r border-border text-sm ${isClickable ? 'cursor-pointer hover:text-primary transition-colors' : ''}`}
                           onClick={isClickable ? () => openInfoSheet(colKey === 'return' ? 'returns' : colKey) : undefined}
@@ -5019,47 +5480,65 @@ export default function TipScreen() {
                     
                     <div className="mt-3 pt-3 border-t border-green-200 dark:border-green-700">
                       <div className="flex items-center justify-between text-xs text-muted-foreground mb-3">
-                        <span>Your Available Credits</span>
-                        <span className="font-medium text-foreground">{userData?.credits || 0} Lollipops</span>
+                        <span>{isLoggedIn ? "Your Available Credits" : "Login Required"}</span>
+                        <span className="font-medium text-foreground">
+                          {isLoggedIn ? `${userData?.credits || 0} Lollipops` : "-- Lollipops"}
+                        </span>
                       </div>
                       
                       {/* Unlock Button */}
                       <div className="mt-6">
-                        <Button 
-                          className="w-full font-medium relative"
-                          size="lg"
-                          variant={userData?.credits >= 5 ? "default" : "outline"}
-                          onClick={() => {
-                            if (userData?.credits >= 5) {
-                              handleUnlockTip(selectedPaywallTip);
-                              setShowPaywallSheet(false);
-                              toast("Tip unlocked successfully!", {
-                                duration: 3000,
-                                position: "top-center",
-                              });
-                            } else {
-                              toast("Not enough Lollipops! You need 5 Lollipops to unlock this tip.", {
-                                duration: 3000,
-                                position: "top-center",
-                              });
-                            }
-                          }}
-                          disabled={userData?.credits < 5}
-                        >
-                          <div className="flex items-center justify-center gap-2">
-                            {userData?.credits >= 5 ? (
-                              <>
-                                <LockOpenIcon className="w-4 h-4" />
-                                <span>Unlock Investment Tip</span>
-                              </>
-                            ) : (
-                              <>
-                                <Lock className="w-4 h-4" />
-                                <span>Insufficient Credits</span>
-                              </>
-                            )}
-                          </div>
-                        </Button>
+                        {isLoggedIn ? (
+                          <Button 
+                            className="w-full font-medium relative"
+                            size="lg"
+                            variant={userData?.credits >= 5 ? "default" : "outline"}
+                            onClick={() => {
+                              if (userData?.credits >= 5) {
+                                handleUnlockTip(selectedPaywallTip);
+                                setShowPaywallSheet(false);
+                                toast("Tip unlocked successfully!", {
+                                  duration: 3000,
+                                  position: "top-center",
+                                });
+                              } else {
+                                toast("Not enough Lollipops! You need 5 Lollipops to unlock this tip.", {
+                                  duration: 3000,
+                                  position: "top-center",
+                                });
+                              }
+                            }}
+                            disabled={userData?.credits < 5}
+                          >
+                            <div className="flex items-center justify-center gap-2">
+                              {userData?.credits >= 5 ? (
+                                <>
+                                  <LockOpenIcon className="w-4 h-4" />
+                                  <span>Unlock Investment Tip</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Lock className="w-4 h-4" />
+                                  <span>Insufficient Credits</span>
+                                </>
+                              )}
+                            </div>
+                          </Button>
+                        ) : (
+                          <Button 
+                            className="w-full font-medium"
+                            size="lg"
+                            variant="default"
+                            onClick={() => {
+                              window.location.href = '/login';
+                            }}
+                          >
+                            <div className="flex items-center justify-center gap-2">
+                              <LogIn className="w-4 h-4" />
+                              <span>Login to Unlock</span>
+                            </div>
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -5639,8 +6118,8 @@ export default function TipScreen() {
                     
                     <div className="p-4 rounded-lg border bg-gradient-to-br from-primary/5 to-primary/10">
                       <div className="flex items-center justify-center gap-3 mb-3">
-                        <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-8 h-8" />
-                        <div className="text-center">
+                        <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-8 h-8" data-walkthrough="lollipop-mobile" />
+                        <div className="text-center" >
                           <div className="text-3xl font-bold text-primary">{userData.credits || 0}</div>
                           <div className="text-sm text-muted-foreground">Lollipops Available</div>
                         </div>
@@ -6206,8 +6685,376 @@ export default function TipScreen() {
                 </div>
               </div>
             </div>
+            
+            {/* App Walkthrough Button */}
+            <div className="p-4 border-t border-border bg-muted/20 space-y-2">
+              <Button 
+                onClick={() => {
+                  setShowPlatformInfoSheet(false);
+                  // Start the app walkthrough immediately
+                  setTimeout(() => {
+                    startWalkthroughDirectly();
+                  }, 300); // Small delay to let the sheet close
+                }}
+                className="w-full"
+                size="lg"
+              >
+                <BookOpen className="w-4 h-4 mr-2" />
+                App Walkthrough
+              </Button>
+            </div>
           </SheetContent>
         </Sheet>
+
+        {/* App Walkthrough Overlay */}
+        {showWalkthrough && (
+          <div className="fixed inset-0 z-[9999]">
+            {/* Create spotlight effect with 4 overlay rectangles */}
+            {highlightPosition.width > 0 ? (
+              <>
+                {/* Top overlay */}
+                <div 
+                  className="absolute bg-black/70 backdrop-blur-sm pointer-events-none"
+                  style={{
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    height: Math.max(0, highlightPosition.top - 8)
+                  }}
+                />
+                
+                {/* Bottom overlay */}
+                <div 
+                  className="absolute bg-black/70 backdrop-blur-sm pointer-events-none"
+                  style={{
+                    top: highlightPosition.top + highlightPosition.height + 8,
+                    left: 0,
+                    right: 0,
+                    bottom: 0
+                  }}
+                />
+                
+                {/* Left overlay */}
+                <div 
+                  className="absolute bg-black/70 backdrop-blur-sm pointer-events-none"
+                  style={{
+                    top: Math.max(0, highlightPosition.top - 8),
+                    left: 0,
+                    width: Math.max(0, highlightPosition.left - 8),
+                    height: highlightPosition.height + 16
+                  }}
+                />
+                
+                {/* Right overlay */}
+                <div 
+                  className="absolute bg-black/70 backdrop-blur-sm pointer-events-none"
+                  style={{
+                    top: Math.max(0, highlightPosition.top - 8),
+                    left: highlightPosition.left + highlightPosition.width + 8,
+                    right: 0,
+                    height: highlightPosition.height + 16
+                  }}
+                />
+                
+                {/* Highlight border around the element */}
+                <div
+                  className="absolute pointer-events-none"
+                  style={{
+                    top: highlightPosition.top - 4,
+                    left: highlightPosition.left - 4,
+                    width: highlightPosition.width + 8,
+                    height: highlightPosition.height + 8,
+                    border: '3px solid rgb(59, 130, 246)',
+                    borderRadius: '8px',
+                    boxShadow: `
+                      0 0 20px rgba(59, 130, 246, 0.6),
+                      inset 0 0 20px rgba(59, 130, 246, 0.1)
+                    `,
+                    transition: 'all 0.3s ease-in-out',
+                    animation: 'walkthroughPulse 2s infinite'
+                  }}
+                />
+              </>
+            ) : (
+              /* Fallback full overlay if no element found */
+              <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+            )}
+
+            {/* Walkthrough Card */}
+            <div 
+              className="absolute w-full max-w-md transition-all duration-500 ease-out z-[10002] pointer-events-auto"
+              style={{
+                top: cardPosition.top,
+                left: cardPosition.left,
+                transform: cardPosition.top === '50%' ? 'translate(-50%, -50%)' : 'none'
+              }}
+            >
+              <Card className="bg-background border-2 border-primary shadow-2xl animate-in slide-in-from-bottom-4 duration-300">
+                <CardHeader className="pb-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground shadow-lg">
+                        {walkthroughSteps[walkthroughStep]?.icon || (
+                          <span className="font-bold text-sm">{walkthroughStep + 1}</span>
+                        )}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <CardTitle className="text-lg font-semibold">{walkthroughSteps[walkthroughStep]?.title}</CardTitle>
+                        </div>
+                        <div className="text-xs text-muted-foreground font-medium">
+                          Step {walkthroughStep + 1} of {walkthroughSteps.length}
+                        </div>
+                      </div>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={endWalkthrough} className="hover:bg-destructive/10">
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {typeof walkthroughSteps[walkthroughStep]?.content === 'function' 
+                      ? walkthroughSteps[walkthroughStep].content() 
+                      : walkthroughSteps[walkthroughStep]?.content}
+                  </p>
+                  
+                  {/* Interactive indicator */}
+                  {walkthroughSteps[walkthroughStep]?.interactive ? (
+                    <div className="flex items-center gap-2 text-xs text-primary font-medium bg-primary/10 rounded-lg p-2">
+                      <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                      Click the highlighted element to continue or use Next button
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <div className="w-2 h-2 bg-muted-foreground rounded-full"></div>
+                      Element highlighted for reference
+                    </div>
+                  )}
+                  
+                  {/* Progress bar */}
+                  <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                    <div 
+                      className="bg-primary h-2 rounded-full transition-all duration-500 ease-out"
+                      style={{ width: `${((walkthroughStep + 1) / walkthroughSteps.length) * 100}%` }}
+                    />
+                  </div>
+
+                  {/* Keyboard shortcuts */}
+                  <div className="text-xs text-muted-foreground flex items-center justify-center gap-4 pt-1">
+                    <span className="flex items-center gap-1">
+                      <kbd className="px-1 py-0.5 bg-muted rounded text-xs">←</kbd>
+                      <kbd className="px-1 py-0.5 bg-muted rounded text-xs">→</kbd>
+                      Navigate
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <kbd className="px-1 py-0.5 bg-muted rounded text-xs">Esc</kbd>
+                      Exit
+                    </span>
+                  </div>
+                  
+                  {/* Navigation buttons */}
+                  <div className="flex justify-between gap-3 pt-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={previousWalkthroughStep}
+                      disabled={walkthroughStep === 0}
+                      className="min-w-[80px]"
+                    >
+                      <ArrowLeft className="w-3 h-3 mr-1" />
+                      Previous
+                    </Button>
+                    
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="sm" onClick={endWalkthrough} className="text-muted-foreground hover:text-foreground">
+                        Skip Tour
+                      </Button>
+                      <Button size="sm" onClick={nextWalkthroughStep} className="min-w-[80px]">
+                        {walkthroughStep === walkthroughSteps.length - 1 ? (
+                          <>
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            Finish
+                          </>
+                        ) : (
+                          <>
+                            Next
+                            <ArrowRight className="w-3 h-3 ml-1" />
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Click outside to close - only on overlay areas */}
+            <div 
+              className="absolute inset-0 pointer-events-auto" 
+              onClick={(e) => {
+                // Only close if clicking on the overlay, not on highlighted element or card
+                const clickedElement = e.target;
+                const isOverlay = clickedElement.classList.contains('bg-black/70') || 
+                                clickedElement === e.currentTarget;
+                if (isOverlay) {
+                  endWalkthrough();
+                }
+              }}
+              style={{ cursor: 'pointer' }}
+            />
+          </div>
+        )}
+
+        {/* Welcome Component - Dialog on Desktop, Sheet on Mobile */}
+        {isMobile ? (
+          // Mobile Sheet
+          <Sheet open={showWelcomeSheet} onOpenChange={setShowWelcomeSheet}>
+          <SheetContent 
+            side="bottom" 
+            className="max-h-[60vh] border-0 bg-background shadow-2xl p-0 overflow-hidden"
+            closeButton={false}
+          >
+            <div className="relative h-full flex flex-col">
+              <div className="relative z-10 p-6 flex flex-col h-full justify-between">
+                {/* Header */}
+                <div className="flex-shrink-0">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <img src={LollipopSVG} alt="Lollipop" className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-semibold text-foreground">
+                          Welcome to Lollipop!
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          Your intelligent investment companion
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Content */}
+                  <div className="space-y-3">
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      Discover expert investment tips from SEBI Registered Investment Advisors and make informed decisions with our comprehensive platform. 
+                    </p>
+                    
+                    <div className="flex items-center gap-2 text-xs text-primary bg-primary/10 rounded-lg p-3">
+                      <PlayCircle size={14} className="text-primary flex-shrink-0" />
+                      <span>
+                        Our interactive walkthrough will show you all the key features in just 2 minutes.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex-shrink-0 mt-6">
+                  <div className="flex flex-col gap-3">
+                    <Button 
+                      onClick={handleStartWalkthrough}
+                      className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200 h-14 p-3"
+                      size="lg"
+                    >
+                      <PlayCircle size={16} className="mr-2" />
+                      Start Walkthrough
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      onClick={handleSkipWalkthrough}
+                      className="flex-1 border-border hover:bg-muted/60 h-14 p-3"
+                      size="lg"
+                    >
+                      <ArrowRight size={16} className="mr-2" />
+                      Skip for Now
+                    </Button>
+                    
+                    <Button 
+                      variant="ghost" 
+                      onClick={handleNeverShowAgain}
+                      className="text-muted-foreground hover:text-foreground hover:bg-muted/60 text-xs h-12"
+                      size="sm"
+                    >
+                      Don't show again
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+        ) : (
+          // Desktop Dialog
+          <Dialog open={showWelcomeSheet} onOpenChange={setShowWelcomeSheet}>
+            <DialogContent className="sm:max-w-md bg-background border border-border shadow-2xl">
+              <DialogHeader>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <img src={LollipopSVG} alt="Lollipop" className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <DialogTitle className="text-lg font-semibold text-foreground">
+                      Welcome to Lollipop!
+                    </DialogTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Your intelligent investment companion
+                    </p>
+                  </div>
+                </div>
+              </DialogHeader>
+              
+              <div className="space-y-4">
+                {/* Content */}
+                <div className="space-y-3">
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    Discover expert investment tips from SEBI Registered Investment Advisors and make informed decisions with our comprehensive platform. 
+                  </p>
+                  
+                  <div className="flex items-center gap-2 text-xs text-primary bg-primary/10 rounded-lg p-3">
+                    <PlayCircle size={14} className="text-primary flex-shrink-0" />
+                    <span>
+                      Our interactive walkthrough will show you all the key features in just 2 minutes.
+                    </span>
+                  </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex flex-col gap-3 pt-2">
+                  <Button 
+                    onClick={handleStartWalkthrough}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-200 h-12 p-3"
+                  >
+                    <PlayCircle size={16} className="mr-2" />
+                    Start Walkthrough
+                  </Button>
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline" 
+                      onClick={handleSkipWalkthrough}
+                      className="flex-1 border-border hover:bg-muted/60 h-10 p-3"
+                    >
+                      <ArrowRight size={16} className="mr-2" />
+                      Skip for Now
+                    </Button>
+                    
+                    <Button 
+                      variant="ghost" 
+                      onClick={handleNeverShowAgain}
+                      className="text-muted-foreground hover:text-foreground hover:bg-muted/60 text-xs h-10"
+                      size="sm"
+                    >
+                      Don't show again
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
 
         
  
