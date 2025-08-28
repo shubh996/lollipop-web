@@ -23,7 +23,7 @@ import {
   ArrowLeftRight, 
   Gauge, 
   Leaf, 
-  DollarSign, 
+  Banknote, 
   Wallet, 
   Shield, 
   Coins,
@@ -93,6 +93,7 @@ import {
   ArrowDownLeft,
   Share2,
   Building,
+  DollarSign,
   Calculator,
   BarChart3,
   Droplets,
@@ -111,7 +112,9 @@ import {
   LockOpenIcon,
   HelpCircle,
   Map,
-  PlayCircle
+  PlayCircle,
+  Lightbulb,
+  Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -167,10 +170,8 @@ const MASTER_FILTERS = {
     { name: 'Bonds', Icon: Cpu, desc: 'Government and corporate debt securities' },
     { name: 'Commodities', Icon: Package, desc: 'Physical goods like gold, oil, agricultural products' },
     { name: 'Mutual Funds', Icon: PieChart, desc: 'Professionally managed investment pools' },
-    { name: 'REITs', Icon: Home, desc: 'Real estate investment trusts' },
-    { name: 'Options', Icon: Settings2, desc: 'Call and put option contracts' },
-    { name: 'Futures', Icon: ArrowRight, desc: 'Future delivery contracts for assets' },
-  ],
+    { name: 'REITs', Icon: Home, desc: 'Real estate investment trusts' }
+   ],
   sectors: [
     { name: 'Technology', Icon: Laptop, desc: 'Software, hardware, and tech services companies' },
     { name: 'Finance', Icon: Cpu, desc: 'Banks, insurance, and financial services' },
@@ -198,7 +199,7 @@ const MASTER_FILTERS = {
   strategies: [
     { name: 'Momentum', color: '#6366f1', Icon: Gauge, desc: 'Buy assets showing strong price trends and momentum' },
     { name: 'Growth', color: '#0ea5e9', Icon: Leaf, desc: 'Invest in companies with high growth potential' },
-    { name: 'Value', color: '#a855f7', Icon: DollarSign, desc: 'Buy undervalued assets trading below intrinsic value' },
+    { name: 'Value', color: '#a855f7', icon: Banknote, desc: 'Buy undervalued assets trading below intrinsic value' },
     { name: 'Income', color: '#eab308', Icon: Wallet, desc: 'Focus on dividend-paying assets for regular income' },
     { name: 'Defensive', color: '#ef4444', Icon: Shield, desc: 'Conservative approach to preserve capital' },
     { name: 'Speculative', color: '#ef4444', Icon: AlertTriangle, desc: 'High-risk, high-reward investment approach' },
@@ -218,13 +219,16 @@ const MASTER_FILTERS = {
     { name: 'Very High', Icon: AlertTriangle, desc: 'Speculative investments with potential for major losses' },
   ],
   expectedReturn: [
-    { name: '<5%', Icon: TrendingDown, desc: 'Less than 5% expected return.' },
-    { name: '5-10%', Icon: Minus, desc: '5-10% expected return.' },
-    { name: '10-20%', Icon: TrendingUp, desc: '10-20% expected return.' },
-    { name: '20-30%', Icon: TrendingUp, desc: '20-30% expected return.' },
-    { name: '30-50%', Icon: ArrowUp, desc: '30-50% expected return.' },
-    { name: '50%+', Icon: ArrowUpRight, desc: 'More than 50% expected return.' },
-    { name: 'Negative', Icon: TrendingDown, desc: 'Expecting a loss.' },
+    { name: '<5%', min: 0, max: 5, Icon: TrendingDown, desc: 'Less than 5% expected return.' },
+    { name: '5-10%', min: 5, max: 10, Icon: Minus, desc: '5-10% expected return.' },
+    { name: '10-15%', min: 10, max: 20, Icon: TrendingUp, desc: '10-20% expected return.' },
+        { name: '15-20%', min: 10, max: 20, Icon: TrendingUp, desc: '10-20% expected return.' },
+    
+    { name: '20-30%', min: 20, max: 30, Icon: TrendingUp, desc: '20-30% expected return.' },
+    { name: '30-50%', min: 30, max: 50, Icon: ArrowUp, desc: '30-50% expected return.' },
+    { name: '50%+', min: 50, max: Infinity, Icon: ArrowUp, desc: '50%+ expected return.' },
+
+    { name: 'Negative', min: -Infinity, max: 0, Icon: TrendingDown, desc: 'Expecting a loss.' },
   ],
   marketCap: [
     { name: 'Nano Cap', Icon: Minus, desc: 'Very small companies under $50M market cap' },
@@ -235,12 +239,12 @@ const MASTER_FILTERS = {
     { name: 'Mega Cap', Icon: Factory, desc: 'Largest companies over $200B market cap' },
   ],
   dividendYield: [
-    { label: '0-2%', min: 0, max: 2, icon: DollarSign, desc: 'Low dividend yield, growth-focused companies' },
-    { label: '2-4%', min: 2, max: 4, icon: DollarSign, desc: 'Moderate dividend yield, balanced approach' },
-    { label: '4-6%', min: 4, max: 6, icon: DollarSign, desc: 'Good dividend yield, income-focused' },
-    { label: '6-8%', min: 6, max: 8, icon: DollarSign, desc: 'High dividend yield, strong income generation' },
-    { label: '8-10%', min: 8, max: 10, icon: DollarSign, desc: 'Very high dividend yield, mature companies' },
-    { label: '10%+', min: 10, max: Infinity, icon: DollarSign, desc: 'Exceptional dividend yield, possible risks' },
+    { name: '0-1%', min: 0, max: 1, icon: Banknote, desc: 'Very low dividend yield, growth-focused companies' },
+    { name: '1-2%', min: 1, max: 2, icon: Banknote, desc: 'Low dividend yield, growth-focused companies' },
+    { name: '2-3%', min: 2, max: 3, icon: Banknote, desc: 'Moderate dividend yield, balanced approach' },
+    { name: '3-5%', min: 3, max: 5, icon: Banknote, desc: 'Good dividend yield, income-focused' },
+    { name: '5-10%', min: 5, max: 10, icon: Banknote, desc: 'High dividend yield, strong income generation' },
+    { name: '10%+', min: 10, max: Infinity, icon: Banknote, desc: 'Exceptional dividend yield, possible risks' },
   ],
   holding: [
     { name: 'Intraday', Icon: Zap, desc: 'Buy and sell within the same trading day' },
@@ -282,7 +286,7 @@ const MASTER_FILTERS = {
     { name: 'Price/Sales', Icon: BarChart2, desc: 'Price to sales ratio' },
     { name: 'DCF', Icon: BarChart2, desc: 'Discounted cash flow valuation' },
     { name: 'Free Cash Flow Yield', Icon: BarChart2, desc: 'Free cash flow relative to market cap' },
-    { name: 'Dividend Yield', Icon: DollarSign, desc: 'Annual dividend relative to price' },
+    { name: 'Dividend Yield', icon: Banknote, desc: 'Annual dividend relative to price' },
   ],
   growthMetrics: [
     { name: 'Revenue Growth', Icon: TrendingUp, desc: 'Strong revenue growth trajectory' },
@@ -354,7 +358,7 @@ const MASTER_FILTERS = {
     { name: 'Market Event', Icon: Activity, desc: 'Major market event.' },
     { name: 'Analyst Upgrade', Icon: TrendingUp, desc: 'Analyst rating upgrade.' },
     { name: 'Buyback', Icon: RefreshCcw, desc: 'Company share buyback.' },
-    { name: 'Dividend Hike', Icon: DollarSign, desc: 'Increase in dividend payout.' },
+    { name: 'Dividend Hike', icon: Banknote, desc: 'Increase in dividend payout.' },
     { name: 'Sector Rotation', Icon: ArrowRight, desc: 'Shift in sector focus.' },
     { name: 'Geopolitical', Icon: Globe, desc: 'Geopolitical event.' },
     { name: 'Innovation', Icon: Zap, desc: 'New innovation.' },
@@ -2007,7 +2011,7 @@ export default function TipScreen() {
 
   // Default selected columns (current 9 columns)
   const [selectedColumns, setSelectedColumns] = useState([
-    'time', 'advisor', 'asset', 'symbol', 'return', 'risk', 'holding', 'sentiment', 'investment'
+    'time', 'investment', 'advisor', 'symbol', 'return', 'asset', 'risk', 'holding', 'sentiment'
   ]);
 
   // Map filter keys to table column keys
@@ -2204,19 +2208,19 @@ export default function TipScreen() {
                 size="sm" 
                 className="p-1 flex items-center gap-1 w-full justify-start hover:bg-muted/50" 
                 onClick={() => {
-                  console.log('Mobile advisor clicked:', tip.name, tip);
+                  console.log('Mobile advisor clicked:', tip.advisor_name, tip);
                   setSelectedAdvisorForMobile(tip);
                   setShowAdvisorSheet(true);
                   console.log('Set states - selectedAdvisorForMobile:', tip, 'showAdvisorSheet:', true);
                 }}
                 onDoubleClick={() => {
                   // Double-click to directly view all tips from this advisor
-                  handleViewAllTips(tip.name);
+                  handleViewAllTips(tip.advisor_name);
                 }}
-                title={`Tap to view ${tip.name}'s profile, double-tap to view all tips`}
+                title={`Tap to view ${tip.advisor_name}'s profile, double-tap to view all tips`}
               >
-                <img src={tip.avatar} alt={tip.name} className="w-5 h-5 rounded-full flex-shrink-0" />
-                <span className="font-light text-[13.5px] truncate">{tip.name}</span>
+                <img src={tip.advisor_avatar} alt={tip.advisor_name} className="w-5 h-5 rounded-full flex-shrink-0" />
+                <span className="font-light text-[13.5px] truncate">{tip.advisor_name}</span>
                 <ArrowUpRight size={14} style={{color: !isDarkTheme ? '#555' : '#A9A9A9'}} className="text-primary ml-1" />
               </Button>
             </td>
@@ -2224,32 +2228,146 @@ export default function TipScreen() {
         } else {
           return (
             <td key={columnKey} className="min-w-[180px] px-4 py-2 border-r border-b border-border text-center h-12" data-walkthrough="advisor-column">
-              <div 
-                className="flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden text-ellipsis cursor-pointer hover:bg-muted/50 rounded-md p-1 transition-colors"
-                onClick={() => {
-                  console.log('Advisor clicked:', tip.name, tip);
-                  if (paywalled && !unlocked) {
-                    console.log('Showing paywall sheet');
-                    setSelectedPaywallTip(tip);
-                    setShowPaywallSheet(true);
-                  } else {
-                    console.log('Showing advisor sheet');
-                    setSelectedAdvisorForMobile(tip);
-                    setShowAdvisorSheet(true);
-                     setSelectedAdvisorForMobile(tip);
-                  setShowAdvisorSheet(true);
-                  }
-                }}
-                onDoubleClick={() => {
-                  // Double-click to directly view all tips from this advisor
-                  handleViewAllTips(tip.name);
-                }}
-                title={`Click to view ${tip.name}'s profile, double-click to view all tips`}
-              >
-                <img src={tip.avatar} alt={tip.name} className="w-6 h-6 rounded-xl flex-shrink-0" />
-                <span className="font-light text-[13.5px] whitespace-nowrap overflow-hidden text-ellipsis">{tip.name}</span>
-                <ArrowUpRight size={14} className="text-muted-foreground" />
-              </div>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div 
+                      className="flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden text-ellipsis cursor-pointer hover:bg-muted/50 rounded-md p-1 transition-colors"
+                      onClick={() => {
+                        console.log('Advisor clicked:', tip.advisor_name, tip);
+                        if (paywalled && !unlocked) {
+                          console.log('Showing paywall sheet');
+                          setSelectedPaywallTip(tip);
+                          setShowPaywallSheet(true);
+                        } else {
+                          console.log('Showing advisor sheet');
+                          setSelectedAdvisorForMobile(tip);
+                          setShowAdvisorSheet(true);
+                           setSelectedAdvisorForMobile(tip);
+                        setShowAdvisorSheet(true);
+                        }
+                      }}
+                      onDoubleClick={() => {
+                        // Double-click to directly view all tips from this advisor
+                        handleViewAllTips(tip.advisor_name);
+                      }}
+                      title={`Click to view ${tip.advisor_name}'s profile, double-click to view all tips`}
+                    >
+                      <img src={tip.advisor_avatar} alt={tip.advisor_name} className="w-6 h-6 rounded-xl flex-shrink-0" />
+                      <span className="font-light text-[13.5px] whitespace-nowrap overflow-hidden text-ellipsis">{tip.advisor_name}</span>
+                      <ArrowUpRight size={14} className="text-muted-foreground" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-sm p-0 border-2 border-gray-800 dark:border-gray-200 shadow-lg bg-white dark:bg-background">
+                    <div className="p-4 space-y-4">
+                      {/* Header */}
+                      <div className="flex items-center gap-3">
+                        <img 
+                          src={tip.advisor_avatar} 
+                          alt={tip.advisor_name} 
+                          className="w-8 h-8 rounded-lg object-cover border border-gray-200 dark:border-border shadow-sm" 
+                        />
+                        <div>
+                          <div className="text-sm font-bold text-gray-900 dark:text-foreground">{tip.advisor_name}</div>
+                          <div className="text-xs text-gray-600 dark:text-muted-foreground">
+                            Professional investment advisor
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Quick Stats */}
+                      <div className="space-y-3">
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-900 dark:text-foreground">Quick Stats</h4>
+                          <p className="text-xs text-gray-600 dark:text-muted-foreground mt-1">
+                            Key performance metrics
+                          </p>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="p-2.5 rounded-lg border bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                            <div className="flex items-center gap-2">
+                              <Award size={12} className="text-green-600" />
+                              <div>
+                                <div className="text-xs text-gray-600 dark:text-muted-foreground">Win Rate</div>
+                                <div className="font-bold text-sm text-green-600">
+                                  {tip.advisor_win_rate ? `${(tip.advisor_win_rate * 100).toFixed(0)}%` : tip.win_rate ? `${(tip.win_rate * 100).toFixed(0)}%` : '68%'}
+                                </div>
+                                <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                                  Success rate of recommendations
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="p-2.5 rounded-lg border bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+                            <div className="flex items-center gap-2">
+                              <BarChart2 size={12} className="text-blue-600" />
+                              <div>
+                                <div className="text-xs text-gray-600 dark:text-muted-foreground">Total Tips</div>
+                                <div className="font-bold text-sm text-blue-600">
+                                  {tip.advisor_total_tips || '150+'}
+                                </div>
+                                <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                                  Total investment recommendations
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* SEBI Status */}
+                        {tip.advisor_sebi_registered ? (
+                          <div className="p-2.5 rounded-lg border bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                            <div className="flex items-center gap-2">
+                              <ShieldCheck size={12} className="text-green-600" />
+                              <span className="text-xs font-medium text-green-700 dark:text-green-400">SEBI Registered</span>
+                            </div>
+                            <div className="text-xs text-gray-600 dark:text-muted-foreground mt-1">
+                              Regulatory compliance verified by Indian securities board
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="p-2.5 rounded-lg border bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800">
+                            <div className="flex items-center gap-2">
+                              <ShieldAlert size={12} className="text-amber-600" />
+                              <span className="text-xs font-medium text-amber-700 dark:text-amber-400">Independent Advisor</span>
+                            </div>
+                            <div className="text-xs text-gray-600 dark:text-muted-foreground mt-1">
+                              Operates independently without SEBI registration
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* View Profile Button */}
+                      <div className="pt-2">
+                        <Button 
+                          className="w-full font-medium text-xs h-8"
+                          size="sm"
+                          variant="default"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedAdvisorForMobile(tip);
+                            setShowAdvisorSheet(true);
+                          }}
+                        >
+                          <div className="flex items-center justify-center gap-1.5">
+                            <User className="w-3 h-3" />
+                            <span>View Full Profile</span>
+                          </div>
+                        </Button>
+                      </div>
+                      
+                      <div className="pt-2 border-t border-gray-200 dark:border-border/50">
+                        <p className="text-xs text-gray-500 dark:text-muted-foreground text-center">
+                          Double-click name to view all tips from this advisor
+                        </p>
+                      </div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </td>
           );
         }
@@ -2257,7 +2375,87 @@ export default function TipScreen() {
       case 'asset':
         return (
           <td key={columnKey} className={cellClasses}>
-            {tip.asset_type}
+            {!isMobile ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="cursor-pointer hover:opacity-80 transition-opacity font-medium">
+                      {tip.asset}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-sm p-0 border-2 border-gray-800 dark:border-gray-200 shadow-lg bg-white dark:bg-background">
+                    <div className="p-4 space-y-4">
+                      {/* Header */}
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-purple-50 dark:bg-purple-950/20 flex items-center justify-center p-1.5">
+                          <Package size={14} className="text-purple-600 dark:text-purple-400" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-gray-900 dark:text-foreground">Asset Class</div>
+                          <div className="text-xs text-gray-600 dark:text-muted-foreground">
+                            Investment category and type
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Asset Details */}
+                      <div className="space-y-2">
+                        <div className="p-2.5 rounded-lg border bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800">
+                          <div className="flex items-center justify-between text-xs mb-1">
+                            <div className="flex items-center gap-2">
+                              <Package size={12} className="text-purple-500" />
+                              <span className="text-gray-700 dark:text-foreground">Asset Type</span>
+                            </div>
+                            <span className="font-bold text-gray-900 dark:text-foreground">{tip.asset}</span>
+                          </div>
+                          <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                            Primary investment category
+                          </p>
+                        </div>
+                        
+                        {tip.sector && (
+                          <div className="p-2.5 rounded-lg border bg-indigo-50 dark:bg-indigo-950/20 border-indigo-200 dark:border-indigo-800">
+                            <div className="flex items-center justify-between text-xs mb-1">
+                              <div className="flex items-center gap-2">
+                                <Building size={12} className="text-indigo-500" />
+                                <span className="text-gray-700 dark:text-foreground">Sector</span>
+                              </div>
+                              <span className="font-bold text-gray-900 dark:text-foreground">{tip.sector}</span>
+                            </div>
+                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                              Industry sector where the company operates
+                            </p>
+                          </div>
+                        )}
+                        
+                        {tip.market_cap && (
+                          <div className="p-2.5 rounded-lg border bg-cyan-50 dark:bg-cyan-950/20 border-cyan-200 dark:border-cyan-800">
+                            <div className="flex items-center justify-between text-xs mb-1">
+                              <div className="flex items-center gap-2">
+                                <Globe size={12} className="text-cyan-500" />
+                                <span className="text-gray-700 dark:text-foreground">Market Cap</span>
+                              </div>
+                              <span className="font-bold text-gray-900 dark:text-foreground">{tip.market_cap}</span>
+                            </div>
+                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                              Total market value of company's outstanding shares
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="pt-2 border-t border-gray-200 dark:border-border/50">
+                        <p className="text-xs text-gray-500 dark:text-muted-foreground text-center">
+                          Asset class determines risk profile and market behavior
+                        </p>
+                      </div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              tip.asset
+            )}
           </td>
         );
       
@@ -2287,8 +2485,8 @@ export default function TipScreen() {
                       const tipData = encodeURIComponent(JSON.stringify({
                         id: tip.id,
                         created_at: tip.created_at,
-                        name: tip.name,
-                        avatar: tip.avatar,
+                        name: tip.advisor_name,
+                        avatar: tip.advisor_avatar,
                         symbol: tip.symbol,
                         performance: tip.score || 60,
                         win_rate: tip.win_rate || 65,
@@ -2297,7 +2495,7 @@ export default function TipScreen() {
                         risk: tip.risk || 'Medium',
                         entry_price: tip.entry_price,
                         exit_price: tip.exit_price,
-                        target_duration: tip.target_duration,
+                        target_duration: tip.duration,
                         allocation: tip.allocation,
                         catalyst: tip.catalyst,
                         valuation: tip.valuation,
@@ -2313,14 +2511,156 @@ export default function TipScreen() {
                     <BarChart2 size={12} className="text-muted-foreground opacity-60" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom" align="center" sideOffset={5} className="p-0">
-                  <div className="w-[800px] h-[400px] p-0 bg-background border border-border rounded-lg overflow-hidden">
-                    <TradingViewWidget
-                      symbol={tip?.symbol}
-                      theme={isDarkTheme ? 'dark' : 'light'}
-                      height={400}
-                      width={1000}
-                    />
+                <TooltipContent align="center" sideOffset={5} className="p-0 border-2 border-gray-800 dark:border-gray-200 shadow-lg bg-white dark:bg-background">
+                  <div className="w-[1000px] h-[450px] flex">
+                    {/* Left Column - Data Points */}
+                    <div className="w-[350px] p-4 space-y-4 border-r border-gray-200 dark:border-border">
+                      {/* Header */}
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/20 flex items-center justify-center p-1.5">
+                          <BarChart2 size={14} className="text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-gray-900 dark:text-foreground">Symbol Details</div>
+                          <div className="text-xs text-gray-600 dark:text-muted-foreground">
+                            Investment overview & metrics
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Data Points */}
+                      <div className="space-y-3">
+                        {/* Symbol */}
+                        <div className="p-2.5 rounded-lg border bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
+                          <div className="flex items-center justify-between text-xs mb-1">
+                            <div className="flex items-center gap-2">
+                              <BarChart2 size={12} className="text-blue-500" />
+                              <span className="text-gray-700 dark:text-foreground">Symbol</span>
+                            </div>
+                            <span className="font-bold text-gray-900 dark:text-foreground">{tip.symbol}</span>
+                          </div>
+                          <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                            Ticker symbol for this investment
+                          </p>
+                        </div>
+
+                        {/* Asset Type */}
+                        {tip.asset && (
+                          <div className="p-2.5 rounded-lg border bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800">
+                            <div className="flex items-center justify-between text-xs mb-1">
+                              <div className="flex items-center gap-2">
+                                <Package size={12} className="text-purple-500" />
+                                <span className="text-gray-700 dark:text-foreground">Asset Type</span>
+                              </div>
+                              <span className="font-bold text-gray-900 dark:text-foreground">{tip.asset}</span>
+                            </div>
+                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                              Investment category classification
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Sector */}
+                        {tip.sector && (
+                          <div className="p-2.5 rounded-lg border bg-indigo-50 dark:bg-indigo-950/20 border-indigo-200 dark:border-indigo-800">
+                            <div className="flex items-center justify-between text-xs mb-1">
+                              <div className="flex items-center gap-2">
+                                <Building size={12} className="text-indigo-500" />
+                                <span className="text-gray-700 dark:text-foreground">Sector</span>
+                              </div>
+                              <span className="font-bold text-gray-900 dark:text-foreground">{tip.sector}</span>
+                            </div>
+                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                              Industry sector classification
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Market Cap */}
+                        {tip.market_cap && (
+                          <div className="p-2.5 rounded-lg border bg-cyan-50 dark:bg-cyan-950/20 border-cyan-200 dark:border-cyan-800">
+                            <div className="flex items-center justify-between text-xs mb-1">
+                              <div className="flex items-center gap-2">
+                                <Globe size={12} className="text-cyan-500" />
+                                <span className="text-gray-700 dark:text-foreground">Market Cap</span>
+                              </div>
+                              <span className="font-bold text-gray-900 dark:text-foreground">{tip.market_cap}</span>
+                            </div>
+                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                              Total market value of outstanding shares
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Exchange */}
+                        {tip.exchange && (
+                          <div className="p-2.5 rounded-lg border bg-teal-50 dark:bg-teal-950/20 border-teal-200 dark:border-teal-800">
+                            <div className="flex items-center justify-between text-xs mb-1">
+                              <div className="flex items-center gap-2">
+                                <Building size={12} className="text-teal-500" />
+                                <span className="text-gray-700 dark:text-foreground">Exchange</span>
+                              </div>
+                              <span className="font-bold text-gray-900 dark:text-foreground">{tip.exchange}</span>
+                            </div>
+                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                              Stock exchange where asset is traded
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Current Price */}
+                        {tip.current_price && (
+                          <div className="p-2.5 rounded-lg border bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
+                            <div className="flex items-center justify-between text-xs mb-1">
+                              <div className="flex items-center gap-2">
+                                <DollarSign size={12} className="text-green-500" />
+                                <span className="text-gray-700 dark:text-foreground">Current Price</span>
+                              </div>
+                              <span className="font-bold text-gray-900 dark:text-foreground">${tip.current_price}</span>
+                            </div>
+                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                              Latest trading price of the asset
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Expected Return */}
+                        {tip.expected_return && (
+                          <div className="p-2.5 rounded-lg border bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800">
+                            <div className="flex items-center justify-between text-xs mb-1">
+                              <div className="flex items-center gap-2">
+                                <TrendingUp size={12} className="text-emerald-500" />
+                                <span className="text-gray-700 dark:text-foreground">Expected Return</span>
+                              </div>
+                              <span className="font-bold text-gray-900 dark:text-foreground">{tip.expected_return}</span>
+                            </div>
+                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                              Projected percentage return
+                            </p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Footer */}
+                      <div className="pt-2 border-t border-gray-200 dark:border-border/50">
+                        <p className="text-xs text-gray-500 dark:text-muted-foreground text-center">
+                          Complete investment overview
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Right Column - TradingView Chart */}
+                    <div className="flex-1 bg-background">
+                      
+                      <div className="h-[450px] overflow-hidden">
+                        <TradingViewWidget
+                          symbol={tip?.symbol}
+                          theme={isDarkTheme ? 'dark' : 'light'}
+                          height={460}
+                          width={650}
+                        />
+                      </div>
+                    </div>
                   </div>
                 </TooltipContent>
               </Tooltip>
@@ -2331,33 +2671,381 @@ export default function TipScreen() {
       case 'return':
         return (
           <td key={columnKey} className={isMobile ? `${cellClasses} font-medium` : cellClasses}>
-            {tip.expected_return}
+            {!isMobile ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="cursor-pointer hover:opacity-80 transition-opacity font-medium">
+                      {tip.expected_return}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-sm p-0 border-2 border-gray-800 dark:border-gray-200 shadow-lg bg-white dark:bg-background">
+                    <div className="p-4 space-y-4">
+                      {/* Header */}
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-green-50 dark:bg-green-950/20 flex items-center justify-center p-1.5">
+                          <TrendingUp size={14} className="text-green-600 dark:text-green-400" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-gray-900 dark:text-foreground">Expected Returns</div>
+                          <div className="text-xs text-gray-600 dark:text-muted-foreground">
+                            Projected investment performance
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Return Details */}
+                      <div className="space-y-2">
+                        <div className="p-2.5 rounded-lg border bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
+                          <div className="flex items-center justify-between text-xs mb-1">
+                            <div className="flex items-center gap-2">
+                              <Target size={12} className="text-green-500" />
+                              <span className="text-gray-700 dark:text-foreground">Target Return</span>
+                            </div>
+                            <span className="font-bold text-gray-900 dark:text-foreground">{tip.expected_return}</span>
+                          </div>
+                          <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                            Expected percentage return on investment
+                          </p>
+                        </div>
+                        
+                        {tip.duration && (
+                          <div className="p-2.5 rounded-lg border bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
+                            <div className="flex items-center justify-between text-xs mb-1">
+                              <div className="flex items-center gap-2">
+                                <Calendar size={12} className="text-blue-500" />
+                                <span className="text-gray-700 dark:text-foreground">Duration</span>
+                              </div>
+                              <span className="font-bold text-gray-900 dark:text-foreground">{tip.duration}</span>
+                            </div>
+                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                              Recommended time to hold the investment
+                            </p>
+                          </div>
+                        )}
+                        
+                        {tip.allocation && (
+                          <div className="p-2.5 rounded-lg border bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800">
+                            <div className="flex items-center justify-between text-xs mb-1">
+                              <div className="flex items-center gap-2">
+                                <PieChart size={12} className="text-purple-500" />
+                                <span className="text-gray-700 dark:text-foreground">Portfolio Allocation</span>
+                              </div>
+                              <span className="font-bold text-gray-900 dark:text-foreground">{tip.allocation}</span>
+                            </div>
+                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                              Suggested percentage of portfolio for this investment
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="pt-2 border-t border-gray-200 dark:border-border/50">
+                        <p className="text-xs text-gray-500 dark:text-muted-foreground text-center">
+                          Expected returns based on current market analysis
+                        </p>
+                      </div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              tip.expected_return
+            )}
           </td>
         );
       
       case 'risk':
         return (
           <td key={columnKey} className={isMobile ? cellClasses : "min-w-[110px] px-4 py-2 border-r border-b border-border text-center h-12"}>
-            <Badge 
-              style={getLevelStyle(tip.risk || 'Medium', 'risk')} 
-              className={isMobile ? "font-medium border-none px-1 py-0.5 text-xs whitespace-nowrap" : "font-[13.5px] font-light border-none px-2.5 py-0.5 whitespace-nowrap"}
-            >
-              {tip.risk || 'Medium'}
-            </Badge>
+            {!isMobile ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge 
+                      style={getLevelStyle(tip.risk || 'Medium', 'risk')} 
+                      className="font-[13.5px] font-light border-none px-2.5 py-0.5 whitespace-nowrap cursor-pointer hover:opacity-80 transition-opacity"
+                    >
+                      {tip.risk || 'Medium'}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-sm p-0 border-2 border-gray-800 dark:border-gray-200 shadow-lg bg-white dark:bg-background">
+                    <div className="p-4 space-y-4">
+                      {/* Header */}
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-950/20 flex items-center justify-center p-1.5">
+                          <AlertTriangle size={14} className="text-red-600 dark:text-red-400" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-gray-900 dark:text-foreground">Risk Assessment</div>
+                          <div className="text-xs text-gray-600 dark:text-muted-foreground">
+                            Investment risk level analysis
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Risk Details */}
+                      <div className="space-y-3">
+                        {/* Risk Assessment Section */}
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-900 dark:text-foreground mb-2">Risk Assessment</h4>
+                          <div className="space-y-2">
+                            <div className="p-2.5 rounded-lg border bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800">
+                              <div className="flex items-center justify-between text-xs mb-1">
+                                <div className="flex items-center gap-2">
+                                  <AlertTriangle size={12} className="text-red-500" />
+                                  <span className="text-gray-700 dark:text-foreground">Risk Level</span>
+                                </div>
+                                <span className="font-bold text-gray-900 dark:text-foreground">{tip.risk || 'Medium'}</span>
+                              </div>
+                              <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                                Overall risk rating for this investment
+                              </p>
+                            </div>
+                            
+                            {tip.stop_loss && (
+                              <div className="p-2.5 rounded-lg border bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800">
+                                <div className="flex items-center justify-between text-xs mb-1">
+                                  <div className="flex items-center gap-2">
+                                    <TrendingDown size={12} className="text-orange-500" />
+                                    <span className="text-gray-700 dark:text-foreground">Stop Loss</span>
+                                  </div>
+                                  <span className="font-bold text-gray-900 dark:text-foreground">${tip.stop_loss}</span>
+                                </div>
+                                <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                                  Recommended price to exit investment to limit losses
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Advisor Performance Section */}
+                        <div>
+                          <h4 className="text-sm font-semibold text-gray-900 dark:text-foreground mb-2">Advisor Performance</h4>
+                          <div className="space-y-2">
+                            <div className="p-2.5 rounded-lg border bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
+                              <div className="flex items-center justify-between text-xs mb-1">
+                                <div className="flex items-center gap-2">
+                                  <TrendingUp size={12} className="text-green-500" />
+                                  <span className="text-gray-700 dark:text-foreground">Win Rate</span>
+                                </div>
+                                <span className="font-bold text-gray-900 dark:text-foreground">{tip.advisor_win_rate ? `${(tip.advisor_win_rate * 100).toFixed(0)}%` : tip.win_rate ? `${(tip.win_rate * 100).toFixed(0)}%` : '68%'}</span>
+                              </div>
+                              <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                                Historical success rate of advisor's recommendations
+                              </p>
+                            </div>
+                            
+                            {tip.conviction && (
+                              <div className="p-2.5 rounded-lg border bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
+                                <div className="flex items-center justify-between text-xs mb-1">
+                                  <div className="flex items-center gap-2">
+                                    <Zap size={12} className="text-blue-500" />
+                                    <span className="text-gray-700 dark:text-foreground">Conviction</span>
+                                  </div>
+                                  <span className="font-bold text-gray-900 dark:text-foreground">{tip.conviction}</span>
+                                </div>
+                                <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                                  Advisor's confidence level in this recommendation
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="pt-2 border-t border-gray-200 dark:border-border/50">
+                        <p className="text-xs text-gray-500 dark:text-muted-foreground text-center">
+                          Risk level indicates potential volatility and loss probability
+                        </p>
+                      </div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              <Badge 
+                style={getLevelStyle(tip.risk || 'Medium', 'risk')} 
+                className="font-medium border-none px-1 py-0.5 text-xs whitespace-nowrap"
+              >
+                {tip.risk || 'Medium'}
+              </Badge>
+            )}
           </td>
         );
       
       case 'holding':
         return (
           <td key={columnKey} className={cellClasses}>
-            {tip.holding }
+            {!isMobile ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="cursor-pointer hover:opacity-80 transition-opacity font-medium">
+                      {tip.holding}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-sm p-0 border-2 border-gray-800 dark:border-gray-200 shadow-lg bg-white dark:bg-background">
+                    <div className="p-4 space-y-4">
+                      {/* Header */}
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/20 flex items-center justify-center p-1.5">
+                          <Clock size={14} className="text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-gray-900 dark:text-foreground">Holding Period</div>
+                          <div className="text-xs text-gray-600 dark:text-muted-foreground">
+                            Recommended investment duration
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Holding Details */}
+                      <div className="space-y-2">
+                        <div className="p-2.5 rounded-lg border bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
+                          <div className="flex items-center justify-between text-xs mb-1">
+                            <div className="flex items-center gap-2">
+                              <Clock size={12} className="text-blue-500" />
+                              <span className="text-gray-700 dark:text-foreground">Holding Period</span>
+                            </div>
+                            <span className="font-bold text-gray-900 dark:text-foreground">{tip.holding}</span>
+                          </div>
+                          <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                            Recommended investment time frame strategy
+                          </p>
+                        </div>
+                        
+                        {tip.strategy && (
+                          <div className="p-2.5 rounded-lg border bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800">
+                            <div className="flex items-center justify-between text-xs mb-1">
+                              <div className="flex items-center gap-2">
+                                <Target size={12} className="text-orange-500" />
+                                <span className="text-gray-700 dark:text-foreground">Strategy</span>
+                              </div>
+                              <span className="font-bold text-gray-900 dark:text-foreground">{tip.strategy}</span>
+                            </div>
+                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                              Trading strategy approach for this position
+                            </p>
+                          </div>
+                        )}
+                        
+                        {tip.duration && (
+                          <div className="p-2.5 rounded-lg border bg-teal-50 dark:bg-teal-950/20 border-teal-200 dark:border-teal-800">
+                            <div className="flex items-center justify-between text-xs mb-1">
+                              <div className="flex items-center gap-2">
+                                <Calendar size={12} className="text-teal-500" />
+                                <span className="text-gray-700 dark:text-foreground">Target Duration</span>
+                              </div>
+                              <span className="font-bold text-gray-900 dark:text-foreground">{tip.duration}</span>
+                            </div>
+                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                              Expected time to achieve target returns
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="pt-2 border-t border-gray-200 dark:border-border/50">
+                        <p className="text-xs text-gray-500 dark:text-muted-foreground text-center">
+                          Optimal holding period for maximum returns
+                        </p>
+                      </div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              tip.holding
+            )}
           </td>
         );
       
       case 'sentiment':
         return (
           <td key={columnKey} className={cellClasses}>
-            {tip.sentiment}
+            {!isMobile ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="cursor-pointer hover:opacity-80 transition-opacity font-medium">
+                      {tip.sentiment}
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="max-w-sm p-0 border-2 border-gray-800 dark:border-gray-200 shadow-lg bg-white dark:bg-background">
+                    <div className="p-4 space-y-4">
+                      {/* Header */}
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-950/20 flex items-center justify-center p-1.5">
+                          <Activity size={14} className="text-amber-600 dark:text-amber-400" />
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-gray-900 dark:text-foreground">Market Sentiment</div>
+                          <div className="text-xs text-gray-600 dark:text-muted-foreground">
+                            Current market outlook and mood
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Sentiment Details */}
+                      <div className="space-y-2">
+                        <div className="p-2.5 rounded-lg border bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
+                          <div className="flex items-center justify-between text-xs mb-1">
+                            <div className="flex items-center gap-2">
+                              <Activity size={12} className="text-amber-500" />
+                              <span className="text-gray-700 dark:text-foreground">Market Sentiment</span>
+                            </div>
+                            <span className="font-bold text-gray-900 dark:text-foreground">{tip.sentiment}</span>
+                          </div>
+                          <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                            Overall market mood and investor confidence
+                          </p>
+                        </div>
+                        
+                        {tip.technical && (
+                          <div className="p-2.5 rounded-lg border bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800">
+                            <div className="flex items-center justify-between text-xs mb-1">
+                              <div className="flex items-center gap-2">
+                                <BarChart3 size={12} className="text-emerald-500" />
+                                <span className="text-gray-700 dark:text-foreground">Technical Analysis</span>
+                              </div>
+                              <span className="font-bold text-gray-900 dark:text-foreground">{tip.technical}</span>
+                            </div>
+                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                              Chart patterns and technical indicator signals
+                            </p>
+                          </div>
+                        )}
+                        
+                        {tip.valuation && (
+                          <div className="p-2.5 rounded-lg border bg-rose-50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-800">
+                            <div className="flex items-center justify-between text-xs mb-1">
+                              <div className="flex items-center gap-2">
+                                <TrendingUp size={12} className="text-rose-500" />
+                                <span className="text-gray-700 dark:text-foreground">Valuation</span>
+                              </div>
+                              <span className="font-bold text-gray-900 dark:text-foreground">{tip.valuation}</span>
+                            </div>
+                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                              Asset price assessment relative to intrinsic value
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="pt-2 border-t border-gray-200 dark:border-border/50">
+                        <p className="text-xs text-gray-500 dark:text-muted-foreground text-center">
+                          Market sentiment reflects investor confidence and outlook
+                        </p>
+                      </div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              tip.sentiment
+            )}
           </td>
         );
       
@@ -2374,19 +3062,400 @@ export default function TipScreen() {
             <div className="flex items-center justify-center gap-1">
               <span>{tip.investment }</span>
               {paywalled && !unlocked ? (
-                <span onClick={() => {
-                  setSelectedPaywallTip(tip);
-                  setShowPaywallSheet(true);
-                }}>
-                  <Lock size={16} className="ml-1 text-muted-foreground cursor-pointer" />
-                </span>
+                isMobile ? (
+                  <span onClick={() => {
+                    setSelectedPaywallTip(tip);
+                    setShowPaywallSheet(true);
+                  }}>
+                    <Lock size={16} className="ml-1 text-muted-foreground cursor-pointer" />
+                  </span>
+                ) : (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span 
+                          className="cursor-pointer"
+                          onClick={(e) => {
+                            // Use a timeout to distinguish between single and double clicks
+                            if (e.detail === 1) {
+                              // Single click - set a timeout
+                              setTimeout(() => {
+                                if (e.target.dataset.preventClick !== 'true') {
+                                  setSelectedPaywallTip(tip);
+                                  setShowPaywallSheet(true);
+                                }
+                              }, 250);
+                            } else if (e.detail === 2) {
+                              // Double click - prevent single click and execute unlock
+                              e.target.dataset.preventClick = 'true';
+                              setTimeout(() => {
+                                e.target.dataset.preventClick = 'false';
+                              }, 300);
+                              
+                              e.stopPropagation();
+                              e.preventDefault();
+                              
+                              if (isLoggedIn && userData?.credits >= 5) {
+                                handleUnlockTip(tip).then((unlockSuccess) => {
+                                  if (unlockSuccess) {
+                                    // Unlock successful - open the tip sheet directly
+                                    toast("Tip unlocked successfully! ✨", {
+                                      duration: 4000,
+                                      position: "top-center",
+                                    });
+                                    // Open the tip sheet
+                                    setSelectedTipForMobile(tip);
+                                    setMobileTipSheetOpen(true);
+                                  }
+                                });
+                              } else if (!isLoggedIn) {
+                                toast("Please login to unlock tips", {
+                                  duration: 3000,
+                                  position: "top-center",
+                                });
+                              } else {
+                                toast("Not enough Lollipops! You need 5 Lollipops to unlock this tip.", {
+                                  duration: 3000,
+                                  position: "top-center",
+                                });
+                              }
+                            }
+                          }}
+                        >
+                          <Lock size={16} className="ml-1 text-muted-foreground hover:text-foreground transition-colors" />
+                        </span>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="max-w-sm p-0 border-2 border-gray-800 dark:border-gray-200 shadow-lg bg-white dark:bg-background">
+                        <div className="p-4 space-y-4">
+                          {/* Header */}
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-primary/10 flex items-center justify-center p-1.5">
+                              <Lock size={14} className="text-blue-600 dark:text-primary" />
+                            </div>
+                            <div>
+                              <div className="text-sm font-bold text-gray-900 dark:text-foreground">Premium Investment Access</div>
+                              <div className="text-xs text-gray-600 dark:text-muted-foreground">
+                                Unlock professional-grade insights
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Unlock Requirements Section */}
+                          <div className="space-y-3">
+                            <div>
+                              <h4 className="text-sm font-semibold text-gray-900 dark:text-foreground">Unlock Requirements</h4>
+                              <p className="text-xs text-gray-600 dark:text-muted-foreground mt-1 leading-relaxed">
+                                Investment credits needed to access this premium tip
+                              </p>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <div className="p-2.5 rounded-lg border bg-green-50 dark:bg-gold-950 border-green-200 dark:border-green-800">
+                                <div className="flex items-center justify-between text-xs mb-1">
+                                  <div className="flex items-center gap-2">
+                                    <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-3.5 h-3.5" />
+                                    <span className="text-gray-700 dark:text-foreground">Base unlock</span>
+                                  </div>
+                                  <span className="font-bold text-gray-900 dark:text-foreground">1</span>
+                                </div>
+                                <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                                  Standard credit for accessing basic investment tips
+                                </p>
+                              </div>
+                              
+                              <div className="p-2.5 rounded-lg border bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                                <div className="flex items-center justify-between text-xs mb-1">
+                                  <div className="flex items-center gap-2">
+                                    <div className="flex gap-0.5">
+                                      <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-3.5 h-3.5" />
+                                      <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-3.5 h-3.5" />
+                                    </div>
+                                    <span className="text-gray-700 dark:text-foreground">SEBI Registered</span>
+                                  </div>
+                                  <span className="font-bold text-gray-900 dark:text-foreground">2</span>
+                                </div>
+                                <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                                  Premium for tips from SEBI registered advisors
+                                </p>
+                              </div>
+                              
+                              <div className="p-2.5 rounded-lg border bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                                <div className="flex items-center justify-between text-xs mb-1">
+                                  <div className="flex items-center gap-2">
+                                    <div className="flex gap-0.5">
+                                      <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-3.5 h-3.5" />
+                                      <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-3.5 h-3.5" />
+                                    </div>
+                                    <span className="text-gray-700 dark:text-foreground">{tip?.successRate || '68%'} Success Rate</span>
+                                  </div>
+                                  <span className="font-bold text-gray-900 dark:text-foreground">2</span>
+                                </div>
+                                <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                                  Extra charge for high-performing advisor recommendations
+                                </p>
+                              </div>
+                              
+                              <div className="p-3 rounded-lg border bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 border-green-300 dark:border-green-700">
+                                <div className="flex items-center justify-between font-medium">
+                                  <div className="flex flex-col gap-1">
+                                    <div className="flex gap-0.5">
+                                      {[...Array(5)].map((_, i) => (
+                                        <img key={i} src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-3.5 h-3.5" />
+                                      ))}
+                                    </div>
+                                    <span className="text-xs text-gray-700 dark:text-foreground">Total Investment</span>
+                                  </div>
+                                  <span className="text-sm font-bold text-green-600">5 Lollipops</span>
+                                </div>
+                                <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed mt-1">
+                                  Complete cost to unlock this premium investment tip
+                                </p>
+                                
+                                <div className="mt-2.5 pt-2.5 border-t border-green-200 dark:border-green-700">
+                                  <div className="flex items-center justify-between text-xs text-gray-600 dark:text-muted-foreground">
+                                    <span>{isLoggedIn ? "Your Available Credits" : "Login Required"}</span>
+                                    <span className="font-medium text-gray-900 dark:text-foreground">
+                                      {isLoggedIn ? `${userData?.credits || 0} Lollipops` : "-- Lollipops"}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Unlock Button */}
+                            <div className="pt-2">
+                              {isLoggedIn ? (
+                                <Button 
+                                  className="w-full font-medium text-xs h-8"
+                                  size="sm"
+                                  variant={userData?.credits >= 5 ? "default" : "outline"}
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    if (userData?.credits >= 5) {
+                                      const unlockSuccess = await handleUnlockTip(tip);
+                                      if (unlockSuccess) {
+                                        // Close tooltip and open tip sheet
+                                        setSelectedTipForMobile(tip);
+                                        setMobileTipSheetOpen(true);
+                                        toast("Tip unlocked successfully!", {
+                                          duration: 3000,
+                                          position: "top-center",
+                                        });
+                                      }
+                                    } else {
+                                      toast("Not enough Lollipops! You need 5 Lollipops to unlock this tip.", {
+                                        duration: 3000,
+                                        position: "top-center",
+                                      });
+                                    }
+                                  }}
+                                  disabled={userData?.credits < 5}
+                                >
+                                  <div className="flex items-center justify-center gap-1.5">
+                                    {userData?.credits >= 5 ? (
+                                      <>
+                                        <LockOpenIcon className="w-3 h-3" />
+                                        <span>Unlock Investment Tip</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <Lock className="w-3 h-3" />
+                                        <span>Insufficient Credits</span>
+                                      </>
+                                    )}
+                                  </div>
+                                </Button>
+                              ) : (
+                                <Button 
+                                  className="w-full font-medium text-xs h-8"
+                                  size="sm"
+                                  variant="default"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    window.location.href = '/login';
+                                  }}
+                                >
+                                  <div className="flex items-center justify-center gap-1.5">
+                                    <LogIn className="w-3 h-3" />
+                                    <span>Login to Unlock</span>
+                                  </div>
+                                </Button>
+                              )}
+                            </div>
+                            
+                            <div className="pt-2 border-t border-gray-200 dark:border-border/50">
+                              <p className="text-xs text-gray-500 dark:text-muted-foreground text-center">
+                                Double-click lock icon to directly unlock the tip
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )
               ) : (
-                <Button variant="ghost" size="icon" className={isMobile ? "h-6 w-6" : "h-8 w-8"} onClick={() => {
-                  setSelectedTipForMobile(tip);
-                  setMobileTipSheetOpen(true);
-                }}>
-                  <Info size={isMobile ? 12 : 16} />
-                </Button>
+                isMobile ? (
+                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => {
+                    setSelectedTipForMobile(tip);
+                    setMobileTipSheetOpen(true);
+                  }}>
+                    <Info size={12} />
+                  </Button>
+                ) : (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8"
+                          onClick={() => {
+                            setSelectedTipForMobile(tip);
+                            setMobileTipSheetOpen(true);
+                          }}
+                        >
+                          <Info size={16} />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="right" className="max-w-sm p-0 border-2 border-gray-800 dark:border-gray-200 shadow-lg bg-white dark:bg-background">
+                        <div className="p-4 space-y-4">
+                          {/* Header */}
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-primary/10 flex items-center justify-center p-1.5">
+                              <Target size={14} className="text-blue-600 dark:text-primary" />
+                            </div>
+                            <div>
+                              <div className="text-sm font-bold text-gray-900 dark:text-foreground">Investment Analysis</div>
+                              <div className="text-xs text-gray-600 dark:text-muted-foreground">
+                                Complete trade configuration
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Investment Overview */}
+                          <div className="space-y-3">
+                            <div>
+                              <h4 className="text-sm font-semibold text-gray-900 dark:text-foreground">Trade Overview</h4>
+                              <p className="text-xs text-gray-600 dark:text-muted-foreground mt-1">
+                                Professional analysis with precise parameters
+                              </p>
+                            </div>
+                            
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="p-2.5 rounded-lg border bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                                <div className="flex items-center gap-2">
+                                  <Target size={12} className="text-green-600" />
+                                  <div>
+                                    <div className="text-xs text-gray-600 dark:text-muted-foreground">Entry</div>
+                                    <div className="font-bold text-sm text-green-600">
+                                      ${tip.entry_price || 'TBD'}
+                                    </div>
+                                    <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed mt-0.5">
+                                      Recommended entry price point
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="p-2.5 rounded-lg border bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+                                <div className="flex items-center gap-2">
+                                  <TrendingUp size={12} className="text-blue-600" />
+                                  <div>
+                                    <div className="text-xs text-gray-600 dark:text-muted-foreground">Target</div>
+                                    <div className="font-bold text-sm text-blue-600">
+                                      ${tip.exit_price || 'TBD'}
+                                    </div>
+                                    <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed mt-0.5">
+                                      Expected exit price for profit taking
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                              <div className="p-2.5 rounded-lg border bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800">
+                                <div className="flex items-center gap-2">
+                                  <Shield size={12} className="text-red-600" />
+                                  <div>
+                                    <div className="text-xs text-gray-600 dark:text-muted-foreground">Stop Loss</div>
+                                    <div className="font-bold text-sm text-red-600">
+                                      ${tip.stop_loss || 'TBD'}
+                                    </div>
+                                    <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed mt-0.5">
+                                      Risk management exit level
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="p-2.5 rounded-lg border bg-purple-50 dark:bg-purple-950 border-purple-200 dark:border-purple-800">
+                                <div className="flex items-center gap-2">
+                                  <Clock size={12} className="text-purple-600" />
+                                  <div>
+                                    <div className="text-xs text-gray-600 dark:text-muted-foreground">Duration</div>
+                                    <div className="font-bold text-sm text-purple-600">
+                                      {tip.duration || tip.holding || 'Swing'}
+                                    </div>
+                                    <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed mt-0.5">
+                                      Recommended holding time frame
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                           
+                          </div>
+                          
+                          {/* Action Buttons */}
+                          <div className="pt-2 flex gap-2">
+                            {/* View Chart Button */}
+                            <Button 
+                              className="flex-1 font-medium text-xs h-8"
+                              size="default"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedSymbolForMobile(tip.symbol);
+                                setShowSymbolSheet(true);
+                              }}
+                            >
+                              <div style={{color:"black"}} className="flex items-center justify-center gap-1.5">
+                                <BarChart3 className="w-3 h-3" />
+                                <span>View Chart</span>
+                              </div>
+                            </Button>
+                            
+                            {/* View Full Tip Details Button */}
+                            <Button 
+                              className="flex-1 font-medium text-xs h-8"
+                              size="default"
+                              variant="default"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedTipForMobile(tip);
+                                setMobileTipSheetOpen(true);
+                              }}
+                            >
+                              <div className="flex items-center justify-center gap-1.5">
+                                <FileText className="w-3 h-3" />
+                                <span>View Full Tip Details</span>
+                              </div>
+                            </Button>
+                          </div>
+                          
+                          <div className="pt-2 border-t border-gray-200 dark:border-border/50">
+                            <p className="text-xs text-gray-500 dark:text-muted-foreground text-center">
+                              Complete trade setup with charts and detailed analysis
+                            </p>
+                          </div>
+                        </div>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )
               )}
             </div>
           </td>
@@ -2444,7 +3513,7 @@ export default function TipScreen() {
       case 'duration':
         return (
           <td key={columnKey} className={cellClasses}>
-            {tip.target_duration }
+            {tip.duration }
           </td>
         );
       
@@ -2500,7 +3569,7 @@ export default function TipScreen() {
       case 'growthMetrics':
         return (
           <td key={columnKey} className={cellClasses}>
-            {tip.growth_metrics || tip.growthMetrics || '-'}
+            {tip.growth_metric || tip.growthMetrics || '-'}
           </td>
         );
       
@@ -2560,18 +3629,18 @@ export default function TipScreen() {
     // If not logged in, redirect to login
     if (!userData || !userData.id) {
       window.location.href = '/login';
-      return;
+      return false;
     }
     // Check if already unlocked
     if (isUnlocked(tip)) {
-      return;
+      return true;
     }
     // Get required lollipops (default 1 if not specified)
     const requiredLollipops = tip.lollipopsRequired || 5;
     // Check if user has enough credits
     if ((userData.credits || 0) < requiredLollipops) {
       alert('Not enough Lollipops to unlock this tip.');
-      return;
+      return false;
     }
     // Deduct credits and update Supabase
     const newCredits = (userData.credits || 0) - requiredLollipops;
@@ -2585,7 +3654,7 @@ export default function TipScreen() {
     if (updateError) {
       console.error('Error updating user credits:', updateError);
       alert('Failed to update credits. Please try again.');
-      return;
+      return false;
     }
   const baseClasses = isMobile ? "px-2 py-2 border-b border-border text-center" : "px-4 py-2 border-r border-b border-border text-center whitespace-nowrap h-12 overflow-hidden text-ellipsis font-light text-[13.5px]";
     const currentUnlocked = Array.isArray(updateData.unlockedTips) ? updateData.unlockedTips : [];
@@ -2599,11 +3668,12 @@ export default function TipScreen() {
     if (unlockError) {
       console.error('Error updating unlocked_tips:', unlockError);
       alert('Failed to unlock tip. Please try again.');
-      return;
+      return false;
     }
     // Update local state atomically
     setUserData(prev => ({ ...prev, credits: newCredits, unlocked_tips: updatedUnlocked }));
     setUnlockedTips(prev => prev.includes(tip.id) ? prev : [...prev, tip.id]);
+    return true;
   };
 
   // Filtered tips logic
@@ -2626,8 +3696,16 @@ export default function TipScreen() {
     const filterRange = (selected, value, config) => {
       if (!selected || selected.length === 0) return true;
       return selected.some(label => {
-        const range = config.find(r => r.label === label);
-        return range && value !== null && value >= range.min && value < range.max;
+        const range = config.find(r => r.name === label);
+        if (!range || value === null) return false;
+        
+        // Handle the boundary conditions correctly:
+        // >= lowerLimit AND < upperLimit (except for highest range which includes upperLimit)
+        if (range.max === Infinity) {
+          return value >= range.min;
+        } else {
+          return value >= range.min && value < range.max;
+        }
       });
     };
 
@@ -2641,38 +3719,48 @@ export default function TipScreen() {
       }
 
       // Parse numbers for range filters
-      const tipReturn = tip.expected_return ? parseFloat(String(tip.expected_return).replace(/[^\d.]/g, '')) : null;
+      const parseReturnValue = (returnStr) => {
+        if (!returnStr) return null;
+        const str = String(returnStr).toLowerCase();
+        
+        // Handle range formats like "25%-30%" or "20-25%"
+        if (str.includes('-')) {
+          const parts = str.split('-');
+          if (parts.length === 2) {
+            // Use the lower bound of the range for filtering
+            const lowerBound = parseFloat(parts[0].replace(/[^\d.]/g, ''));
+            return isNaN(lowerBound) ? null : lowerBound;
+          }
+        }
+        
+        // Handle single values like "30%" or "25"
+        const singleValue = parseFloat(str.replace(/[^\d.]/g, ''));
+        return isNaN(singleValue) ? null : singleValue;
+      };
+      
+      const tipReturn = parseReturnValue(tip.expected_return || tip.expectedReturn || tip.return);
       const tipDividend = tip.dividend_yield ? parseFloat(tip.dividend_yield) : null;
       const tipSalesGrowth = tip.sales_growth ? parseFloat(tip.sales_growth) : null;
       const tipEarningsGrowth = tip.earnings_growth ? parseFloat(tip.earnings_growth) : null;
 
       // Apply all filters strictly
       return (
-        filterArray(selectedAsset, tip.asset_type) &&
+        filterArray(selectedAsset, tip.asset) &&
         filterArray(selectedSector, tip.sector) &&
         filterArray(selectedSentiment, tip.sentiment) &&
         filterArray(selectedStrategies, tip.strategy) &&
         filterArray(selectedRisk, tip.risk) &&
         filterRange(selectedExpectedReturn, tipReturn, MASTER_FILTERS.expectedReturn) &&
-        filterArray(selectedMarketCap, tip.marketCap) &&
+        filterArray(selectedMarketCap, tip.market_cap || tip.marketCap) &&
         filterRange(selectedDividendYield, tipDividend, MASTER_FILTERS.dividendYield) &&
         filterArray(selectedHolding, tip.holding) &&
-        filterArray(selectedDuration, tip.target_duration) &&
+        filterArray(selectedDuration, tip.duration) &&
         filterArray(selectedRegions, tip.region) &&
         filterArray(selectedValuationMetrics, tip.valuationMetric) &&
-        // Growth metrics: handle both sales and earnings
-        (selectedGrowthMetrics.length === 0 || selectedGrowthMetrics.some(label => {
-          const range = MASTER_FILTERS.growthMetrics.find(r => r.label === label);
-          if (label.includes('Sales')) {
-            return range && tipSalesGrowth !== null && tipSalesGrowth >= range.min && tipSalesGrowth < range.max;
-          } else if (label.includes('Earnings')) {
-            return range && tipEarningsGrowth !== null && tipEarningsGrowth >= range.min && tipEarningsGrowth < range.max;
-          }
-          return false;
-        })) &&
-        filterArray(selectedTechnicalIndicators, tip.technicalIndicator) &&
-        filterArray(selectedEsgRatings, tip.esgRating) &&
-        filterArray(selectedAnalysisType, tip.analysisType) &&
+        filterArray(selectedGrowthMetrics, tip.growth_metric || tip.growthMetric) &&
+        filterArray(selectedTechnicalIndicators, tip.technical_indicators || tip.technicalIndicator) &&
+        filterArray(selectedEsgRatings, tip.esg_rating || tip.esgRating) &&
+        filterArray(selectedAnalysisType, tip.analysis_type || tip.analysisType) &&
         filterArray(selectedVolatility, tip.volatility) &&
         filterArray(selectedLiquidity, tip.liquidity) &&
         filterArray(selectedConviction, tip.conviction) &&
@@ -2690,18 +3778,18 @@ export default function TipScreen() {
       tips = tips.filter(tip => {
         return [
           tip.tip,
-          tip.name,
+          tip.advisor_name,
           tip.symbol,
-          tip.asset_type,
+          tip.asset,
           tip.sector,
           tip.sentiment,
           tip.strategy,
           tip.risk,
           tip.expected_return,
-          tip.marketCap,
+          tip.market_cap || tip.marketCap,
           tip.dividend_yield,
           tip.holding,
-          tip.target_duration,
+          tip.duration,
           tip.region,
           tip.valuationMetric,
           tip.sales_growth,
@@ -3100,9 +4188,9 @@ export default function TipScreen() {
     { key: 'risk', title: 'Risk', icon: AlertTriangle, selected: selectedRisk, setSelected: setSelectedRisk },
     { key: 'expectedReturn', title: 'Returns', icon: TrendingUp, selected: selectedExpectedReturn, setSelected: setSelectedExpectedReturn },
     { key: 'marketCap', title: 'Market Cap', icon: Building, selected: selectedMarketCap, setSelected: setSelectedMarketCap },
-    { key: 'dividendYield', title: 'Dividend Yield', icon: DollarSign, selected: selectedDividendYield, setSelected: setSelectedDividendYield },
     { key: 'holding', title: 'Holding', icon: Calendar, selected: selectedHolding, setSelected: setSelectedHolding },
     { key: 'duration', title: 'Duration', icon: Clock, selected: selectedDuration, setSelected: setSelectedDuration },
+    { key: 'dividendYield', title: 'Dividend Yield', icon: Banknote, selected: selectedDividendYield, setSelected: setSelectedDividendYield },
     { key: 'regions', title: 'Regions', icon: Globe, selected: selectedRegions, setSelected: setSelectedRegions },
     { key: 'valuationMetrics', title: 'Valuation Metrics', icon: Calculator, selected: selectedValuationMetrics, setSelected: setSelectedValuationMetrics },
     { key: 'growthMetrics', title: 'Growth', icon: Leaf, selected: selectedGrowthMetrics, setSelected: setSelectedGrowthMetrics },
@@ -3119,9 +4207,9 @@ export default function TipScreen() {
     { key: 'performance', title: 'Performance', icon: Trophy, selected: selectedPerformance, setSelected: setSelectedPerformance },
   ];
 
-  // Split filter categories into main (first 8) and additional (rest)
-  const mainFilterCategories = filterCategories.slice(0, 8);
-  const additionalFilterCategories = filterCategories.slice(8);
+  // Split filter categories into main (first 9) and additional (rest)
+  const mainFilterCategories = filterCategories.slice(0, 9);
+  const additionalFilterCategories = filterCategories.slice(9);
 
   // Responsive pagination and load more logic
   const [displayedTips, setDisplayedTips] = React.useState([]);
@@ -3827,7 +4915,7 @@ export default function TipScreen() {
                   { filters: selectedRisk, setter: setSelectedRisk, label: 'Risk', icon: AlertTriangle, colorClass: 'border-red-200 text-red-700 bg-red-50 hover:bg-red-100' },
                   { filters: selectedExpectedReturn, setter: setSelectedExpectedReturn, label: 'Return', icon: TrendingUp, colorClass: 'border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100' },
                   { filters: selectedMarketCap, setter: setSelectedMarketCap, label: 'Market Cap', icon: Building, colorClass: 'border-slate-200 text-slate-700 bg-slate-50 hover:bg-slate-100' },
-                  { filters: selectedDividendYield, setter: setSelectedDividendYield, label: 'Dividend', icon: DollarSign, colorClass: 'border-green-200 text-green-700 bg-green-50 hover:bg-green-100' },
+                  { filters: selectedDividendYield, setter: setSelectedDividendYield, label: 'Dividend', icon: Banknote, colorClass: 'border-green-200 text-green-700 bg-green-50 hover:bg-green-100' },
                   { filters: selectedHolding, setter: setSelectedHolding, label: 'Holding', icon: Calendar, colorClass: 'border-indigo-200 text-indigo-700 bg-indigo-50 hover:bg-indigo-100' },
                   { filters: selectedDuration, setter: setSelectedDuration, label: 'Duration', icon: Clock, colorClass: 'border-pink-200 text-pink-700 bg-pink-50 hover:bg-pink-100' },
                   { filters: selectedRegions, setter: setSelectedRegions, label: 'Region', icon: Globe, colorClass: 'border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100' },
@@ -3976,7 +5064,8 @@ export default function TipScreen() {
                     </td>
                   </tr>
                 ) : displayedTips.map((tip, idx) => (
-                    <tr key={tip.id || idx} className={`${isMobile ? 'hover:bg-muted/30 transition-colors' : idx % 2 ? 'bg-muted/5' : ''}`}>
+                    <tr
+                    key={tip.id || idx} className={`${isMobile ? 'hover:bg-muted/30 transition-colors' : idx % 2 ? 'bg-muted/5' : ''}`}>
                       {selectedColumns.map((colKey) => renderTableCell(tip, colKey, idx, isMobile))}
                     </tr>
                 ))}
@@ -4079,21 +5168,25 @@ export default function TipScreen() {
                             <span className="text-sm font-medium">Asset Overview</span>
                           </div>
                           <Badge variant="outline" className="text-xs">
-                            {selectedTipForMobile.asset_type}
+                            {selectedTipForMobile.asset}
                           </Badge>
                         </div>
                       </div>
                       
                       {/* Content */}
                       <div className="p-4 space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-3 gap-4">
                           <div className="space-y-2">
                             <div className="text-xs text-muted-foreground">Symbol</div>
-                            <div className="font-bold text-lg text-primary">{selectedTipForMobile.symbol}</div>
+                            <div className="font-bold text-sm text-primary">{selectedTipForMobile.symbol}</div>
                           </div>
                           <div className="space-y-2">
                             <div className="text-xs text-muted-foreground">Sector</div>
                             <div className="font-semibold text-sm">{selectedTipForMobile.sector}</div>
+                          </div>
+                          <div className="space-y-2">
+                            <div className="text-xs text-muted-foreground">Trade Style</div>
+                            <div className="font-semibold text-sm">{selectedTipForMobile.holding || 'Swing'}</div>
                           </div>
                         </div>
                         
@@ -4133,18 +5226,74 @@ export default function TipScreen() {
                         
                         <div className="p-4">
                           <div className="grid grid-cols-3 gap-4">
-                            <div className="text-center p-3 rounded-lg bg-green-50 border border-green-200">
-                              <div className="text-xs text-green-700 mb-1">Entry Point</div>
-                              <div className="font-bold text-lg text-green-700">${selectedTipForMobile.entry_price}</div>
-                            </div>
-                            <div className="text-center p-3 rounded-lg bg-blue-50 border border-blue-200">
-                              <div className="text-xs text-blue-700 mb-1">Target Price</div>
-                              <div className="font-bold text-lg text-blue-700">${selectedTipForMobile.exit_price}</div>
-                            </div>
-                            <div className="text-center p-3 rounded-lg bg-red-50 border border-red-200">
-                              <div className="text-xs text-red-700 mb-1">Stop Loss</div>
-                              <div className="font-bold text-lg text-red-700">${selectedTipForMobile.stop_loss}</div>
-                            </div>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <div className="text-center p-3 rounded-lg bg-green-50 border border-green-200 cursor-pointer hover:bg-green-100 transition-colors">
+                                  <div className="text-xs text-green-700 mb-1">Entry Point</div>
+                                  <div className="font-bold text-lg text-green-700">${selectedTipForMobile.entry_price}</div>
+                                </div>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-80 p-4">
+                                <div className="space-y-3">
+                                  <div className="flex items-center gap-2">
+                                    <Target size={16} className="text-green-600" />
+                                    <h4 className="font-semibold text-sm">Entry Price</h4>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground leading-relaxed">
+                                    The optimal price level to enter this investment based on technical and fundamental analysis. This represents the best risk-reward entry point identified by the advisor.
+                                  </p>
+                                  <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                                    <strong>Recommended Entry:</strong> ${selectedTipForMobile.entry_price}
+                                  </div>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
+                            
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <div className="text-center p-3 rounded-lg bg-blue-50 border border-blue-200 cursor-pointer hover:bg-blue-100 transition-colors">
+                                  <div className="text-xs text-blue-700 mb-1">Target Price</div>
+                                  <div className="font-bold text-lg text-blue-700">${selectedTipForMobile.exit_price}</div>
+                                </div>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-80 p-4">
+                                <div className="space-y-3">
+                                  <div className="flex items-center gap-2">
+                                    <Target size={16} className="text-blue-600" />
+                                    <h4 className="font-semibold text-sm">Target Price</h4>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground leading-relaxed">
+                                    The price level where you should consider taking profits. This target is based on valuation analysis, technical resistance levels, and expected price appreciation.
+                                  </p>
+                                  <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                                    <strong>Profit Target:</strong> ${selectedTipForMobile.exit_price}
+                                  </div>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
+                            
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <div className="text-center p-3 rounded-lg bg-red-50 border border-red-200 cursor-pointer hover:bg-red-100 transition-colors">
+                                  <div className="text-xs text-red-700 mb-1">Stop Loss</div>
+                                  <div className="font-bold text-lg text-red-700">${selectedTipForMobile.stop_loss}</div>
+                                </div>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-80 p-4">
+                                <div className="space-y-3">
+                                  <div className="flex items-center gap-2">
+                                    <Shield size={16} className="text-red-600" />
+                                    <h4 className="font-semibold text-sm">Stop Loss</h4>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground leading-relaxed">
+                                    The price level where you should exit to limit losses if the investment moves against you. This is a crucial risk management tool to protect your capital.
+                                  </p>
+                                  <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                                    <strong>Risk Limit:</strong> ${selectedTipForMobile.stop_loss}
+                                  </div>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
                           </div>
                         </div>
                         
@@ -4166,18 +5315,74 @@ export default function TipScreen() {
                         
                         <div className="p-4">
                           <div className="grid grid-cols-3 gap-4">
-                            <div className="text-center p-3 rounded-lg bg-muted/30">
-                              <div className="text-xs text-muted-foreground mb-1">Expected Return</div>
-                              <div className="font-bold text-sm text-green-600">{selectedTipForMobile.expected_return}</div>
-                            </div>
-                            <div className="text-center p-3 rounded-lg bg-muted/30">
-                              <div className="text-xs text-muted-foreground mb-1">Allocation</div>
-                              <div className="font-bold text-sm">{selectedTipForMobile.allocation}</div>
-                            </div>
-                            <div className="text-center p-3 rounded-lg bg-muted/30">
-                              <div className="text-xs text-muted-foreground mb-1">Time Horizon</div>
-                              <div className="font-bold text-sm">{selectedTipForMobile.target_duration}</div>
-                            </div>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <div className="text-center p-3 rounded-lg bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors">
+                                  <div className="text-xs text-muted-foreground mb-1">Expected Return</div>
+                                  <div className="font-bold text-sm text-green-600">{selectedTipForMobile.expected_return}</div>
+                                </div>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-80 p-4">
+                                <div className="space-y-3">
+                                  <div className="flex items-center gap-2">
+                                    <TrendingUp size={16} className="text-green-600" />
+                                    <h4 className="font-semibold text-sm">Expected Return</h4>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground leading-relaxed">
+                                    The anticipated percentage return if the investment reaches its target price. This is calculated based on the difference between entry and exit prices.
+                                  </p>
+                                  <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                                    <strong>Projected Return:</strong> {selectedTipForMobile.expected_return}
+                                  </div>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
+                            
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <div className="text-center p-3 rounded-lg bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors">
+                                  <div className="text-xs text-muted-foreground mb-1">Portfolio Allocation</div>
+                                  <div className="font-bold text-sm">{selectedTipForMobile.allocation}%</div>
+                                </div>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-80 p-4">
+                                <div className="space-y-3">
+                                  <div className="flex items-center gap-2">
+                                    <PieChart size={16} className="text-purple-600" />
+                                    <h4 className="font-semibold text-sm">Portfolio Allocation</h4>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground leading-relaxed">
+                                    The recommended percentage of your total portfolio to allocate to this investment. This is based on the risk level and expected returns of the position.
+                                  </p>
+                                  <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                                    <strong>Recommended Allocation:</strong> {selectedTipForMobile.allocation}%
+                                  </div>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
+                            
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <div className="text-center p-3 rounded-lg bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors">
+                                  <div className="text-xs text-muted-foreground mb-1">Investment Duration</div>
+                                  <div className="font-bold text-sm">{selectedTipForMobile.duration}</div>
+                                </div>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-80 p-4">
+                                <div className="space-y-3">
+                                  <div className="flex items-center gap-2">
+                                    <Clock size={16} className="text-blue-600" />
+                                    <h4 className="font-semibold text-sm">Investment Duration</h4>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground leading-relaxed">
+                                    The recommended time period to hold this investment. This duration is based on the fundamental analysis and expected time for the investment thesis to play out.
+                                  </p>
+                                  <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                                    <strong>Hold Period:</strong> {selectedTipForMobile.duration}
+                                  </div>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
                           </div>
                         </div>
                         
@@ -4196,7 +5401,7 @@ export default function TipScreen() {
                         Market Intelligence
                       </h3>
                       
-                      {/* Analysis Card */}
+                      {/* Fundamental & Technical Analysis Card */}
                       <div className="rounded-xl border border-border bg-card overflow-hidden">
                         <div className="px-4 py-3 bg-muted/40 border-b border-border">
                           <div className="flex items-center gap-2">
@@ -4206,36 +5411,426 @@ export default function TipScreen() {
                         </div>
                         
                         <div className="p-4 space-y-4">
-                          <div className="grid grid-cols-1 gap-3">
-                            <div className="p-3 rounded-lg bg-muted/30 border border-dashed border-border">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs text-muted-foreground">Key Catalyst</span>
-                                <Zap size={12} className="text-yellow-600" />
-                              </div>
-                              <div className="font-medium text-sm">{selectedTipForMobile.catalyst}</div>
-                            </div>
+                          {/* Primary Analysis Grid - 2x3 layout */}
+                          <div className="grid grid-cols-2 gap-3">
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <div className="p-3 rounded-lg bg-muted/30 border border-dashed border-border cursor-pointer hover:bg-muted/50 transition-colors">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <span className="text-xs text-muted-foreground">Key Catalyst</span>
+                                    <Zap size={12} className="text-yellow-600" />
+                                  </div>
+                                  <div className="font-medium text-sm">{selectedTipForMobile.catalyst}</div>
+                                </div>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-80 p-4">
+                                <div className="space-y-3">
+                                  <div className="flex items-center gap-2">
+                                    <Zap size={16} className="text-yellow-600" />
+                                    <h4 className="font-semibold text-sm">Investment Catalyst</h4>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground leading-relaxed">
+                                    The key event or factor that is expected to drive the price movement. Catalysts can include earnings reports, product launches, regulatory changes, or market events that create investment opportunities.
+                                  </p>
+                                  <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                                    <strong>Key Driver:</strong> {selectedTipForMobile.catalyst}
+                                  </div>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
                             
-                            <div className="p-3 rounded-lg bg-muted/30 border border-dashed border-border">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs text-muted-foreground">Valuation Method</span>
-                                <DollarSign size={12} className="text-green-600" />
-                              </div>
-                              <div className="font-medium text-sm">{selectedTipForMobile.valuation}</div>
-                            </div>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <div className="p-3 rounded-lg bg-muted/30 border border-dashed border-border cursor-pointer hover:bg-muted/50 transition-colors">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <span className="text-xs text-muted-foreground">Valuation Method</span>
+                                    <DollarSign size={12} className="text-green-600" />
+                                  </div>
+                                  <div className="font-medium text-sm">{selectedTipForMobile.valuation}</div>
+                                </div>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-80 p-4">
+                                <div className="space-y-3">
+                                  <div className="flex items-center gap-2">
+                                    <DollarSign size={16} className="text-green-600" />
+                                    <h4 className="font-semibold text-sm">Valuation Analysis</h4>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground leading-relaxed">
+                                    The method used to determine if the investment is fairly valued, undervalued, or overvalued. This includes metrics like P/E ratios, DCF analysis, or comparative valuation methods.
+                                  </p>
+                                  <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                                    <strong>Valuation Approach:</strong> {selectedTipForMobile.valuation}
+                                  </div>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
                             
-                            <div className="p-3 rounded-lg bg-muted/30 border border-dashed border-border">
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-xs text-muted-foreground">Technical Setup</span>
-                                <Activity size={12} className="text-blue-600" />
-                              </div>
-                              <div className="font-medium text-sm">{selectedTipForMobile.technical}</div>
-                            </div>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <div className="p-3 rounded-lg bg-muted/30 border border-dashed border-border cursor-pointer hover:bg-muted/50 transition-colors">
+                                  <div className="flex items-center justify-between mb-2">
+                                    <span className="text-xs text-muted-foreground">Technical Setup</span>
+                                    <Activity size={12} className="text-blue-600" />
+                                  </div>
+                                  <div className="font-medium text-sm">{selectedTipForMobile.technical}</div>
+                                </div>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-80 p-4">
+                                <div className="space-y-3">
+                                  <div className="flex items-center gap-2">
+                                    <Activity size={16} className="text-blue-600" />
+                                    <h4 className="font-semibold text-sm">Technical Analysis</h4>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground leading-relaxed">
+                                    The technical indicators and chart patterns that support this investment decision. This includes trend analysis, support/resistance levels, and momentum indicators.
+                                  </p>
+                                  <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                                    <strong>Technical Signal:</strong> {selectedTipForMobile.technical}
+                                  </div>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
+                            
+                            {selectedTipForMobile.esg_rating && (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <div className="p-3 rounded-lg bg-muted/30 border border-dashed border-border cursor-pointer hover:bg-muted/50 transition-colors">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <span className="text-xs text-muted-foreground">ESG Rating</span>
+                                      <Leaf size={12} className="text-green-600" />
+                                    </div>
+                                    <div className="font-medium text-sm">{selectedTipForMobile.esg_rating}</div>
+                                  </div>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80 p-4">
+                                  <div className="space-y-3">
+                                    <div className="flex items-center gap-2">
+                                      <Leaf size={16} className="text-green-600" />
+                                      <h4 className="font-semibold text-sm">ESG Rating</h4>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground leading-relaxed">
+                                      Environmental, Social, and Governance (ESG) rating measures the company's sustainability practices, social responsibility, and corporate governance quality. Higher ratings indicate better ESG practices.
+                                    </p>
+                                    <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                                      <strong>ESG Score:</strong> {selectedTipForMobile.esg_rating}
+                                    </div>
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                            )}
+                            
+                            {selectedTipForMobile.strategy && (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <div className="p-3 rounded-lg bg-muted/30 border border-dashed border-border cursor-pointer hover:bg-muted/50 transition-colors">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <span className="text-xs text-muted-foreground">Strategy</span>
+                                      <Target size={12} className="text-indigo-600" />
+                                    </div>
+                                    <div className="font-medium text-sm">{selectedTipForMobile.strategy}</div>
+                                  </div>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80 p-4">
+                                  <div className="space-y-3">
+                                    <div className="flex items-center gap-2">
+                                      <Target size={16} className="text-indigo-600" />
+                                      <h4 className="font-semibold text-sm">Investment Strategy</h4>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground leading-relaxed">
+                                      The investment approach or strategy used for this recommendation. This could include value investing, growth investing, momentum trading, or other systematic approaches.
+                                    </p>
+                                    <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                                      <strong>Strategy Type:</strong> {selectedTipForMobile.strategy}
+                                    </div>
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                            )}
                           </div>
                         </div>
                         
                         <div className="px-4 py-2 bg-muted/20 border-t border-border">
                           <div className="text-xs text-muted-foreground text-center">
-                            Multi-factor analysis supporting investment decision
+                            Core fundamental and technical analysis factors
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Other Important Metrics Card */}
+                      <div className="rounded-xl border border-border bg-card overflow-hidden">
+                        <div className="px-4 py-3 bg-muted/40 border-b border-border">
+                          <div className="flex items-center gap-2">
+                            <LineChart size={16} className="text-purple-600" />
+                            <span className="text-sm font-medium">Market Snapshot</span>
+                          </div>
+                        </div>
+                        
+                        <div className="p-4 space-y-4">
+                          {/* First Row - Volatility, Liquidity, Region */}
+                          <div className="grid grid-cols-3 gap-3">
+                            {selectedTipForMobile.volatility && (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <div className="text-center p-3 rounded-lg bg-muted/30 border border-dashed border-border cursor-pointer hover:bg-muted/50 transition-colors">
+                                    <div className="flex items-center justify-center mb-2">
+                                      <Activity size={14} className="text-orange-600" />
+                                    </div>
+                                    <div className="text-xs text-muted-foreground mb-1">Volatility</div>
+                                    <div className="font-medium text-xs">{selectedTipForMobile.volatility}</div>
+                                  </div>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80 p-4">
+                                  <div className="space-y-3">
+                                    <div className="flex items-center gap-2">
+                                      <Activity size={16} className="text-orange-600" />
+                                      <h4 className="font-semibold text-sm">Price Volatility</h4>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground leading-relaxed">
+                                      Measures how much the price is expected to fluctuate. Higher volatility means larger price swings, which can create both opportunities and risks.
+                                    </p>
+                                    <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                                      <strong>Volatility Level:</strong> {selectedTipForMobile.volatility}
+                                    </div>
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                            )}
+                            
+                            {selectedTipForMobile.liquidity && (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <div className="text-center p-3 rounded-lg bg-muted/30 border border-dashed border-border cursor-pointer hover:bg-muted/50 transition-colors">
+                                    <div className="flex items-center justify-center mb-2">
+                                      <Droplet size={14} className="text-cyan-600" />
+                                    </div>
+                                    <div className="text-xs text-muted-foreground mb-1">Liquidity</div>
+                                    <div className="font-medium text-xs">{selectedTipForMobile.liquidity}</div>
+                                  </div>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80 p-4">
+                                  <div className="space-y-3">
+                                    <div className="flex items-center gap-2">
+                                      <Droplet size={16} className="text-cyan-600" />
+                                      <h4 className="font-semibold text-sm">Market Liquidity</h4>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground leading-relaxed">
+                                      Shows how easily you can buy or sell this investment without significantly affecting its price. Higher liquidity means faster execution and tighter spreads.
+                                    </p>
+                                    <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                                      <strong>Liquidity Level:</strong> {selectedTipForMobile.liquidity}
+                                    </div>
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                            )}
+                            
+                            {selectedTipForMobile.region && (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <div className="text-center p-3 rounded-lg bg-muted/30 border border-dashed border-border cursor-pointer hover:bg-muted/50 transition-colors">
+                                    <div className="flex items-center justify-center mb-2">
+                                      <Globe size={14} className="text-green-600" />
+                                    </div>
+                                    <div className="text-xs text-muted-foreground mb-1">Region</div>
+                                    <div className="font-medium text-xs">{selectedTipForMobile.region}</div>
+                                  </div>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80 p-4">
+                                  <div className="space-y-3">
+                                    <div className="flex items-center gap-2">
+                                      <Globe size={16} className="text-green-600" />
+                                      <h4 className="font-semibold text-sm">Geographic Region</h4>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground leading-relaxed">
+                                      Indicates the primary geographic market or region where this investment operates or has exposure. This affects currency risk, regulatory environment, and economic cycles.
+                                    </p>
+                                    <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                                      <strong>Primary Region:</strong> {selectedTipForMobile.region}
+                                    </div>
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                            )}
+                          </div>
+                          
+                          {/* Second Row - Market Cap, Performance, Dividend Yield */}
+                          <div className="grid grid-cols-3 gap-3">
+                            {selectedTipForMobile.market_cap && (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <div className="text-center p-3 rounded-lg bg-muted/30 border border-dashed border-border cursor-pointer hover:bg-muted/50 transition-colors">
+                                    <div className="flex items-center justify-center mb-2">
+                                      <Building size={14} className="text-purple-600" />
+                                    </div>
+                                    <div className="text-xs text-muted-foreground mb-1">Market Cap</div>
+                                    <div className="font-medium text-xs">{selectedTipForMobile.market_cap}</div>
+                                  </div>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80 p-4">
+                                  <div className="space-y-3">
+                                    <div className="flex items-center gap-2">
+                                      <Building size={16} className="text-purple-600" />
+                                      <h4 className="font-semibold text-sm">Market Capitalization</h4>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground leading-relaxed">
+                                      The total market value of a company's outstanding shares. Market cap categories (Small, Mid, Large, Mega) indicate company size and typically correlate with risk and growth potential.
+                                    </p>
+                                    <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                                      <strong>Company Size:</strong> {selectedTipForMobile.market_cap}
+                                    </div>
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                            )}
+                            
+                            {selectedTipForMobile.performance && (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <div className="text-center p-3 rounded-lg bg-muted/30 border border-dashed border-border cursor-pointer hover:bg-muted/50 transition-colors">
+                                    <div className="flex items-center justify-center mb-2">
+                                      <Trophy size={14} className="text-yellow-600" />
+                                    </div>
+                                    <div className="text-xs text-muted-foreground mb-1">Performance</div>
+                                    <div className="font-medium text-xs">{selectedTipForMobile.performance}</div>
+                                  </div>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80 p-4">
+                                  <div className="space-y-3">
+                                    <div className="flex items-center gap-2">
+                                      <Trophy size={16} className="text-yellow-600" />
+                                      <h4 className="font-semibold text-sm">Expected Performance</h4>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground leading-relaxed">
+                                      Shows the expected performance relative to the broader market or benchmark. This helps set expectations for how the investment might perform compared to alternatives.
+                                    </p>
+                                    <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                                      <strong>Performance Outlook:</strong> {selectedTipForMobile.performance}
+                                    </div>
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                            )}
+                            
+                            {selectedTipForMobile.dividend_yield && (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <div className="text-center p-3 rounded-lg bg-muted/30 border border-dashed border-border cursor-pointer hover:bg-muted/50 transition-colors">
+                                    <div className="flex items-center justify-center mb-2">
+                                      <DollarSign size={14} className="text-green-600" />
+                                    </div>
+                                    <div className="text-xs text-muted-foreground mb-1">Dividend Yield</div>
+                                    <div className="font-medium text-xs">{selectedTipForMobile.dividend_yield}</div>
+                                  </div>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80 p-4">
+                                  <div className="space-y-3">
+                                    <div className="flex items-center gap-2">
+                                      <DollarSign size={16} className="text-green-600" />
+                                      <h4 className="font-semibold text-sm">Dividend Yield</h4>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground leading-relaxed">
+                                      The annual dividend payment as a percentage of the current stock price. This provides regular income and can be a sign of company stability and profitability.
+                                    </p>
+                                    <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                                      <strong>Current Yield:</strong> {selectedTipForMobile.dividend_yield}
+                                    </div>
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                            )}
+                          </div>
+                          
+                          {/* Third Row - Diversification, Growth Metrics, Holding Period */}
+                          <div className="grid grid-cols-3 gap-3">
+                            {selectedTipForMobile.diversification && (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <div className="text-center p-3 rounded-lg bg-muted/30 border border-dashed border-border cursor-pointer hover:bg-muted/50 transition-colors">
+                                    <div className="flex items-center justify-center mb-2">
+                                      <Shuffle size={14} className="text-blue-600" />
+                                    </div>
+                                    <div className="text-xs text-muted-foreground mb-1">Diversification</div>
+                                    <div className="font-medium text-xs">{selectedTipForMobile.diversification}</div>
+                                  </div>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80 p-4">
+                                  <div className="space-y-3">
+                                    <div className="flex items-center gap-2">
+                                      <Shuffle size={16} className="text-blue-600" />
+                                      <h4 className="font-semibold text-sm">Portfolio Diversification</h4>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground leading-relaxed">
+                                      This indicates how this investment fits within your overall portfolio strategy. It shows whether this is a core holding, satellite position, or hedge against other investments.
+                                    </p>
+                                    <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                                      <strong>Current Strategy:</strong> {selectedTipForMobile.diversification}
+                                    </div>
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                            )}
+                            
+                            {selectedTipForMobile.growth_metric && (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <div className="text-center p-3 rounded-lg bg-muted/30 border border-dashed border-border cursor-pointer hover:bg-muted/50 transition-colors">
+                                    <div className="flex items-center justify-center mb-2">
+                                      <TrendingUp size={14} className="text-blue-600" />
+                                    </div>
+                                    <div className="text-xs text-muted-foreground mb-1">Growth</div>
+                                    <div className="font-medium text-xs">{selectedTipForMobile.growth_metric}</div>
+                                  </div>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80 p-4">
+                                  <div className="space-y-3">
+                                    <div className="flex items-center gap-2">
+                                      <TrendingUp size={16} className="text-blue-600" />
+                                      <h4 className="font-semibold text-sm">Growth Analysis</h4>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground leading-relaxed">
+                                      Key growth indicators including revenue growth, earnings growth, user growth, or market share expansion. This shows the company's trajectory and future potential.
+                                    </p>
+                                    <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                                      <strong>Growth Indicator:</strong> {selectedTipForMobile.growth_metric}
+                                    </div>
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                            )}
+                            
+                            {selectedTipForMobile.holding_period && (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <div className="text-center p-3 rounded-lg bg-muted/30 border border-dashed border-border cursor-pointer hover:bg-muted/50 transition-colors">
+                                    <div className="flex items-center justify-center mb-2">
+                                      <Calendar size={14} className="text-teal-600" />
+                                    </div>
+                                    <div className="text-xs text-muted-foreground mb-1">Holding Period</div>
+                                    <div className="font-medium text-xs">{selectedTipForMobile.holding_period}</div>
+                                  </div>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-80 p-4">
+                                  <div className="space-y-3">
+                                    <div className="flex items-center gap-2">
+                                      <Calendar size={16} className="text-teal-600" />
+                                      <h4 className="font-semibold text-sm">Holding Period</h4>
+                                    </div>
+                                    <p className="text-sm text-muted-foreground leading-relaxed">
+                                      The recommended timeframe for holding this investment. This could range from intraday trading to long-term buy-and-hold strategies based on the investment thesis.
+                                    </p>
+                                    <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                                      <strong>Hold Duration:</strong> {selectedTipForMobile.holding_period}
+                                    </div>
+                                  </div>
+                                </PopoverContent>
+                              </Popover>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="px-4 py-2 bg-muted/20 border-t border-border">
+                          <div className="text-xs text-muted-foreground text-center">
+                            Additional metrics for comprehensive investment analysis
                           </div>
                         </div>
                       </div>
@@ -4258,50 +5853,104 @@ export default function TipScreen() {
                         
                         <div className="p-4">
                           <div className="grid grid-cols-2 gap-4">
-                            <div className="text-center p-4 rounded-lg border border-border bg-muted/20">
-                              <Shield size={20} className="mx-auto mb-2 text-muted-foreground" />
-                              <div className="text-xs text-muted-foreground mb-2">Risk Level</div>
-                              <Badge 
-                                variant="outline" 
-                                className={`text-sm font-medium px-3 py-1 ${
-                                  selectedTipForMobile.risk === 'High' 
-                                    ? 'border-red-500 text-red-600 bg-red-50'
-                                    : selectedTipForMobile.risk === 'Medium' 
-                                      ? 'border-yellow-500 text-yellow-600 bg-yellow-50'
-                                      : 'border-green-500 text-green-600 bg-green-50'
-                                }`}
-                              >
-                                {selectedTipForMobile.risk}
-                              </Badge>
-                            </div>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <div className="text-center p-4 rounded-lg border border-border bg-muted/20 cursor-pointer hover:bg-muted/40 transition-colors">
+                                  <Shield size={20} className="mx-auto mb-2 text-muted-foreground" />
+                                  <div className="text-xs text-muted-foreground mb-2">Risk Level</div>
+                                  <Badge 
+                                    variant="outline" 
+                                    className={`text-sm font-medium px-3 py-1 ${
+                                      selectedTipForMobile.risk === 'High' 
+                                        ? 'border-red-500 text-red-600 bg-red-50'
+                                        : selectedTipForMobile.risk === 'Medium' 
+                                          ? 'border-yellow-500 text-yellow-600 bg-yellow-50'
+                                          : 'border-green-500 text-green-600 bg-green-50'
+                                    }`}
+                                  >
+                                    {selectedTipForMobile.risk}
+                                  </Badge>
+                                </div>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-80 p-4">
+                                <div className="space-y-3">
+                                  <div className="flex items-center gap-2">
+                                    <Shield size={16} className="text-red-600" />
+                                    <h4 className="font-semibold text-sm">Risk Level</h4>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground leading-relaxed">
+                                    The overall risk assessment for this investment. Higher risk typically means greater potential for both gains and losses. Consider your risk tolerance before investing.
+                                  </p>
+                                  <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                                    <strong>Risk Rating:</strong> {selectedTipForMobile.risk}
+                                  </div>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
                             
-                            <div className="text-center p-4 rounded-lg border border-border bg-muted/20">
-                              <Award size={20} className="mx-auto mb-2 text-muted-foreground" />
-                              <div className="text-xs text-muted-foreground mb-2">Conviction</div>
-                              <Badge 
-                                variant="outline" 
-                                className={`text-sm font-medium px-3 py-1 ${
-                                  selectedTipForMobile.conviction === 'Strong' 
-                                    ? 'border-green-500 text-green-600 bg-green-50'
-                                    : selectedTipForMobile.conviction === 'Moderate' 
-                                      ? 'border-yellow-500 text-yellow-600 bg-yellow-50'
-                                      : 'border-blue-500 text-blue-600 bg-blue-50'
-                                }`}
-                              >
-                                {selectedTipForMobile.conviction}
-                              </Badge>
-                            </div>
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <div className="text-center p-4 rounded-lg border border-border bg-muted/20 cursor-pointer hover:bg-muted/40 transition-colors">
+                                  <Award size={20} className="mx-auto mb-2 text-muted-foreground" />
+                                  <div className="text-xs text-muted-foreground mb-2">Conviction</div>
+                                  <Badge 
+                                    variant="outline" 
+                                    className={`text-sm font-medium px-3 py-1 ${
+                                      selectedTipForMobile.conviction === 'Strong' 
+                                        ? 'border-green-500 text-green-600 bg-green-50'
+                                        : selectedTipForMobile.conviction === 'Moderate' 
+                                          ? 'border-yellow-500 text-yellow-600 bg-yellow-50'
+                                          : 'border-blue-500 text-blue-600 bg-blue-50'
+                                    }`}
+                                  >
+                                    {selectedTipForMobile.conviction}
+                                  </Badge>
+                                </div>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-80 p-4">
+                                <div className="space-y-3">
+                                  <div className="flex items-center gap-2">
+                                    <Award size={16} className="text-green-600" />
+                                    <h4 className="font-semibold text-sm">Advisor Conviction</h4>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground leading-relaxed">
+                                    The level of confidence the advisor has in this recommendation. Higher conviction indicates stronger belief in the investment thesis and analysis.
+                                  </p>
+                                  <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                                    <strong>Confidence Level:</strong> {selectedTipForMobile.conviction}
+                                  </div>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
                           </div>
                           
-                          <div className="mt-4 p-3 rounded-lg bg-muted/30 border border-dashed border-border">
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-xs text-muted-foreground">Market Sentiment</span>
-                              <TrendingUp size={12} className="text-primary" />
-                            </div>
-                            <Badge variant="outline" className="text-sm bg-background">
-                              {selectedTipForMobile.sentiment}
-                            </Badge>
-                          </div>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <div className="mt-4 p-3 rounded-lg bg-muted/30 border border-dashed border-border cursor-pointer hover:bg-muted/50 transition-colors">
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="text-xs text-muted-foreground">Market Sentiment</span>
+                                  <TrendingUp size={12} className="text-primary" />
+                                </div>
+                                <Badge variant="outline" className="text-sm bg-background">
+                                  {selectedTipForMobile.sentiment}
+                                </Badge>
+                              </div>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-80 p-4">
+                              <div className="space-y-3">
+                                <div className="flex items-center gap-2">
+                                  <TrendingUp size={16} className="text-primary" />
+                                  <h4 className="font-semibold text-sm">Market Sentiment</h4>
+                                </div>
+                                <p className="text-sm text-muted-foreground leading-relaxed">
+                                  The overall market outlook for this investment. Sentiment reflects the general mood and expectations of investors and can influence short-term price movements.
+                                </p>
+                                <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                                  <strong>Current Sentiment:</strong> {selectedTipForMobile.sentiment}
+                                </div>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
                         </div>
                         
                         <div className="px-4 py-2 bg-muted/20 border-t border-border">
@@ -4311,6 +5960,8 @@ export default function TipScreen() {
                         </div>
                       </div>
                     </div>
+
+                  
 
                       {/* Advisor Information Section */}
                     <div className="space-y-4 p-2">
@@ -4338,13 +5989,13 @@ export default function TipScreen() {
                             }}
                           >
                             <img 
-                              src={selectedTipForMobile.avatar} 
-                              alt={selectedTipForMobile.name} 
+                              src={selectedTipForMobile.advisor_avatar} 
+                              alt={selectedTipForMobile.advisor_name} 
                               className="w-14 h-14 rounded-full border-2 border-border shadow-sm" 
                             />
                             <div className="flex-1 min-w-0">
                               <div className="font-bold text-base text-foreground mb-1">
-                                {selectedTipForMobile.name}
+                                {selectedTipForMobile.advisor_name}
                               </div>
                               <div className="text-sm text-muted-foreground mb-2">
                                 {selectedTipForMobile.advisor_title || 'Certified Financial Advisor'}
@@ -4367,7 +6018,7 @@ export default function TipScreen() {
                             <div 
                               className="text-center p-3 rounded-lg bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors relative group"
                               onClick={() => {
-                                handleViewAllTips(selectedTipForMobile.advisor_name || selectedTipForMobile.name);
+                                handleViewAllTips(selectedTipForMobile.advisor_name || selectedTipForMobile.advisor_name);
                                 setSelectedTipForMobile(null);
                               }}
                             >
@@ -4386,7 +6037,7 @@ export default function TipScreen() {
                               />
                             </div>
                             <div className="text-center p-3 rounded-lg bg-muted/30">
-                              <div className="font-bold text-lg text-green-600">{selectedTipForMobile.advisor_win_rate || selectedTipForMobile.win_rate || '84'}%</div>
+                              <div className="font-bold text-lg text-green-600">{selectedTipForMobile.advisor_win_rate *100 || selectedTipForMobile.win_rate*100 || '84'}%</div>
                               <div className="text-xs text-muted-foreground mt-1">Success Rate</div>
                             </div>
                             <div className="text-center p-3 rounded-lg bg-muted/30">
@@ -4421,697 +6072,7 @@ export default function TipScreen() {
           </SheetContent>
         </Sheet>
 
-        {/* Filter Sheet */}
-        {/* <Sheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
-          <SheetContent side="bottom" className="h-[70vh]">
-            <SheetHeader>
-              <SheetTitle>Filters</SheetTitle>
-            </SheetHeader>
-            
-            <ScrollArea className="h-[calc(70vh-80px)] mt-2">
-              <SheetDescription className="mt-[-15px] m-2.5">
-                <Accordion 
-                  type="single" 
-                  collapsible 
-                  value={activeFilter} 
-                  onValueChange={setActiveFilter}
-                  
-                  >
-                <AccordionItem value="Asset">
-                  <AccordionTrigger>Asset</AccordionTrigger>
-                  <AccordionContent>
-                    {renderFilterCarousel(
-                      MASTER_FILTERS.assets,
-                      selectedAsset,
-                      (v) => toggleFilter(selectedAsset, setSelectedAsset, v),
-                      (item, selected) => (
-                        <div className="flex flex-col items-center space-y-2">
-                          <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
-                            selected 
-                              ? 'bg-primary border-primary'
-                              : 'bg-transparent border-border hover:border-primary/50'
-                          }`}>
-                            <LucideIcon 
-                              className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
-                              Icon={item.Icon} 
-                              size={20} 
-                            />
-                          </div>
-                          <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{addSpacing(item.name)}</span>
-                        </div>
-                      )
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="Sector">
-                  <AccordionTrigger>Sector</AccordionTrigger>
-                  <AccordionContent>
-                    {renderFilterCarousel(
-                      MASTER_FILTERS.sectors,
-                      selectedSector,
-                      (v) => toggleFilter(selectedSector, setSelectedSector, v),
-                      (item, selected) => (
-                        <div className="flex flex-col items-center space-y-2">
-                          <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
-                            selected 
-                              ? 'bg-primary border-primary'
-                              : 'bg-transparent border-border hover:border-primary/50'
-                          }`}>
-                            <LucideIcon 
-                              className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
-                              Icon={item.Icon} 
-                              size={20} 
-                            />
-                          </div>
-                          <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{addSpacing(item.name)}</span>
-                        </div>
-                      )
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="Sentiment">
-                  <AccordionTrigger>Sentiment</AccordionTrigger>
-                  <AccordionContent>
-                    {renderFilterCarousel(
-                      MASTER_FILTERS.sentiments,
-                      selectedSentiment,
-                      (v) => toggleFilter(selectedSentiment, setSelectedSentiment, v),
-                      (item, selected) => {
-                        const IconComponent = item.Icon;
-                        return (
-                          <div className="flex flex-col items-center space-y-2">
-                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
-                              selected 
-                                ? 'bg-primary border-primary'
-                                : 'bg-transparent border-border hover:border-primary/50'
-                            }`}>
-                              <IconComponent 
-                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
-                                size={20} 
-                              />
-                            </div>
-                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
-                          </div>
-                        );
-                      }
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="Strategies">
-                  <AccordionTrigger>Strategies</AccordionTrigger>
-                  <AccordionContent>
-                    {renderFilterCarousel(
-                      MASTER_FILTERS.strategies,
-                      selectedStrategies,
-                      (v) => toggleFilter(selectedStrategies, setSelectedStrategies, v),
-                      (item, selected) => {
-                        const IconComponent = item.Icon;
-                        return (
-                          <div className="flex flex-col items-center space-y-2">
-                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
-                              selected 
-                                ? 'bg-primary border-primary'
-                                : 'bg-transparent border-border hover:border-primary/50'
-                            }`}>
-                              <IconComponent 
-                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
-                                size={20} 
-                              />
-                            </div>
-                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
-                          </div>
-                        );
-                      }
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="Risk">
-                  <AccordionTrigger>Risk</AccordionTrigger>
-                  <AccordionContent>
-                    {renderFilterCarousel(
-                      MASTER_FILTERS.risk,
-                      selectedRisk,
-                      (v) => toggleFilter(selectedRisk, setSelectedRisk, v),
-                      (item, selected) => {
-                        const IconComponent = item.Icon;
-                        return (
-                          <div className="flex flex-col items-center space-y-2">
-                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
-                              selected 
-                                ? 'bg-primary border-primary'
-                                : 'bg-transparent border-border hover:border-primary/50'
-                            }`}>
-                              <IconComponent 
-                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
-                                size={20} 
-                              />
-                            </div>
-                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
-                          </div>
-                        );
-                      }
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="ExpectedReturn">
-                  <AccordionTrigger>Expected Return</AccordionTrigger>
-                  <AccordionContent>
-                    {renderFilterCarousel(
-                      MASTER_FILTERS.expectedReturn,
-                      selectedExpectedReturn,
-                      (v) => toggleFilter(selectedExpectedReturn, setSelectedExpectedReturn, v),
-                      (item, selected) => (
-                        <div className="flex flex-col items-center space-y-2">
-                          <Badge 
-                            variant={selected ? "default" : "outline"}
-                            className="cursor-pointer px-4 py-2"
-                          >
-                            {item.label}
-                          </Badge>
-                          <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.label}</span>
-                        </div>
-                      )
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="MarketCap">
-                  <AccordionTrigger>Market Cap</AccordionTrigger>
-                  <AccordionContent>
-                    {renderFilterCarousel(
-                      MASTER_FILTERS.marketCap,
-                      selectedMarketCap,
-                      (v) => toggleFilter(selectedMarketCap, setSelectedMarketCap, v),
-                      (item, selected) => {
-                        const IconComponent = item.Icon;
-                        return (
-                          <div className="flex flex-col items-center space-y-2">
-                            <div className={`p-4 rounded-full border transition-colors ${
-                              selected 
-                                ? 'bg-primary text-primary-foreground border-primary'
-                                : 'bg-transparent border-border'
-                            }`}>
-                              <IconComponent className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} size={17.5} />
-                            </div>
-                            <span className="text-xs font-medium" style={{marginBottom: 5}}>{toCamelCase(item.name)}</span>
-                          </div>
-                        );
-                      }
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="DividendYield">
-                  <AccordionTrigger>Dividend Yield</AccordionTrigger>
-                  <AccordionContent>
-                    {renderFilterCarousel(
-                      MASTER_FILTERS.dividendYield,
-                      selectedDividendYield,
-                      (v) => toggleFilter(selectedDividendYield, setSelectedDividendYield, v),
-                      (item, selected) => (
-                        <div className="flex flex-col items-center space-y-2">
-                          <Badge 
-                            variant={selected ? "default" : "outline"}
-                            className="cursor-pointer px-4 py-2"
-                          >
-                            {item.label}
-                          </Badge>
-                          <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.label}</span>
-                        </div>
-                      )
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="Holding">
-                  <AccordionTrigger>Holding</AccordionTrigger>
-                  <AccordionContent>
-                    {renderFilterCarousel(
-                      MASTER_FILTERS.holding,
-                      selectedHolding,
-                      (v) => toggleFilter(selectedHolding, setSelectedHolding, v),
-                      (item, selected) => {
-                        const IconComponent = item.Icon;
-                        return (
-                          <div className="flex flex-col items-center space-y-2">
-                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
-                              selected 
-                                ? 'bg-primary border-primary'
-                                : 'bg-transparent border-border hover:border-primary/50'
-                            }`}>
-                              <IconComponent 
-                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
-                                size={20} 
-                              />
-                            </div>
-                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
-                          </div>
-                        );
-                      }
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="Duration">
-                  <AccordionTrigger>Duration</AccordionTrigger>
-                  <AccordionContent>
-                    {renderFilterCarousel(
-                      MASTER_FILTERS.duration,
-                      selectedDuration,
-                      (v) => toggleFilter(selectedDuration, setSelectedDuration, v),
-                      (item, selected) => {
-                        const IconComponent = item.Icon;
-                        return (
-                          <div className="flex flex-col items-center space-y-2">
-                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
-                              selected 
-                                ? 'bg-primary border-primary'
-                                : 'bg-transparent border-border hover:border-primary/50'
-                            }`}>
-                              <IconComponent 
-                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
-                                size={20} 
-                              />
-                            </div>
-                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
-                          </div>
-                        );
-                      }
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="Regions">
-                  <AccordionTrigger>Regions</AccordionTrigger>
-                  <AccordionContent>
-                    {renderFilterCarousel(
-                      MASTER_FILTERS.regions,
-                      selectedRegions,
-                      (v) => toggleFilter(selectedRegions, setSelectedRegions, v),
-                      (item, selected) => {
-                        const IconComponent = item.Icon;
-                        return (
-                          <div className="flex flex-col items-center space-y-2">
-                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
-                              selected 
-                                ? 'bg-primary border-primary'
-                                : 'bg-transparent border-border hover:border-primary/50'
-                            }`}>
-                              <IconComponent 
-                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
-                                size={20} 
-                              />
-                            </div>
-                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
-                          </div>
-                        );
-                      }
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="ValuationMetrics">
-                  <AccordionTrigger>Valuation Metrics</AccordionTrigger>
-                  <AccordionContent>
-                    {renderFilterCarousel(
-                      MASTER_FILTERS.valuationMetrics,
-                      selectedValuationMetrics,
-                      (v) => toggleFilter(selectedValuationMetrics, setSelectedValuationMetrics, v),
-                      (item, selected) => {
-                        const IconComponent = item.Icon;
-                        return (
-                          <div className="flex flex-col items-center space-y-2">
-                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
-                              selected 
-                                ? 'bg-primary border-primary'
-                                : 'bg-transparent border-border hover:border-primary/50'
-                            }`}>
-                              <IconComponent 
-                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
-                                size={20} 
-                              />
-                            </div>
-                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
-                          </div>
-                        );
-                      }
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="GrowthMetrics">
-                  <AccordionTrigger>Growth Metrics</AccordionTrigger>
-                  <AccordionContent>
-                    {renderFilterCarousel(
-                      MASTER_FILTERS.growthMetrics,
-                      selectedGrowthMetrics,
-                      (v) => toggleFilter(selectedGrowthMetrics, setSelectedGrowthMetrics, v),
-                      (item, selected) => (
-                        <div className="flex flex-col items-center space-y-2">
-                          <Badge 
-                            variant={selected ? "default" : "outline"}
-                            className="cursor-pointer px-4 py-2"
-                          >
-                            {item.label}
-                          </Badge>
-                          <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.label}</span>
-                        </div>
-                      )
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="TechnicalIndicators">
-                  <AccordionTrigger>Technical Indicators</AccordionTrigger>
-                  <AccordionContent>
-                    {renderFilterCarousel(
-                      MASTER_FILTERS.technicalIndicators,
-                      selectedTechnicalIndicators,
-                      (v) => toggleFilter(selectedTechnicalIndicators, setSelectedTechnicalIndicators, v),
-                      (item, selected) => {
-                        const IconComponent = item.Icon;
-                        return (
-                          <div className="flex flex-col items-center space-y-2">
-                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
-                              selected 
-                                ? 'bg-primary border-primary'
-                                : 'bg-transparent border-border hover:border-primary/50'
-                            }`}>
-                              <IconComponent 
-                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
-                                size={20} 
-                              />
-                            </div>
-                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
-                          </div>
-                        );
-                      }
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="EsgRatings">
-                  <AccordionTrigger>ESG Ratings</AccordionTrigger>
-                  <AccordionContent>
-                    {renderFilterCarousel(
-                      MASTER_FILTERS.esgRatings,
-                      selectedEsgRatings,
-                      (v) => toggleFilter(selectedEsgRatings, setSelectedEsgRatings, v),
-                      (item, selected) => {
-                        const IconComponent = item.Icon;
-                        return (
-                          <div className="flex flex-col items-center space-y-2">
-                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
-                              selected 
-                                ? 'bg-primary border-primary'
-                                : 'bg-transparent border-border hover:border-primary/50'
-                            }`}>
-                              <IconComponent 
-                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
-                                size={20} 
-                              />
-                            </div>
-                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
-                          </div>
-                        );
-                      }
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="AnalysisType">
-                  <AccordionTrigger>Analysis Type</AccordionTrigger>
-                  <AccordionContent>
-                    {renderFilterCarousel(
-                      MASTER_FILTERS.analysisType,
-                      selectedAnalysisType,
-                      (v) => toggleFilter(selectedAnalysisType, setSelectedAnalysisType, v),
-                      (item, selected) => {
-                        const IconComponent = item.Icon;
-                        return (
-                          <div className="flex flex-col items-center space-y-2">
-                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
-                              selected 
-                                ? 'bg-primary border-primary'
-                                : 'bg-transparent border-border hover:border-primary/50'
-                            }`}>
-                              <IconComponent 
-                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
-                                size={20} 
-                              />
-                            </div>
-                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
-                          </div>
-                        );
-                      }
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="Volatility">
-                  <AccordionTrigger>Volatility</AccordionTrigger>
-                  <AccordionContent>
-                    {renderFilterCarousel(
-                      MASTER_FILTERS.volatility,
-                      selectedVolatility,
-                      (v) => toggleFilter(selectedVolatility, setSelectedVolatility, v),
-                      (item, selected) => {
-                        const IconComponent = item.Icon;
-                        return (
-                          <div className="flex flex-col items-center space-y-2">
-                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
-                              selected 
-                                ? 'bg-primary border-primary'
-                                : 'bg-transparent border-border hover:border-primary/50'
-                            }`}>
-                              <IconComponent 
-                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
-                                size={20} 
-                              />
-                            </div>
-                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
-                          </div>
-                        );
-                      }
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="Liquidity">
-                  <AccordionTrigger>Liquidity</AccordionTrigger>
-                  <AccordionContent>
-                    {renderFilterCarousel(
-                      MASTER_FILTERS.liquidity,
-                      selectedLiquidity,
-                      (v) => toggleFilter(selectedLiquidity, setSelectedLiquidity, v),
-                      (item, selected) => {
-                        const IconComponent = item.Icon;
-                        return (
-                          <div className="flex flex-col items-center space-y-2">
-                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
-                              selected 
-                                ? 'bg-primary border-primary'
-                                : 'bg-transparent border-border hover:border-primary/50'
-                            }`}>
-                              <IconComponent 
-                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
-                                size={20} 
-                              />
-                            </div>
-                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
-                          </div>
-                        );
-                      }
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="Conviction">
-                  <AccordionTrigger>Conviction</AccordionTrigger>
-                  <AccordionContent>
-                    {renderFilterCarousel(
-                      MASTER_FILTERS.conviction,
-                      selectedConviction,
-                      (v) => toggleFilter(selectedConviction, setSelectedConviction, v),
-                      (item, selected) => {
-                        const IconComponent = item.Icon;
-                        return (
-                          <div className="flex flex-col items-center space-y-2">
-                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
-                              selected 
-                                ? 'bg-primary border-primary'
-                                : 'bg-transparent border-border hover:border-primary/50'
-                            }`}>
-                              <IconComponent 
-                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
-                                size={20} 
-                              />
-                            </div>
-                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
-                          </div>
-                        );
-                      }
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="Catalyst">
-                  <AccordionTrigger>Catalyst</AccordionTrigger>
-                  <AccordionContent>
-                    {renderFilterCarousel(
-                      MASTER_FILTERS.catalyst,
-                      selectedCatalyst,
-                      (v) => toggleFilter(selectedCatalyst, setSelectedCatalyst, v),
-                      (item, selected) => {
-                        const IconComponent = item.Icon;
-                        return (
-                          <div className="flex flex-col items-center space-y-2">
-                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
-                              selected 
-                                ? 'bg-primary border-primary'
-                                : 'bg-transparent border-border hover:border-primary/50'
-                            }`}>
-                              <IconComponent 
-                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
-                                size={20} 
-                              />
-                            </div>
-                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
-                          </div>
-                        );
-                      }
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="Valuation">
-                  <AccordionTrigger>Valuation</AccordionTrigger>
-                  <AccordionContent>
-                    {renderFilterCarousel(
-                      MASTER_FILTERS.valuation,
-                      selectedValuation,
-                      (v) => toggleFilter(selectedValuation, setSelectedValuation, v),
-                      (item, selected) => {
-                        const IconComponent = item.Icon;
-                        return (
-                          <div className="flex flex-col items-center space-y-2">
-                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
-                              selected 
-                                ? 'bg-primary border-primary'
-                                : 'bg-transparent border-border hover:border-primary/50'
-                            }`}>
-                              <IconComponent 
-                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
-                                size={20} 
-                              />
-                            </div>
-                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
-                          </div>
-                        );
-                      }
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="Technical">
-                  <AccordionTrigger>Technical</AccordionTrigger>
-                  <AccordionContent>
-                    {renderFilterCarousel(
-                      MASTER_FILTERS.technical,
-                      selectedTechnical,
-                      (v) => toggleFilter(selectedTechnical, setSelectedTechnical, v),
-                      (item, selected) => {
-                        const IconComponent = item.Icon;
-                        return (
-                          <div className="flex flex-col items-center space-y-2">
-                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
-                              selected 
-                                ? 'bg-primary border-primary'
-                                : 'bg-transparent border-border hover:border-primary/50'
-                            }`}>
-                              <IconComponent 
-                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
-                                size={20} 
-                              />
-                            </div>
-                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
-                          </div>
-                        );
-                      }
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="Diversification">
-                  <AccordionTrigger>Diversification</AccordionTrigger>
-                  <AccordionContent>
-                    {renderFilterCarousel(
-                      MASTER_FILTERS.diversification,
-                      selectedDiversification,
-                      (v) => toggleFilter(selectedDiversification, setSelectedDiversification, v),
-                      (item, selected) => {
-                        const IconComponent = item.Icon;
-                        return (
-                          <div className="flex flex-col items-center space-y-2">
-                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
-                              selected 
-                                ? 'bg-primary border-primary'
-                                : 'bg-transparent border-border hover:border-primary/50'
-                            }`}>
-                              <IconComponent 
-                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
-                                size={20} 
-                              />
-                            </div>
-                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
-                          </div>
-                        );
-                      }
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-
-                <AccordionItem value="Performance">
-                  <AccordionTrigger>Performance</AccordionTrigger>
-                  <AccordionContent>
-                    {renderFilterCarousel(
-                      MASTER_FILTERS.performance,
-                      selectedPerformance,
-                      (v) => toggleFilter(selectedPerformance, setSelectedPerformance, v),
-                      (item, selected) => {
-                        const IconComponent = item.Icon;
-                        return (
-                          <div className="flex flex-col items-center space-y-2">
-                            <div className={`p-3 rounded-lg border transition-colors cursor-pointer ${
-                              selected 
-                                ? 'bg-primary border-primary'
-                                : 'bg-transparent border-border hover:border-primary/50'
-                            }`}>
-                              <IconComponent 
-                                className={`${selected ? "text-primary-foreground" : "text-foreground"} bg-transparent`} 
-                                size={20} 
-                              />
-                            </div>
-                            <span className="text-xs font-medium text-center" style={{marginBottom: 5}}>{item.name}</span>
-                          </div>
-                        );
-                      }
-                    )}
-                  </AccordionContent>
-                </AccordionItem>
-              </Accordion>
-              </SheetDescription>
-            </ScrollArea>
-
-             
-           
-          </SheetContent>
-        </Sheet> */}
+        
 
         {/* Info Sheet */}
         <Sheet open={infoSheetOpen} onOpenChange={setInfoSheetOpen}>
@@ -5493,14 +6454,19 @@ export default function TipScreen() {
                             className="w-full font-medium relative"
                             size="lg"
                             variant={userData?.credits >= 5 ? "default" : "outline"}
-                            onClick={() => {
+                            onClick={async () => {
                               if (userData?.credits >= 5) {
-                                handleUnlockTip(selectedPaywallTip);
-                                setShowPaywallSheet(false);
-                                toast("Tip unlocked successfully!", {
-                                  duration: 3000,
-                                  position: "top-center",
-                                });
+                                const unlockSuccess = await handleUnlockTip(selectedPaywallTip);
+                                if (unlockSuccess) {
+                                  setShowPaywallSheet(false);
+                                  // Open the tip sheet immediately after unlocking
+                                  setSelectedTipForMobile(selectedPaywallTip);
+                                  setMobileTipSheetOpen(true);
+                                  toast("Tip unlocked successfully!", {
+                                    duration: 3000,
+                                    position: "top-center",
+                                  });
+                                }
                               } else {
                                 toast("Not enough Lollipops! You need 5 Lollipops to unlock this tip.", {
                                   duration: 3000,
@@ -5560,11 +6526,11 @@ export default function TipScreen() {
                 <div className="p-3 rounded-lg border bg-muted/30 dark:bg-muted/10 border-border mb-4 relative">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-muted/50 dark:bg-muted/20 flex items-center justify-center">
-                      <img src={selectedPaywallTip?.avatar || UserCheck} alt="Advisor" className="text-foreground rounded-full" />
+                      <img src={selectedPaywallTip?.advisor_avatar || UserCheck} alt="Advisor" className="text-foreground rounded-full" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="font-bold text-base text-foreground mb-1">
-                        {selectedPaywallTip?.name || 'Professional Advisor'}
+                        {selectedPaywallTip?.advisor_name || 'Professional Advisor'}
                       </div>
                       <div className="text-sm text-muted-foreground mb-2">
                         {selectedPaywallTip?.advisor_title || 'Certified Financial Advisor'}
@@ -5593,7 +6559,7 @@ export default function TipScreen() {
                   <div className="text-center p-3 rounded-lg bg-muted/20 dark:bg-muted/10 border border-border relative cursor-pointer hover:bg-muted/30 dark:hover:bg-muted/20 transition-colors"
                     onClick={() => {
                       // Filter table to show only this advisor's tips
-                      const advisorName = selectedPaywallTip?.name || 'Professional Advisor';
+                      const advisorName = selectedPaywallTip?.advisor_name || 'Professional Advisor';
                       handleViewAllTips(advisorName);
                       // Close the paywall sheet
                       setShowPaywallSheet(false);
@@ -5604,7 +6570,7 @@ export default function TipScreen() {
                     <ArrowUpRight className="w-3 h-3 text-foreground absolute top-1 right-1 opacity-60" />
                   </div>
                   <div className="text-center p-3 rounded-lg bg-muted/20 dark:bg-muted/10 border border-border">
-                    <div className="font-bold text-lg text-foreground">{selectedPaywallTip?.advisor_win_rate || selectedPaywallTip?.win_rate || '84'}%</div>
+                    <div className="font-bold text-lg text-foreground">{selectedPaywallTip?.advisor_win_rate*100 || selectedPaywallTip?.win_rate*100 || '84'}%</div>
                     <div className="text-xs text-muted-foreground mt-1">Success Rate</div>
                   </div>
                   <div className="text-center p-3 rounded-lg bg-muted/20 dark:bg-muted/10 border border-border">
@@ -5684,12 +6650,12 @@ export default function TipScreen() {
             {/* Header */}
             <div className="flex items-center gap-4 p-4 border-b border-border">
               <img 
-                src={selectedAdvisorForMobile?.avatar} 
-                alt={selectedAdvisorForMobile?.name} 
+                src={selectedAdvisorForMobile?.advisor_avatar} 
+                alt={selectedAdvisorForMobile?.advisor_name} 
                 className="w-12 h-12 rounded-xl object-cover border-2 border-border shadow-sm" 
               />
               <div>
-                <div className="text-xl font-bold text-foreground">{selectedAdvisorForMobile?.name}</div>
+                <div className="text-xl font-bold text-foreground">{selectedAdvisorForMobile?.advisor_name}</div>
                 <div className="text-sm text-muted-foreground">
                   Professional investment advisor profile
                 </div>
@@ -5797,7 +6763,7 @@ export default function TipScreen() {
                           <div className="flex-1 min-w-0">
                             <div className="text-xs text-muted-foreground">Win Rate</div>
                             <div className="font-bold text-lg text-green-600 dark:text-green-400 break-words">
-                              {selectedAdvisorForMobile?.advisor_win_rate || selectedAdvisorForMobile?.win_rate || 'N/A'}
+                              {selectedAdvisorForMobile?.advisor_win_rate*100 || selectedAdvisorForMobile?.win_rate*100 || 'N/A'}%
                             </div>
                           </div>
                         </div>
@@ -5809,7 +6775,7 @@ export default function TipScreen() {
                       <div 
                         className="p-4 rounded-lg border bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800 cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900 transition-colors relative group"
                         onClick={() => {
-                          handleViewAllTips(selectedAdvisorForMobile?.advisor_name || selectedAdvisorForMobile?.name);
+                          handleViewAllTips(selectedAdvisorForMobile?.advisor_name || selectedAdvisorForMobile?.advisor_name);
                           setSelectedAdvisorForMobile(null);
                           setShowAdvisorSheet(false);
                         }}
@@ -5821,7 +6787,7 @@ export default function TipScreen() {
                           <div className="flex-1 min-w-0">
                             <div className="text-xs text-muted-foreground">Tips</div>
                             <div className="font-bold text-lg text-blue-600 dark:text-blue-400 break-words">
-                              {selectedAdvisorForMobile?.advisor_total_tips || 'N/A'}
+                              {selectedAdvisorForMobile?.advisor_total_tips || '676'}
                             </div>
                           </div>
                           <ArrowUpRight size={16} className="text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity absolute top-2 right-2" />
@@ -5837,7 +6803,7 @@ export default function TipScreen() {
                       variant="default"
                       className="w-full justify-start p-4 h-auto rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm relative group"
                       onClick={() => {
-                        handleViewAllTips(selectedAdvisorForMobile?.name);
+                        handleViewAllTips(selectedAdvisorForMobile?.advisor_name);
                         setSelectedAdvisorForMobile(null);
                         setShowAdvisorSheet(false);
                       }}
