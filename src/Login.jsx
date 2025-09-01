@@ -64,7 +64,7 @@ const LoginForm = () => {
           email: data.user.email || '',
           profile_photo_url: data.user.user_metadata.profile_photo_url || '',
         });
-        navigate('/dashboard',  { state: { user: data?.user} });
+        navigate('/tips',  { state: { user: data?.user} });
       }
 
       console.log("error", error);
@@ -224,7 +224,7 @@ const Login = () => {
       const { data: { user }, error } = await supabase.auth.getUser();
       if (user) {
         console.log("User is logged in:", user);
-        navigate("/dashboard", { state: { user: user } });
+        navigate("/tips", { state: { user: user } });
       }
     };
 

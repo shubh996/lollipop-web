@@ -114,7 +114,12 @@ import {
   Map,
   PlayCircle,
   Lightbulb,
-  Sparkles
+  Sparkles,
+  Building2,
+  BarChart,
+  Hourglass,
+  Grid,
+  Gem
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -160,18 +165,29 @@ const LucideIcon = ({ Icon, size = 20, className = "" }) => {
 
 // Master filter configuration
 const MASTER_FILTERS = {
-  assets: [
-    { name: 'Equity', Icon: ChartPie, desc: 'Individual company stocks and shares' },
-    { name: 'Forex', Icon: Euro, desc: 'Foreign exchange currency pairs' },
-    { name: 'ETF', Icon: Handshake, desc: 'Exchange-traded funds tracking indexes or sectors' },
-    { name: 'Crypto', Icon: Bitcoin, desc: 'Digital currencies and blockchain tokens' },
-    { name: 'F&O', Icon: Repeat, desc: 'Futures and options derivatives' },
-    { name: 'Indexes', Icon: FileText, desc: 'Market index benchmarks and trackers' },
-    { name: 'Bonds', Icon: Cpu, desc: 'Government and corporate debt securities' },
-    { name: 'Commodities', Icon: Package, desc: 'Physical goods like gold, oil, agricultural products' },
-    { name: 'Mutual Funds', Icon: PieChart, desc: 'Professionally managed investment pools' },
-    { name: 'REITs', Icon: Home, desc: 'Real estate investment trusts' }
-   ],
+assets: [
+  { name: 'Equity', Icon: ChartPie, desc: 'Individual company stocks and shares' },
+  { name: 'Forex', Icon: Euro, desc: 'Foreign exchange currency pairs' },
+  { name: 'ETF', Icon: Handshake, desc: 'Exchange-traded funds tracking indexes or sectors' },
+  { name: 'Crypto', Icon: Bitcoin, desc: 'Digital currencies and blockchain tokens' },
+  { name: 'F&O', Icon: Repeat, desc: 'Futures and options derivatives' },
+  { name: 'Indexes', Icon: FileText, desc: 'Market index benchmarks and trackers' },
+  { name: 'Bonds', Icon: Cpu, desc: 'Government and corporate debt securities' },
+  { name: 'Commodities', Icon: Package, desc: 'Physical goods like gold, oil, agricultural products' },
+  { name: 'Mutual Funds', Icon: PieChart, desc: 'Professionally managed investment pools' },
+  { name: 'REITs', Icon: Home, desc: 'Real estate investment trusts' },
+  { name: 'PMS', Icon: Briefcase, desc: 'Portfolio Management Services for HNIs' },
+  { name: 'AIFs', Icon: Layers, desc: 'Alternative Investment Funds across categories' },
+  { name: 'NBFC Products', Icon: Banknote, desc: 'Structured credit and financing-linked investments' },
+  { name: 'ULIPs', Icon: Shield, desc: 'Unit linked insurance-based investments' },
+  { name: 'Retirement Funds', Icon: Hourglass, desc: 'Pension, provident and retirement-focused schemes' },
+  { name: 'Private Equity', Icon: Building2, desc: 'Unlisted company and startup investments' },
+  { name: 'Hedge Funds', Icon: BarChart, desc: 'Actively managed alternative strategies' },
+  { name: 'Structured Products', Icon: Grid, desc: 'Capital protected or market-linked structures' },
+  { name: 'SGBs', Icon: Gem, desc: 'Sovereign gold bonds backed by the government' },
+  { name: 'Insurance-Linked', Icon: Heart, desc: 'Endowment, term-linked and risk-insurance assets' }
+],
+
   sectors: [
     { name: 'Technology', Icon: Laptop, desc: 'Software, hardware, and tech services companies' },
     { name: 'Finance', Icon: Cpu, desc: 'Banks, insurance, and financial services' },
@@ -498,7 +514,8 @@ export default function TipScreen() {
           name: userProfile.name,
           avatar: userProfile.profile_photo_url || userProfile.avatar,
           credits: userProfile.credits ?? 0,
-          email: userProfile.email
+          email: userProfile.email,
+          sebi_registered: userProfile.sebi_registered || false
         });
         setUnlockedTips(userProfile.unlockedTips || []);
       } else {
@@ -546,6 +563,7 @@ export default function TipScreen() {
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const [activeFilter, setActiveFilter] = useState(null);
   const [showOnlyFree, setShowOnlyFree] = useState(false);
+  const [showOnlySebi, setShowOnlySebi] = useState(false);
   const [infoSheetOpen, setInfoSheetOpen] = useState(false);
   const [selectedTip, setSelectedTip] = useState(null);
   const [mobileTipSheetOpen, setMobileTipSheetOpen] = useState(false);
@@ -1977,14 +1995,14 @@ export default function TipScreen() {
   // Available columns configuration
   const availableColumns = [
     { key: 'time', label: 'Time', minWidth: 'min-w-[100px]' },
-    { key: 'advisor', label: 'Advisor', minWidth: 'min-w-[180px]' },
+    { key: 'advisor', label: 'Researcher', minWidth: 'min-w-[180px]' },
     { key: 'asset', label: 'Asset', minWidth: 'min-w-[120px]' },
     { key: 'symbol', label: 'Symbol', minWidth: 'min-w-[90px]' },
     { key: 'return', label: 'Returns', minWidth: 'min-w-[120px]' },
     { key: 'risk', label: 'Risk', minWidth: 'min-w-[110px]' },
     { key: 'holding', label: 'Holding', minWidth: 'min-w-[110px]' },
     { key: 'sentiment', label: 'Sentiment', minWidth: 'min-w-[110px]' },
-    { key: 'investment', label: 'Investment', minWidth: 'min-w-[80px]' },
+    { key: 'investment', label: 'Research', minWidth: 'min-w-[80px]' },
     { key: 'sector', label: 'Sector', minWidth: 'min-w-[120px]' },
     { key: 'strategy', label: 'Strategy', minWidth: 'min-w-[130px]' },
     { key: 'conviction', label: 'Conviction', minWidth: 'min-w-[110px]' },
@@ -2258,111 +2276,25 @@ export default function TipScreen() {
                       <ArrowUpRight size={14} className="text-muted-foreground" />
                     </div>
                   </TooltipTrigger>
-                  <TooltipContent side="right" className="max-w-sm p-0 border-2 border-gray-800 dark:border-gray-200 shadow-lg bg-white dark:bg-background">
-                    <div className="p-4 space-y-4">
-                      {/* Header */}
-                      <div className="flex items-center gap-3">
-                        <img 
-                          src={tip.advisor_avatar} 
-                          alt={tip.advisor_name} 
-                          className="w-8 h-8 rounded-lg object-cover border border-gray-200 dark:border-border shadow-sm" 
-                        />
-                        <div>
-                          <div className="text-sm font-bold text-gray-900 dark:text-foreground">{tip.advisor_name}</div>
-                          <div className="text-xs text-gray-600 dark:text-muted-foreground">
-                            Professional investment advisor
-                          </div>
+                  <TooltipContent side="top" className="p-0 border-2 border-black dark:border-black shadow-lg bg-white dark:bg-background rounded-lg overflow-hidden">
+                    <div className="flex h-10 w-72">
+                      <div className="flex-1 p-1.5 bg-green-50 dark:bg-green-950/20 border-r border-green-200 dark:border-green-800 border-dashed flex flex-col justify-center items-center min-w-0">
+                        <div className="text-[10px] text-gray-600 dark:text-muted-foreground text-center">Win Rate</div>
+                        <div className="text-xs font-bold text-gray-900 dark:text-foreground whitespace-nowrap overflow-hidden text-ellipsis text-center">
+                          {tip.advisor_win_rate ? `${(tip.advisor_win_rate * 100).toFixed(0)}%` : tip.win_rate ? `${(tip.win_rate * 100).toFixed(0)}%` : '68%'}
                         </div>
                       </div>
-
-                      {/* Quick Stats */}
-                      <div className="space-y-3">
-                        <div>
-                          <h4 className="text-sm font-semibold text-gray-900 dark:text-foreground">Quick Stats</h4>
-                          <p className="text-xs text-gray-600 dark:text-muted-foreground mt-1">
-                            Key performance metrics
-                          </p>
+                      <div className="flex-1 p-1.5 bg-blue-50 dark:bg-blue-950/20 border-r border-blue-200 dark:border-blue-800 border-dashed flex flex-col justify-center items-center min-w-0">
+                        <div className="text-[10px] text-gray-600 dark:text-muted-foreground text-center">Tips</div>
+                        <div className="text-xs font-bold text-gray-900 dark:text-foreground whitespace-nowrap overflow-hidden text-ellipsis text-center">
+                          {tip.advisor_total_tips || '150+'}
                         </div>
-                        
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="p-2.5 rounded-lg border bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
-                            <div className="flex items-center gap-2">
-                              <Award size={12} className="text-green-600" />
-                              <div>
-                                <div className="text-xs text-gray-600 dark:text-muted-foreground">Win Rate</div>
-                                <div className="font-bold text-sm text-green-600">
-                                  {tip.advisor_win_rate ? `${(tip.advisor_win_rate * 100).toFixed(0)}%` : tip.win_rate ? `${(tip.win_rate * 100).toFixed(0)}%` : '68%'}
-                                </div>
-                                <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                                  Success rate of recommendations
-                                </p>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div className="p-2.5 rounded-lg border bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
-                            <div className="flex items-center gap-2">
-                              <BarChart2 size={12} className="text-blue-600" />
-                              <div>
-                                <div className="text-xs text-gray-600 dark:text-muted-foreground">Total Tips</div>
-                                <div className="font-bold text-sm text-blue-600">
-                                  {tip.advisor_total_tips || '150+'}
-                                </div>
-                                <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                                  Total investment recommendations
-                                </p>
-                              </div>
-                            </div>
-                          </div>
+                      </div>
+                      <div className="flex-1 p-1.5 bg-purple-50 dark:bg-purple-950/20 flex flex-col justify-center items-center min-w-0">
+                        <div className="text-[10px] text-gray-600 dark:text-muted-foreground text-center">Researcher</div>
+                        <div className="text-xs font-bold text-gray-900 dark:text-foreground whitespace-nowrap overflow-hidden text-ellipsis text-center">
+                          {tip.advisor_sebi_registered || tip.sebi_registered ? 'SEBI RIA' : 'Educational'}
                         </div>
-
-                        {/* SEBI Status */}
-                        {tip.advisor_sebi_registered ? (
-                          <div className="p-2.5 rounded-lg border bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
-                            <div className="flex items-center gap-2">
-                              <ShieldCheck size={12} className="text-green-600" />
-                              <span className="text-xs font-medium text-green-700 dark:text-green-400">SEBI Registered</span>
-                            </div>
-                            <div className="text-xs text-gray-600 dark:text-muted-foreground mt-1">
-                              Regulatory compliance verified by Indian securities board
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="p-2.5 rounded-lg border bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800">
-                            <div className="flex items-center gap-2">
-                              <ShieldAlert size={12} className="text-amber-600" />
-                              <span className="text-xs font-medium text-amber-700 dark:text-amber-400">Independent Advisor</span>
-                            </div>
-                            <div className="text-xs text-gray-600 dark:text-muted-foreground mt-1">
-                              Operates independently without SEBI registration
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      
-                      {/* View Profile Button */}
-                      <div className="pt-2">
-                        <Button 
-                          className="w-full font-medium text-xs h-8"
-                          size="sm"
-                          variant="default"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedAdvisorForMobile(tip);
-                            setShowAdvisorSheet(true);
-                          }}
-                        >
-                          <div className="flex items-center justify-center gap-1.5">
-                            <User className="w-3 h-3" />
-                            <span>View Full Profile</span>
-                          </div>
-                        </Button>
-                      </div>
-                      
-                      <div className="pt-2 border-t border-gray-200 dark:border-border/50">
-                        <p className="text-xs text-gray-500 dark:text-muted-foreground text-center">
-                          Double-click name to view all tips from this advisor
-                        </p>
                       </div>
                     </div>
                   </TooltipContent>
@@ -2383,71 +2315,15 @@ export default function TipScreen() {
                       {tip.asset}
                     </span>
                   </TooltipTrigger>
-                  <TooltipContent side="right" className="max-w-sm p-0 border-2 border-gray-800 dark:border-gray-200 shadow-lg bg-white dark:bg-background">
-                    <div className="p-4 space-y-4">
-                      {/* Header */}
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-purple-50 dark:bg-purple-950/20 flex items-center justify-center p-1.5">
-                          <Package size={14} className="text-purple-600 dark:text-purple-400" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-bold text-gray-900 dark:text-foreground">Asset Class</div>
-                          <div className="text-xs text-gray-600 dark:text-muted-foreground">
-                            Investment category and type
-                          </div>
-                        </div>
+                  <TooltipContent side="top" className="p-0 border-2 border-black dark:border-black shadow-lg bg-white dark:bg-background rounded-lg overflow-hidden">
+                    <div className="flex h-10 w-48">
+                      <div className="flex-1 p-1.5 bg-cyan-50 dark:bg-cyan-950/20 border-r border-cyan-200 dark:border-cyan-800 border-dashed flex flex-col justify-center min-w-0">
+                        <div className="text-[10px] text-gray-600 dark:text-muted-foreground">Market Cap</div>
+                        <div className="text-xs font-bold text-gray-900 dark:text-foreground whitespace-nowrap overflow-hidden text-ellipsis">{tip.market_cap || 'Large Cap'}</div>
                       </div>
-
-                      {/* Asset Details */}
-                      <div className="space-y-2">
-                        <div className="p-2.5 rounded-lg border bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800">
-                          <div className="flex items-center justify-between text-xs mb-1">
-                            <div className="flex items-center gap-2">
-                              <Package size={12} className="text-purple-500" />
-                              <span className="text-gray-700 dark:text-foreground">Asset Type</span>
-                            </div>
-                            <span className="font-bold text-gray-900 dark:text-foreground">{tip.asset}</span>
-                          </div>
-                          <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                            Primary investment category
-                          </p>
-                        </div>
-                        
-                        {tip.sector && (
-                          <div className="p-2.5 rounded-lg border bg-indigo-50 dark:bg-indigo-950/20 border-indigo-200 dark:border-indigo-800">
-                            <div className="flex items-center justify-between text-xs mb-1">
-                              <div className="flex items-center gap-2">
-                                <Building size={12} className="text-indigo-500" />
-                                <span className="text-gray-700 dark:text-foreground">Sector</span>
-                              </div>
-                              <span className="font-bold text-gray-900 dark:text-foreground">{tip.sector}</span>
-                            </div>
-                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                              Industry sector where the company operates
-                            </p>
-                          </div>
-                        )}
-                        
-                        {tip.market_cap && (
-                          <div className="p-2.5 rounded-lg border bg-cyan-50 dark:bg-cyan-950/20 border-cyan-200 dark:border-cyan-800">
-                            <div className="flex items-center justify-between text-xs mb-1">
-                              <div className="flex items-center gap-2">
-                                <Globe size={12} className="text-cyan-500" />
-                                <span className="text-gray-700 dark:text-foreground">Market Cap</span>
-                              </div>
-                              <span className="font-bold text-gray-900 dark:text-foreground">{tip.market_cap}</span>
-                            </div>
-                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                              Total market value of company's outstanding shares
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="pt-2 border-t border-gray-200 dark:border-border/50">
-                        <p className="text-xs text-gray-500 dark:text-muted-foreground text-center">
-                          Asset class determines risk profile and market behavior
-                        </p>
+                      <div className="flex-1 p-1.5 bg-indigo-50 dark:bg-indigo-950/20 flex flex-col justify-center min-w-0">
+                        <div className="text-[10px] text-gray-600 dark:text-muted-foreground">Sector</div>
+                        <div className="text-xs font-bold text-gray-900 dark:text-foreground whitespace-nowrap overflow-hidden text-ellipsis">{tip.sector || 'Technology'}</div>
                       </div>
                     </div>
                   </TooltipContent>
@@ -2511,155 +2387,18 @@ export default function TipScreen() {
                     <BarChart2 size={12} className="text-muted-foreground opacity-60" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent align="center" sideOffset={5} className="p-0 border-2 border-gray-800 dark:border-gray-200 shadow-lg bg-white dark:bg-background">
-                  <div className="w-[1000px] h-[450px] flex">
-                    {/* Left Column - Data Points */}
-                    <div className="w-[350px] p-4 space-y-4 border-r border-gray-200 dark:border-border">
-                      {/* Header */}
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/20 flex items-center justify-center p-1.5">
-                          <BarChart2 size={14} className="text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-bold text-gray-900 dark:text-foreground">Symbol Details</div>
-                          <div className="text-xs text-gray-600 dark:text-muted-foreground">
-                            Investment overview & metrics
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Data Points */}
-                      <div className="space-y-3">
-                        {/* Symbol */}
-                        <div className="p-2.5 rounded-lg border bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
-                          <div className="flex items-center justify-between text-xs mb-1">
-                            <div className="flex items-center gap-2">
-                              <BarChart2 size={12} className="text-blue-500" />
-                              <span className="text-gray-700 dark:text-foreground">Symbol</span>
-                            </div>
-                            <span className="font-bold text-gray-900 dark:text-foreground">{tip.symbol}</span>
-                          </div>
-                          <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                            Ticker symbol for this investment
-                          </p>
-                        </div>
-
-                        {/* Asset Type */}
-                        {tip.asset && (
-                          <div className="p-2.5 rounded-lg border bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800">
-                            <div className="flex items-center justify-between text-xs mb-1">
-                              <div className="flex items-center gap-2">
-                                <Package size={12} className="text-purple-500" />
-                                <span className="text-gray-700 dark:text-foreground">Asset Type</span>
-                              </div>
-                              <span className="font-bold text-gray-900 dark:text-foreground">{tip.asset}</span>
-                            </div>
-                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                              Investment category classification
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Sector */}
-                        {tip.sector && (
-                          <div className="p-2.5 rounded-lg border bg-indigo-50 dark:bg-indigo-950/20 border-indigo-200 dark:border-indigo-800">
-                            <div className="flex items-center justify-between text-xs mb-1">
-                              <div className="flex items-center gap-2">
-                                <Building size={12} className="text-indigo-500" />
-                                <span className="text-gray-700 dark:text-foreground">Sector</span>
-                              </div>
-                              <span className="font-bold text-gray-900 dark:text-foreground">{tip.sector}</span>
-                            </div>
-                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                              Industry sector classification
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Market Cap */}
-                        {tip.market_cap && (
-                          <div className="p-2.5 rounded-lg border bg-cyan-50 dark:bg-cyan-950/20 border-cyan-200 dark:border-cyan-800">
-                            <div className="flex items-center justify-between text-xs mb-1">
-                              <div className="flex items-center gap-2">
-                                <Globe size={12} className="text-cyan-500" />
-                                <span className="text-gray-700 dark:text-foreground">Market Cap</span>
-                              </div>
-                              <span className="font-bold text-gray-900 dark:text-foreground">{tip.market_cap}</span>
-                            </div>
-                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                              Total market value of outstanding shares
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Exchange */}
-                        {tip.exchange && (
-                          <div className="p-2.5 rounded-lg border bg-teal-50 dark:bg-teal-950/20 border-teal-200 dark:border-teal-800">
-                            <div className="flex items-center justify-between text-xs mb-1">
-                              <div className="flex items-center gap-2">
-                                <Building size={12} className="text-teal-500" />
-                                <span className="text-gray-700 dark:text-foreground">Exchange</span>
-                              </div>
-                              <span className="font-bold text-gray-900 dark:text-foreground">{tip.exchange}</span>
-                            </div>
-                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                              Stock exchange where asset is traded
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Current Price */}
-                        {tip.current_price && (
-                          <div className="p-2.5 rounded-lg border bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
-                            <div className="flex items-center justify-between text-xs mb-1">
-                              <div className="flex items-center gap-2">
-                                <DollarSign size={12} className="text-green-500" />
-                                <span className="text-gray-700 dark:text-foreground">Current Price</span>
-                              </div>
-                              <span className="font-bold text-gray-900 dark:text-foreground">${tip.current_price}</span>
-                            </div>
-                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                              Latest trading price of the asset
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Expected Return */}
-                        {tip.expected_return && (
-                          <div className="p-2.5 rounded-lg border bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800">
-                            <div className="flex items-center justify-between text-xs mb-1">
-                              <div className="flex items-center gap-2">
-                                <TrendingUp size={12} className="text-emerald-500" />
-                                <span className="text-gray-700 dark:text-foreground">Expected Return</span>
-                              </div>
-                              <span className="font-bold text-gray-900 dark:text-foreground">{tip.expected_return}</span>
-                            </div>
-                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                              Projected percentage return
-                            </p>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Footer */}
-                      <div className="pt-2 border-t border-gray-200 dark:border-border/50">
-                        <p className="text-xs text-gray-500 dark:text-muted-foreground text-center">
-                          Complete investment overview
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Right Column - TradingView Chart */}
-                    <div className="flex-1 bg-background">
-                      
-                      <div className="h-[450px] overflow-hidden">
-                        <TradingViewWidget
-                          symbol={tip?.symbol}
-                          theme={isDarkTheme ? 'dark' : 'light'}
-                          height={460}
-                          width={650}
-                        />
-                      </div>
+                <TooltipContent 
+                align="center" side="right" sideOffset={5} 
+                className="p-0 border-2 border-black dark:border-black shadow-lg bg-white dark:bg-background rounded-lg overflow-hidden">
+                  <div className="w-[400px] h-[250px]">
+                    {/* TradingView Chart Container */}
+                    <div className="w-full h-full bg-background rounded-lg overflow-hidden">
+                      <TradingViewWidget
+                        symbol={tip?.symbol}
+                        theme={isDarkTheme ? 'dark' : 'light'}
+                        height={250}
+                        width={400}
+                      />
                     </div>
                   </div>
                 </TooltipContent>
@@ -2679,71 +2418,15 @@ export default function TipScreen() {
                       {tip.expected_return}
                     </span>
                   </TooltipTrigger>
-                  <TooltipContent side="right" className="max-w-sm p-0 border-2 border-gray-800 dark:border-gray-200 shadow-lg bg-white dark:bg-background">
-                    <div className="p-4 space-y-4">
-                      {/* Header */}
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-green-50 dark:bg-green-950/20 flex items-center justify-center p-1.5">
-                          <TrendingUp size={14} className="text-green-600 dark:text-green-400" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-bold text-gray-900 dark:text-foreground">Expected Returns</div>
-                          <div className="text-xs text-gray-600 dark:text-muted-foreground">
-                            Projected investment performance
-                          </div>
-                        </div>
+                  <TooltipContent side="top" className="p-0 border-2 border-black dark:border-black shadow-lg bg-white dark:bg-background rounded-lg overflow-hidden">
+                    <div className="flex h-10 w-48">
+                      <div className="flex-1 p-1.5 bg-blue-50 dark:bg-blue-950/20 border-r border-blue-200 dark:border-blue-800 border-dashed flex flex-col justify-center min-w-0">
+                        <div className="text-[10px] text-gray-600 dark:text-muted-foreground">Duration</div>
+                        <div className="text-xs font-bold text-gray-900 dark:text-foreground whitespace-nowrap overflow-hidden text-ellipsis">{tip.duration || 'TBD'}</div>
                       </div>
-
-                      {/* Return Details */}
-                      <div className="space-y-2">
-                        <div className="p-2.5 rounded-lg border bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
-                          <div className="flex items-center justify-between text-xs mb-1">
-                            <div className="flex items-center gap-2">
-                              <Target size={12} className="text-green-500" />
-                              <span className="text-gray-700 dark:text-foreground">Target Return</span>
-                            </div>
-                            <span className="font-bold text-gray-900 dark:text-foreground">{tip.expected_return}</span>
-                          </div>
-                          <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                            Expected percentage return on investment
-                          </p>
-                        </div>
-                        
-                        {tip.duration && (
-                          <div className="p-2.5 rounded-lg border bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
-                            <div className="flex items-center justify-between text-xs mb-1">
-                              <div className="flex items-center gap-2">
-                                <Calendar size={12} className="text-blue-500" />
-                                <span className="text-gray-700 dark:text-foreground">Duration</span>
-                              </div>
-                              <span className="font-bold text-gray-900 dark:text-foreground">{tip.duration}</span>
-                            </div>
-                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                              Recommended time to hold the investment
-                            </p>
-                          </div>
-                        )}
-                        
-                        {tip.allocation && (
-                          <div className="p-2.5 rounded-lg border bg-purple-50 dark:bg-purple-950/20 border-purple-200 dark:border-purple-800">
-                            <div className="flex items-center justify-between text-xs mb-1">
-                              <div className="flex items-center gap-2">
-                                <PieChart size={12} className="text-purple-500" />
-                                <span className="text-gray-700 dark:text-foreground">Portfolio Allocation</span>
-                              </div>
-                              <span className="font-bold text-gray-900 dark:text-foreground">{tip.allocation}</span>
-                            </div>
-                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                              Suggested percentage of portfolio for this investment
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="pt-2 border-t border-gray-200 dark:border-border/50">
-                        <p className="text-xs text-gray-500 dark:text-muted-foreground text-center">
-                          Expected returns based on current market analysis
-                        </p>
+                      <div className="flex-1 p-1.5 bg-orange-50 dark:bg-orange-950/20 flex flex-col justify-center min-w-0">
+                        <div className="text-[10px] text-gray-600 dark:text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">Portfolio Allocation</div>
+                        <div className="text-xs font-bold text-gray-900 dark:text-foreground whitespace-nowrap overflow-hidden text-ellipsis">{tip.portfolio_allocation || tip.allocation || '5-10%'}</div>
                       </div>
                     </div>
                   </TooltipContent>
@@ -2769,96 +2452,15 @@ export default function TipScreen() {
                       {tip.risk || 'Medium'}
                     </Badge>
                   </TooltipTrigger>
-                  <TooltipContent side="right" className="max-w-sm p-0 border-2 border-gray-800 dark:border-gray-200 shadow-lg bg-white dark:bg-background">
-                    <div className="p-4 space-y-4">
-                      {/* Header */}
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-red-50 dark:bg-red-950/20 flex items-center justify-center p-1.5">
-                          <AlertTriangle size={14} className="text-red-600 dark:text-red-400" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-bold text-gray-900 dark:text-foreground">Risk Assessment</div>
-                          <div className="text-xs text-gray-600 dark:text-muted-foreground">
-                            Investment risk level analysis
-                          </div>
-                        </div>
+                  <TooltipContent side="top" className="p-0 border-2 border-black dark:border-black shadow-lg bg-white dark:bg-background rounded-lg overflow-hidden">
+                    <div className="flex h-10 w-48">
+                      <div className="flex-1 p-1.5 bg-blue-50 dark:bg-blue-950/20 border-r border-blue-200 dark:border-blue-800 border-dashed flex flex-col justify-center min-w-0">
+                        <div className="text-[10px] text-gray-600 dark:text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">Advisor Conviction</div>
+                        <div className="text-xs font-bold text-gray-900 dark:text-foreground whitespace-nowrap overflow-hidden text-ellipsis">{tip.conviction || 'High'}</div>
                       </div>
-
-                      {/* Risk Details */}
-                      <div className="space-y-3">
-                        {/* Risk Assessment Section */}
-                        <div>
-                          <h4 className="text-sm font-semibold text-gray-900 dark:text-foreground mb-2">Risk Assessment</h4>
-                          <div className="space-y-2">
-                            <div className="p-2.5 rounded-lg border bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-800">
-                              <div className="flex items-center justify-between text-xs mb-1">
-                                <div className="flex items-center gap-2">
-                                  <AlertTriangle size={12} className="text-red-500" />
-                                  <span className="text-gray-700 dark:text-foreground">Risk Level</span>
-                                </div>
-                                <span className="font-bold text-gray-900 dark:text-foreground">{tip.risk || 'Medium'}</span>
-                              </div>
-                              <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                                Overall risk rating for this investment
-                              </p>
-                            </div>
-                            
-                            {tip.stop_loss && (
-                              <div className="p-2.5 rounded-lg border bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800">
-                                <div className="flex items-center justify-between text-xs mb-1">
-                                  <div className="flex items-center gap-2">
-                                    <TrendingDown size={12} className="text-orange-500" />
-                                    <span className="text-gray-700 dark:text-foreground">Stop Loss</span>
-                                  </div>
-                                  <span className="font-bold text-gray-900 dark:text-foreground">${tip.stop_loss}</span>
-                                </div>
-                                <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                                  Recommended price to exit investment to limit losses
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Advisor Performance Section */}
-                        <div>
-                          <h4 className="text-sm font-semibold text-gray-900 dark:text-foreground mb-2">Advisor Performance</h4>
-                          <div className="space-y-2">
-                            <div className="p-2.5 rounded-lg border bg-green-50 dark:bg-green-950/20 border-green-200 dark:border-green-800">
-                              <div className="flex items-center justify-between text-xs mb-1">
-                                <div className="flex items-center gap-2">
-                                  <TrendingUp size={12} className="text-green-500" />
-                                  <span className="text-gray-700 dark:text-foreground">Win Rate</span>
-                                </div>
-                                <span className="font-bold text-gray-900 dark:text-foreground">{tip.advisor_win_rate ? `${(tip.advisor_win_rate * 100).toFixed(0)}%` : tip.win_rate ? `${(tip.win_rate * 100).toFixed(0)}%` : '68%'}</span>
-                              </div>
-                              <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                                Historical success rate of advisor's recommendations
-                              </p>
-                            </div>
-                            
-                            {tip.conviction && (
-                              <div className="p-2.5 rounded-lg border bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
-                                <div className="flex items-center justify-between text-xs mb-1">
-                                  <div className="flex items-center gap-2">
-                                    <Zap size={12} className="text-blue-500" />
-                                    <span className="text-gray-700 dark:text-foreground">Conviction</span>
-                                  </div>
-                                  <span className="font-bold text-gray-900 dark:text-foreground">{tip.conviction}</span>
-                                </div>
-                                <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                                  Advisor's confidence level in this recommendation
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="pt-2 border-t border-gray-200 dark:border-border/50">
-                        <p className="text-xs text-gray-500 dark:text-muted-foreground text-center">
-                          Risk level indicates potential volatility and loss probability
-                        </p>
+                      <div className="flex-1 p-1.5 bg-green-50 dark:bg-green-950/20 flex flex-col justify-center min-w-0">
+                        <div className="text-[10px] text-gray-600 dark:text-muted-foreground">Win Rate</div>
+                        <div className="text-xs font-bold text-gray-900 dark:text-foreground whitespace-nowrap overflow-hidden text-ellipsis">{tip.advisor_win_rate ? `${(tip.advisor_win_rate * 100).toFixed(0)}%` : tip.win_rate ? `${(tip.win_rate * 100).toFixed(0)}%` : '68%'}</div>
                       </div>
                     </div>
                   </TooltipContent>
@@ -2886,71 +2488,15 @@ export default function TipScreen() {
                       {tip.holding}
                     </span>
                   </TooltipTrigger>
-                  <TooltipContent side="right" className="max-w-sm p-0 border-2 border-gray-800 dark:border-gray-200 shadow-lg bg-white dark:bg-background">
-                    <div className="p-4 space-y-4">
-                      {/* Header */}
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950/20 flex items-center justify-center p-1.5">
-                          <Clock size={14} className="text-blue-600 dark:text-blue-400" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-bold text-gray-900 dark:text-foreground">Holding Period</div>
-                          <div className="text-xs text-gray-600 dark:text-muted-foreground">
-                            Recommended investment duration
-                          </div>
-                        </div>
+                  <TooltipContent side="top" className="p-0 border-2 border-black dark:border-black shadow-lg bg-white dark:bg-background rounded-lg overflow-hidden">
+                    <div className="flex h-10 w-48">
+                      <div className="flex-1 p-1.5 bg-blue-50 dark:bg-blue-950/20 border-r border-blue-200 dark:border-blue-800 border-dashed flex flex-col justify-center min-w-0">
+                        <div className="text-[10px] text-gray-600 dark:text-muted-foreground">Duration</div>
+                        <div className="text-xs font-bold text-gray-900 dark:text-foreground whitespace-nowrap overflow-hidden text-ellipsis">{tip.duration || tip.holding || 'Medium Term'}</div>
                       </div>
-
-                      {/* Holding Details */}
-                      <div className="space-y-2">
-                        <div className="p-2.5 rounded-lg border bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800">
-                          <div className="flex items-center justify-between text-xs mb-1">
-                            <div className="flex items-center gap-2">
-                              <Clock size={12} className="text-blue-500" />
-                              <span className="text-gray-700 dark:text-foreground">Holding Period</span>
-                            </div>
-                            <span className="font-bold text-gray-900 dark:text-foreground">{tip.holding}</span>
-                          </div>
-                          <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                            Recommended investment time frame strategy
-                          </p>
-                        </div>
-                        
-                        {tip.strategy && (
-                          <div className="p-2.5 rounded-lg border bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-800">
-                            <div className="flex items-center justify-between text-xs mb-1">
-                              <div className="flex items-center gap-2">
-                                <Target size={12} className="text-orange-500" />
-                                <span className="text-gray-700 dark:text-foreground">Strategy</span>
-                              </div>
-                              <span className="font-bold text-gray-900 dark:text-foreground">{tip.strategy}</span>
-                            </div>
-                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                              Trading strategy approach for this position
-                            </p>
-                          </div>
-                        )}
-                        
-                        {tip.duration && (
-                          <div className="p-2.5 rounded-lg border bg-teal-50 dark:bg-teal-950/20 border-teal-200 dark:border-teal-800">
-                            <div className="flex items-center justify-between text-xs mb-1">
-                              <div className="flex items-center gap-2">
-                                <Calendar size={12} className="text-teal-500" />
-                                <span className="text-gray-700 dark:text-foreground">Target Duration</span>
-                              </div>
-                              <span className="font-bold text-gray-900 dark:text-foreground">{tip.duration}</span>
-                            </div>
-                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                              Expected time to achieve target returns
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="pt-2 border-t border-gray-200 dark:border-border/50">
-                        <p className="text-xs text-gray-500 dark:text-muted-foreground text-center">
-                          Optimal holding period for maximum returns
-                        </p>
+                      <div className="flex-1 p-1.5 bg-orange-50 dark:bg-orange-950/20 flex flex-col justify-center min-w-0">
+                        <div className="text-[10px] text-gray-600 dark:text-muted-foreground">Strategy</div>
+                        <div className="text-xs font-bold text-gray-900 dark:text-foreground whitespace-nowrap overflow-hidden text-ellipsis">{tip.strategy || 'Swing Trading'}</div>
                       </div>
                     </div>
                   </TooltipContent>
@@ -2973,71 +2519,15 @@ export default function TipScreen() {
                       {tip.sentiment}
                     </span>
                   </TooltipTrigger>
-                  <TooltipContent side="right" className="max-w-sm p-0 border-2 border-gray-800 dark:border-gray-200 shadow-lg bg-white dark:bg-background">
-                    <div className="p-4 space-y-4">
-                      {/* Header */}
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-amber-950/20 flex items-center justify-center p-1.5">
-                          <Activity size={14} className="text-amber-600 dark:text-amber-400" />
-                        </div>
-                        <div>
-                          <div className="text-sm font-bold text-gray-900 dark:text-foreground">Market Sentiment</div>
-                          <div className="text-xs text-gray-600 dark:text-muted-foreground">
-                            Current market outlook and mood
-                          </div>
-                        </div>
+                  <TooltipContent side="top" className="p-0 border-2 border-black dark:border-black shadow-lg bg-white dark:bg-background rounded-lg overflow-hidden">
+                    <div className="flex h-10 w-48">
+                      <div className="flex-1 p-1.5 bg-emerald-50 dark:bg-emerald-950/20 border-r border-emerald-200 dark:border-emerald-800 border-dashed flex flex-col justify-center min-w-0">
+                        <div className="text-[10px] text-gray-600 dark:text-muted-foreground whitespace-nowrap overflow-hidden text-ellipsis">Technical Analysis</div>
+                        <div className="text-xs font-bold text-gray-900 dark:text-foreground whitespace-nowrap overflow-hidden text-ellipsis">{tip.technical || 'Bullish'}</div>
                       </div>
-
-                      {/* Sentiment Details */}
-                      <div className="space-y-2">
-                        <div className="p-2.5 rounded-lg border bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800">
-                          <div className="flex items-center justify-between text-xs mb-1">
-                            <div className="flex items-center gap-2">
-                              <Activity size={12} className="text-amber-500" />
-                              <span className="text-gray-700 dark:text-foreground">Market Sentiment</span>
-                            </div>
-                            <span className="font-bold text-gray-900 dark:text-foreground">{tip.sentiment}</span>
-                          </div>
-                          <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                            Overall market mood and investor confidence
-                          </p>
-                        </div>
-                        
-                        {tip.technical && (
-                          <div className="p-2.5 rounded-lg border bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800">
-                            <div className="flex items-center justify-between text-xs mb-1">
-                              <div className="flex items-center gap-2">
-                                <BarChart3 size={12} className="text-emerald-500" />
-                                <span className="text-gray-700 dark:text-foreground">Technical Analysis</span>
-                              </div>
-                              <span className="font-bold text-gray-900 dark:text-foreground">{tip.technical}</span>
-                            </div>
-                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                              Chart patterns and technical indicator signals
-                            </p>
-                          </div>
-                        )}
-                        
-                        {tip.valuation && (
-                          <div className="p-2.5 rounded-lg border bg-rose-50 dark:bg-rose-950/20 border-rose-200 dark:border-rose-800">
-                            <div className="flex items-center justify-between text-xs mb-1">
-                              <div className="flex items-center gap-2">
-                                <TrendingUp size={12} className="text-rose-500" />
-                                <span className="text-gray-700 dark:text-foreground">Valuation</span>
-                              </div>
-                              <span className="font-bold text-gray-900 dark:text-foreground">{tip.valuation}</span>
-                            </div>
-                            <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                              Asset price assessment relative to intrinsic value
-                            </p>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="pt-2 border-t border-gray-200 dark:border-border/50">
-                        <p className="text-xs text-gray-500 dark:text-muted-foreground text-center">
-                          Market sentiment reflects investor confidence and outlook
-                        </p>
+                      <div className="flex-1 p-1.5 bg-rose-50 dark:bg-rose-950/20 flex flex-col justify-center min-w-0">
+                        <div className="text-[10px] text-gray-600 dark:text-muted-foreground">Volatility</div>
+                        <div className="text-xs font-bold text-gray-900 dark:text-foreground whitespace-nowrap overflow-hidden text-ellipsis">{tip.volatility || 'Medium'}</div>
                       </div>
                     </div>
                   </TooltipContent>
@@ -3095,7 +2585,8 @@ export default function TipScreen() {
                               e.stopPropagation();
                               e.preventDefault();
                               
-                              if (isLoggedIn && userData?.credits >= 5) {
+                              const actualCost = calculateActualCost(tip, userData);
+                              if (isLoggedIn && userData?.credits >= actualCost) {
                                 handleUnlockTip(tip).then((unlockSuccess) => {
                                   if (unlockSuccess) {
                                     // Unlock successful - open the tip sheet directly
@@ -3114,7 +2605,8 @@ export default function TipScreen() {
                                   position: "top-center",
                                 });
                               } else {
-                                toast("Not enough Lollipops! You need 5 Lollipops to unlock this tip.", {
+                                const actualCost = calculateActualCost(tip, userData);
+                                toast(`Not enough Lollipops! You need ${actualCost} Lollipops to unlock this tip.`, {
                                   duration: 3000,
                                   position: "top-center",
                                 });
@@ -3125,7 +2617,7 @@ export default function TipScreen() {
                           <Lock size={16} className="ml-1 text-muted-foreground hover:text-foreground transition-colors" />
                         </span>
                       </TooltipTrigger>
-                      <TooltipContent side="right" className="max-w-sm p-0 border-2 border-gray-800 dark:border-gray-200 shadow-lg bg-white dark:bg-background">
+                      <TooltipContent side="right" className="max-w-sm p-0 border-2 border-black dark:border-black shadow-lg bg-white dark:bg-background">
                         <div className="p-4 space-y-4">
                           {/* Header */}
                           <div className="flex items-center gap-3">
@@ -3150,66 +2642,98 @@ export default function TipScreen() {
                             </div>
                             
                             <div className="space-y-2">
-                              <div className="p-2.5 rounded-lg border bg-green-50 dark:bg-gold-950 border-green-200 dark:border-green-800">
-                                <div className="flex items-center justify-between text-xs mb-1">
-                                  <div className="flex items-center gap-2">
-                                    <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-3.5 h-3.5" />
-                                    <span className="text-gray-700 dark:text-foreground">Base unlock</span>
-                                  </div>
-                                  <span className="font-bold text-gray-900 dark:text-foreground">1</span>
-                                </div>
-                                <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                                  Standard credit for accessing basic investment tips
-                                </p>
-                              </div>
-                              
-                              <div className="p-2.5 rounded-lg border bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
-                                <div className="flex items-center justify-between text-xs mb-1">
-                                  <div className="flex items-center gap-2">
-                                    <div className="flex gap-0.5">
-                                      <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-3.5 h-3.5" />
-                                      <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-3.5 h-3.5" />
+                              {(() => {
+                                const isAdvisorSebiRegistered = tip.advisor_sebi_registered || tip.sebi_registered;
+                                const isUserSebiRegistered = userData?.sebi_registered || false;
+                                const successRate = tip.successRate || tip.success_rate || '74';
+                                
+                                // Dynamic pricing structure based on user SEBI status
+                                const pricingComponents = [];
+                                
+                                // Base cost (always 1)
+                                pricingComponents.push({
+                                  title: "Base unlock",
+                                  description: "Standard credit for accessing investment tips",
+                                  cost: 1,
+                                  iconCount: 1
+                                });
+                                
+                                // SEBI registration premium (show for all users when advisor is SEBI registered)
+                                if (isAdvisorSebiRegistered) {
+                                  pricingComponents.push({
+                                    title: "SEBI Registered Advisor",
+                                    description: isUserSebiRegistered 
+                                      ? "Premium for SEBI registered advisors (waived for SEBI users)" 
+                                      : "Premium for tips from SEBI registered advisors",
+                                    cost: 2,
+                                    iconCount: 2
+                                  });
+                                }
+                                
+                                // Win Rate (always 2 credits)
+                                pricingComponents.push({
+                                  title: `${successRate || 76}% Win Rate`,
+                                  description: `Advisors with win rate of >50%`,
+                                  cost: 2,
+                                  iconCount: 2
+                                });
+                                
+                                return pricingComponents.map((component, index) => (
+                                  <div key={index} className="p-2.5 rounded-lg border bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                                    <div className="flex items-center justify-between text-xs mb-1">
+                                      <div className="flex items-center gap-2">
+                                        <div className="flex gap-0.5">
+                                          {[...Array(component.iconCount)].map((_, i) => (
+                                            <img key={i} src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-3.5 h-3.5" />
+                                          ))}
+                                        </div>
+                                        <span className="text-gray-700 dark:text-foreground">{component.title}</span>
+                                      </div>
+                                      <span className="font-bold text-gray-900 dark:text-foreground">{component.cost}</span>
                                     </div>
-                                    <span className="text-gray-700 dark:text-foreground">SEBI Registered</span>
+                                    <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                                      {component.description}
+                                    </p>
                                   </div>
-                                  <span className="font-bold text-gray-900 dark:text-foreground">2</span>
-                                </div>
-                                <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                                  Premium for tips from SEBI registered advisors
-                                </p>
-                              </div>
-                              
-                              <div className="p-2.5 rounded-lg border bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
-                                <div className="flex items-center justify-between text-xs mb-1">
-                                  <div className="flex items-center gap-2">
-                                    <div className="flex gap-0.5">
-                                      <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-3.5 h-3.5" />
-                                      <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-3.5 h-3.5" />
-                                    </div>
-                                    <span className="text-gray-700 dark:text-foreground">{tip?.successRate || '68%'} Success Rate</span>
-                                  </div>
-                                  <span className="font-bold text-gray-900 dark:text-foreground">2</span>
-                                </div>
-                                <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
-                                  Extra charge for high-performing advisor recommendations
-                                </p>
-                              </div>
+                                ));
+                              })()}
                               
                               <div className="p-3 rounded-lg border bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 border-green-300 dark:border-green-700">
-                                <div className="flex items-center justify-between font-medium">
-                                  <div className="flex flex-col gap-1">
-                                    <div className="flex gap-0.5">
-                                      {[...Array(5)].map((_, i) => (
-                                        <img key={i} src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-3.5 h-3.5" />
-                                      ))}
-                                    </div>
-                                    <span className="text-xs text-gray-700 dark:text-foreground">Total Investment</span>
-                                  </div>
-                                  <span className="text-sm font-bold text-green-600">5 Lollipops</span>
-                                </div>
-                                <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed mt-1">
-                                  Complete cost to unlock this premium investment tip
-                                </p>
+                                {(() => {
+                                  const actualCost = calculateActualCost(tip, userData);
+                                  const isUserSebiRegistered = userData?.sebi_registered || false;
+                                  const isAdvisorSebiRegistered = tip.advisor_sebi_registered || tip.sebi_registered;
+                                  const showingSebiRow = isUserSebiRegistered && isAdvisorSebiRegistered;
+                                  
+                                  return (
+                                    <>
+                                      <div className="flex items-center justify-between font-medium">
+                                        <div className="flex flex-col gap-1">
+                                          <div className="flex gap-0.5">
+                                            {[...Array(actualCost)].map((_, i) => (
+                                              <img key={i} src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-3.5 h-3.5" />
+                                            ))}
+                                          </div>
+                                          <span className="text-xs text-gray-700 dark:text-foreground">
+                                            Your Cost
+                                          </span>
+                                        </div>
+                                        <div className="flex flex-col items-end">
+                                          <span className="text-sm font-bold text-green-600">{actualCost} Lollipops</span>
+                                          {showingSebiRow && (
+                                            <span className="text-xs text-gray-500 line-through">5 Lollipops</span>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed mt-1">
+                                        {showingSebiRow 
+                                          ? `SEBI users get 2 credit discount (shown above) for final cost of 3 credits` 
+                                          : "Complete cost to unlock this premium investment tip"
+                                        }
+                                      </p>
+                                    </>
+                                  );
+                                })()}
                                 
                                 <div className="mt-2.5 pt-2.5 border-t border-green-200 dark:border-green-700">
                                   <div className="flex items-center justify-between text-xs text-gray-600 dark:text-muted-foreground">
@@ -3228,10 +2752,11 @@ export default function TipScreen() {
                                 <Button 
                                   className="w-full font-medium text-xs h-8"
                                   size="sm"
-                                  variant={userData?.credits >= 5 ? "default" : "outline"}
+                                  variant={userData?.credits >= calculateActualCost(tip, userData) ? "default" : "outline"}
                                   onClick={async (e) => {
                                     e.stopPropagation();
-                                    if (userData?.credits >= 5) {
+                                    const actualCost = calculateActualCost(tip, userData);
+                                    if (userData?.credits >= actualCost) {
                                       const unlockSuccess = await handleUnlockTip(tip);
                                       if (unlockSuccess) {
                                         // Close tooltip and open tip sheet
@@ -3243,16 +2768,16 @@ export default function TipScreen() {
                                         });
                                       }
                                     } else {
-                                      toast("Not enough Lollipops! You need 5 Lollipops to unlock this tip.", {
+                                      toast(`Not enough Lollipops! You need ${requiredLollipops} Lollipops to unlock this tip.`, {
                                         duration: 3000,
                                         position: "top-center",
                                       });
                                     }
                                   }}
-                                  disabled={userData?.credits < 5}
+                                  disabled={userData?.credits < calculateActualCost(tip, userData)}
                                 >
                                   <div className="flex items-center justify-center gap-1.5">
-                                    {userData?.credits >= 5 ? (
+                                    {userData?.credits >= calculateActualCost(tip, userData) ? (
                                       <>
                                         <LockOpenIcon className="w-3 h-3" />
                                         <span>Unlock Investment Tip</span>
@@ -3318,138 +2843,30 @@ export default function TipScreen() {
                           <Info size={16} />
                         </Button>
                       </TooltipTrigger>
-                      <TooltipContent side="right" className="max-w-sm p-0 border-2 border-gray-800 dark:border-gray-200 shadow-lg bg-white dark:bg-background">
-                        <div className="p-4 space-y-4">
-                          {/* Header */}
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-primary/10 flex items-center justify-center p-1.5">
-                              <Target size={14} className="text-blue-600 dark:text-primary" />
+                      <TooltipContent side="top" className="p-0 border-2 border-black dark:border-black shadow-lg bg-white dark:bg-background rounded-lg overflow-hidden">
+                        <div>
+                          <div className="grid grid-cols-2 h-20 w-64">
+                            <div className="p-1.5 bg-green-50 dark:bg-green-950/20 border-r border-green-200 dark:border-green-800 border-dashed border-b border-green-200 dark:border-green-800 flex flex-col justify-center items-center min-w-0">
+                              <div className="text-[10px] text-gray-600 dark:text-muted-foreground text-center">Entry Price</div>
+                              <div className="text-xs font-bold text-gray-900 dark:text-foreground whitespace-nowrap overflow-hidden text-ellipsis text-center">${tip.entry_price || 'TBD'}</div>
                             </div>
-                            <div>
-                              <div className="text-sm font-bold text-gray-900 dark:text-foreground">Investment Analysis</div>
-                              <div className="text-xs text-gray-600 dark:text-muted-foreground">
-                                Complete trade configuration
-                              </div>
+                            <div className="p-1.5 bg-red-50 dark:bg-red-950/20 border-b border-red-200 dark:border-red-800 flex flex-col justify-center items-center min-w-0">
+                              <div className="text-[10px] text-gray-600 dark:text-muted-foreground text-center">Exit Price</div>
+                              <div className="text-xs font-bold text-gray-900 dark:text-foreground whitespace-nowrap overflow-hidden text-ellipsis text-center">${tip.exit_price || tip.target_price || 'TBD'}</div>
+                            </div>
+                            <div className="p-1.5 bg-blue-50 dark:bg-blue-950/20 border-r border-blue-200 dark:border-blue-800 border-dashed flex flex-col justify-center items-center min-w-0">
+                              <div className="text-[10px] text-gray-600 dark:text-muted-foreground text-center">Duration</div>
+                              <div className="text-xs font-bold text-gray-900 dark:text-foreground whitespace-nowrap overflow-hidden text-ellipsis text-center">{tip.duration || tip.holding || 'Swing'}</div>
+                            </div>
+                            <div className="p-1.5 bg-orange-50 dark:bg-orange-950/20 flex flex-col justify-center items-center min-w-0">
+                              <div className="text-[10px] text-gray-600 dark:text-muted-foreground text-center">Stop Loss</div>
+                              <div className="text-xs font-bold text-gray-900 dark:text-foreground whitespace-nowrap overflow-hidden text-ellipsis text-center">${tip.stop_loss || 'TBD'}</div>
                             </div>
                           </div>
-
-                          {/* Investment Overview */}
-                          <div className="space-y-3">
-                            <div>
-                              <h4 className="text-sm font-semibold text-gray-900 dark:text-foreground">Trade Overview</h4>
-                              <p className="text-xs text-gray-600 dark:text-muted-foreground mt-1">
-                                Professional analysis with precise parameters
-                              </p>
+                          <div className="px-2 py-3 bg-gray-50 dark:bg-gray-900/50 border-t border-black-800 dark:border-black-700">
+                            <div className="text-[9px] text-gray-500 dark:text-gray-400 text-center">
+                              {tip.advisor_sebi_registered || tip.sebi_registered ? 'Investment Advice by SEBI Registered Advisor' : 'Independent research shared for educational purposes.'}
                             </div>
-                            
-                            <div className="grid grid-cols-2 gap-2">
-                              <div className="p-2.5 rounded-lg border bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
-                                <div className="flex items-center gap-2">
-                                  <Target size={12} className="text-green-600" />
-                                  <div>
-                                    <div className="text-xs text-gray-600 dark:text-muted-foreground">Entry</div>
-                                    <div className="font-bold text-sm text-green-600">
-                                      ${tip.entry_price || 'TBD'}
-                                    </div>
-                                    <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed mt-0.5">
-                                      Recommended entry price point
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                              
-                              <div className="p-2.5 rounded-lg border bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
-                                <div className="flex items-center gap-2">
-                                  <TrendingUp size={12} className="text-blue-600" />
-                                  <div>
-                                    <div className="text-xs text-gray-600 dark:text-muted-foreground">Target</div>
-                                    <div className="font-bold text-sm text-blue-600">
-                                      ${tip.exit_price || 'TBD'}
-                                    </div>
-                                    <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed mt-0.5">
-                                      Expected exit price for profit taking
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-2">
-                              <div className="p-2.5 rounded-lg border bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800">
-                                <div className="flex items-center gap-2">
-                                  <Shield size={12} className="text-red-600" />
-                                  <div>
-                                    <div className="text-xs text-gray-600 dark:text-muted-foreground">Stop Loss</div>
-                                    <div className="font-bold text-sm text-red-600">
-                                      ${tip.stop_loss || 'TBD'}
-                                    </div>
-                                    <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed mt-0.5">
-                                      Risk management exit level
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                              
-                              <div className="p-2.5 rounded-lg border bg-purple-50 dark:bg-purple-950 border-purple-200 dark:border-purple-800">
-                                <div className="flex items-center gap-2">
-                                  <Clock size={12} className="text-purple-600" />
-                                  <div>
-                                    <div className="text-xs text-gray-600 dark:text-muted-foreground">Duration</div>
-                                    <div className="font-bold text-sm text-purple-600">
-                                      {tip.duration || tip.holding || 'Swing'}
-                                    </div>
-                                    <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed mt-0.5">
-                                      Recommended holding time frame
-                                    </p>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-
-                           
-                          </div>
-                          
-                          {/* Action Buttons */}
-                          <div className="pt-2 flex gap-2">
-                            {/* View Chart Button */}
-                            <Button 
-                              className="flex-1 font-medium text-xs h-8"
-                              size="default"
-                              variant="outline"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedSymbolForMobile(tip.symbol);
-                                setShowSymbolSheet(true);
-                              }}
-                            >
-                              <div style={{color:"black"}} className="flex items-center justify-center gap-1.5">
-                                <BarChart3 className="w-3 h-3" />
-                                <span>View Chart</span>
-                              </div>
-                            </Button>
-                            
-                            {/* View Full Tip Details Button */}
-                            <Button 
-                              className="flex-1 font-medium text-xs h-8"
-                              size="default"
-                              variant="default"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedTipForMobile(tip);
-                                setMobileTipSheetOpen(true);
-                              }}
-                            >
-                              <div className="flex items-center justify-center gap-1.5">
-                                <FileText className="w-3 h-3" />
-                                <span>View Full Tip Details</span>
-                              </div>
-                            </Button>
-                          </div>
-                          
-                          <div className="pt-2 border-t border-gray-200 dark:border-border/50">
-                            <p className="text-xs text-gray-500 dark:text-muted-foreground text-center">
-                              Complete trade setup with charts and detailed analysis
-                            </p>
                           </div>
                         </div>
                       </TooltipContent>
@@ -3625,6 +3042,22 @@ export default function TipScreen() {
   };
 
   // Unlock tip handler
+  // Helper function to calculate actual cost based on user's SEBI status
+  const calculateActualCost = (tip, userData) => {
+    const isAdvisorSebiRegistered = tip.advisor_sebi_registered || tip.sebi_registered;
+    const isUserSebiRegistered = userData?.sebi_registered || false;
+    
+    // If advisor is SEBI registered
+    if (isAdvisorSebiRegistered) {
+      // SEBI users get discount: 5 - 2 = 3 credits
+      // Non-SEBI users pay full: 5 credits
+      return isUserSebiRegistered ? 3 : 5;
+    }
+    
+    // Non-SEBI advisor tips: 3 credits for everyone (1 base + 2 win rate)
+    return 3;
+  };
+
   const handleUnlockTip = async (tip) => {
     // If not logged in, redirect to login
     if (!userData || !userData.id) {
@@ -3635,15 +3068,15 @@ export default function TipScreen() {
     if (isUnlocked(tip)) {
       return true;
     }
-    // Get required lollipops (default 1 if not specified)
-    const requiredLollipops = tip.lollipopsRequired || 5;
+    // Calculate actual cost based on user's SEBI status
+    const actualCost = calculateActualCost(tip, userData);
     // Check if user has enough credits
-    if ((userData.credits || 0) < requiredLollipops) {
-      alert('Not enough Lollipops to unlock this tip.');
+    if ((userData.credits || 0) < actualCost) {
+      alert(`Not enough Lollipops to unlock this tip. Required: ${actualCost}, Available: ${userData.credits || 0}`);
       return false;
     }
     // Deduct credits and update Supabase
-    const newCredits = (userData.credits || 0) - requiredLollipops;
+    const newCredits = (userData.credits || 0) - actualCost;
     const { data: updateData, error: updateError } = await supabase
       .from('users')
       .update({ credits: newCredits })
@@ -3716,6 +3149,11 @@ export default function TipScreen() {
         const now = new Date();
         const hoursDiff = (now - tipDate) / (1000 * 60 * 60);
         if (hoursDiff < 24) return false;
+      }
+
+      if (showOnlySebi) {
+        const isSebiRegistered = tip.advisor_sebi_registered || tip.sebi_registered;
+        if (!isSebiRegistered) return false;
       }
 
       // Parse numbers for range filters
@@ -3808,8 +3246,8 @@ export default function TipScreen() {
         ].some(field => field && String(field).toLowerCase().includes(q));
       });
     }
-    return tips;
-  }, [tipsData, selectedAsset, selectedSector, selectedSentiment, selectedStrategies, selectedRisk, selectedExpectedReturn, selectedMarketCap, selectedDividendYield, selectedHolding, selectedDuration, selectedRegions, selectedValuationMetrics, selectedGrowthMetrics, selectedTechnicalIndicators, selectedEsgRatings, selectedAnalysisType, selectedVolatility, selectedLiquidity, selectedConviction, selectedCatalyst, selectedValuation, selectedTechnical, selectedDiversification, selectedPerformance, debouncedSearch, showOnlyFree]);
+    return tips.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+  }, [tipsData, selectedAsset, selectedSector, selectedSentiment, selectedStrategies, selectedRisk, selectedExpectedReturn, selectedMarketCap, selectedDividendYield, selectedHolding, selectedDuration, selectedRegions, selectedValuationMetrics, selectedGrowthMetrics, selectedTechnicalIndicators, selectedEsgRatings, selectedAnalysisType, selectedVolatility, selectedLiquidity, selectedConviction, selectedCatalyst, selectedValuation, selectedTechnical, selectedDiversification, selectedPerformance, debouncedSearch, showOnlyFree, showOnlySebi]);
 
   // REMOVED: old visibleTips for pagination fix
 
@@ -4063,8 +3501,200 @@ export default function TipScreen() {
                     <span className="text-xs">Only Free Tips</span>
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>
-                  <p>Show tips that are older than 24 hours</p>
+                <TooltipContent side="bottom" className="max-w-sm p-0 border-2 border-black dark:border-black shadow-lg bg-white dark:bg-background">
+                  <div className="p-4 space-y-4">
+                    {/* Header */}
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-green-50 dark:bg-green-950 flex items-center justify-center p-1.5">
+                        <LockOpen size={14} className="text-green-600 dark:text-green-400" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-gray-900 dark:text-foreground">Free Investment Tips</div>
+                        <div className="text-xs text-gray-600 dark:text-muted-foreground">
+                          Access investment insights without spending credits
+                        </div>
+                      </div>
+                    </div>
+
+
+                     
+                      
+                      <div className="p-3 rounded-lg border bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 border-green-300 dark:border-green-700">
+                        <div className="flex items-center justify-between font-medium">
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                              <LockOpen size={14} className="text-green-600 dark:text-green-400" />
+                              <span className="text-xs text-gray-700 dark:text-foreground">Free Access Mode</span>
+                            </div>
+                          </div>
+                          <span className="text-sm font-bold text-green-600 dark:text-green-400">No Cost</span>
+                        </div>
+                        <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed mt-1">
+                          {showOnlyFree ? 'Will be showing only free tips (24+ hours old)' : 'Filter to show only free tips to conserve your credits'}
+                        </p>
+                        <div className="mt-2 pt-2 border-t border-green-200 dark:border-green-600">
+                          <p className="text-xs text-gray-500 dark:text-muted-foreground italic">
+                            Click on the button to apply the filter
+                          </p>
+                        </div>
+                      </div>
+
+{/* Separator */}
+                                            <div className="border-t border-gray-200 dark:border-border/50"></div>
+
+
+                    {/* Free Tips Information Section */}
+                    <div className="space-y-3">
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-900 dark:text-foreground">How Accessing Tips Work</h4>
+                        <p className="text-xs text-gray-600 dark:text-muted-foreground mt-1 leading-relaxed">
+                          Premium tips become free after 24 hours, allowing broader access to investment insights
+                        </p>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        <div className="p-2.5 rounded-lg border bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                          <div className="flex items-center justify-between text-xs mb-1">
+                            <div className="flex items-center gap-2">
+                              <Clock size={12} className="text-green-600 dark:text-green-400" />
+                              <span className="text-gray-700 dark:text-foreground font-medium">24-Hour Free Release</span>
+                            </div>
+                            <span className="text-xs text-green-600 dark:text-green-400 font-bold">✓ FREE</span>
+                          </div>
+                          <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                            Premium tips automatically become free after 24 hours - no credits required
+                          </p>
+                        </div>
+                        
+                        <div className="p-2.5 rounded-lg border bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+                          <div className="flex items-center justify-between text-xs mb-1">
+                            <div className="flex items-center gap-2">
+                              <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-3 h-3" />
+                              <span className="text-gray-700 dark:text-foreground font-medium">Premium Tips (Instant Access)</span>
+                            </div>
+                            <span className="text-xs text-blue-600 dark:text-blue-400 font-bold">LOLLIPOPS</span>
+                          </div>
+                          <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                            Use lollipop credits to unlock premium tips immediately for real-time trading
+                          </p>
+                        </div>
+                      </div>
+                      
+                     
+                    </div>
+                    
+                    <div className=" border-gray-200 dark:border-border/50">
+                      <p className="text-xs text-gray-500 dark:text-muted-foreground text-center">
+                        Great for learning and budget-conscious investors
+                      </p>
+                    </div>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={showOnlySebi ? "default" : "outline"}
+                    size="sm"
+                    className="flex items-center gap-1.5 px-3 rounded-full"
+                    onClick={() => setShowOnlySebi(!showOnlySebi)}
+                  >
+                    <Shield size={16} />
+                    <span className="text-xs">Only SEBI RIAs</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-sm p-0 border-2 border-black dark:border-black shadow-lg bg-white dark:bg-background">
+                  <div className="p-4 space-y-4">
+                    {/* Header */}
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-blue-50 dark:bg-blue-950 flex items-center justify-center p-1.5">
+                        <Shield size={14} className="text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div>
+                        <div className="text-sm font-bold text-gray-900 dark:text-foreground">SEBI Registered Investment Advisors</div>
+                        <div className="text-xs text-gray-600 dark:text-muted-foreground">
+                          Filter by regulatory compliance and trust
+                        </div>
+                      </div>
+                    </div>
+
+
+                      <div className="p-3 rounded-lg border bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 border-green-300 dark:border-green-700">
+                        <div className="flex items-center justify-between font-medium">
+                          <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                              <Shield size={14} className="text-green-600 dark:text-green-400" />
+                              <span className="text-xs text-gray-700 dark:text-foreground">SEBI RIA Filter</span>
+                            </div>
+                          </div>
+                          <span className="text-sm font-bold text-green-600 dark:text-green-400">Highest Trust</span>
+                        </div>
+                        <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed mt-1">
+                          {showOnlySebi ? 'Currently showing only SEBI RIAs - highest regulatory compliance' : 'Filter to show only SEBI registered advisors for maximum trust and legal protection'}
+                        </p>
+                        <div className="mt-2 pt-2 border-t border-green-200 dark:border-green-600">
+                          <p className="text-xs text-gray-500 dark:text-muted-foreground italic">
+                            Click on the button to apply the filter
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Separator */}
+                      <div className="border-t border-gray-200 dark:border-border/50"></div>
+                      
+
+                    {/* SEBI Information Section */}
+                    <div className="space-y-3">
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-900 dark:text-foreground">Types of Advisors on Platform</h4>
+                        <p className="text-xs text-gray-600 dark:text-muted-foreground mt-1 leading-relaxed">
+                          We have different categories of investment professionals with varying credentials
+                        </p>
+                      </div>
+                    
+
+
+
+                        
+                      <div className="space-y-2">
+                        <div className="p-2.5 rounded-lg border bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                          <div className="flex items-center justify-between text-xs mb-1">
+                            <div className="flex items-center gap-2">
+                              <Shield size={12} className="text-green-600 dark:text-green-400" />
+                              <span className="text-gray-700 dark:text-foreground font-medium">SEBI Registered Investment Advisors (RIAs)</span>
+                            </div>
+                            <span className="text-xs text-green-600 dark:text-green-400 font-bold">✓ LICENSED</span>
+                          </div>
+                          <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                            Licensed professionals with fiduciary duty, regulatory oversight, and professional indemnity insurance
+                          </p>
+                        </div>
+                        
+                        <div className="p-2.5 rounded-lg border bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+                          <div className="flex items-center justify-between text-xs mb-1">
+                            <div className="flex items-center gap-2">
+                              <BookOpen size={12} className="text-blue-600 dark:text-blue-400" />
+                              <span className="text-gray-700 dark:text-foreground font-medium">Independent Researchers & Analysts</span>
+                            </div>
+                            <span className="text-xs text-blue-600 dark:text-blue-400 font-bold">EDUCATIONAL</span>
+                          </div>
+                          <p className="text-xs text-gray-600 dark:text-muted-foreground leading-relaxed">
+                            Market researchers and analysts sharing educational insights for learning purposes
+                          </p>
+                        </div>
+                      </div>
+                      
+                    </div>
+                    
+                    <div className="border-gray-200 dark:border-border/50">
+                      <p className="text-xs text-gray-500 dark:text-muted-foreground text-center">
+                        SEBI RIAs offer highest trust with regulatory oversight and legal protection
+                      </p>
+                    </div>
+                  </div>
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
@@ -4162,6 +3792,7 @@ export default function TipScreen() {
     setSelectedDiversification([]);
     setSelectedPerformance([]);
     setShowOnlyFree(false);
+    setShowOnlySebi(false);
     
     // Set search to advisor name
     setSearch(advisorName);
@@ -4565,6 +4196,26 @@ export default function TipScreen() {
                           </div>
                           <div className="text-xs text-muted-foreground">
                             {showOnlyFree ? 'Include premium tips in results' : 'Show tips older than 24 hours only'}
+                          </div>
+                        </div>
+                        <ArrowUpRight size={14} className="ml-auto text-muted-foreground" />
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start p-3 h-auto rounded-xl border border-border hover:bg-muted/50"
+                        onClick={() => {
+                          setShowOnlySebi(!showOnlySebi);
+                          setFilterSheetOpen(false);
+                        }}
+                      >
+                        <Shield size={16} className="mr-3" />
+                        <div className="text-left">
+                          <div className="font-medium text-sm">
+                            {showOnlySebi ? 'Show All Advisors' : 'Only SEBI RIAs'}
+                          </div>
+                          <div className="text-xs text-muted-foreground">
+                            {showOnlySebi ? 'Include all advisor types in results' : 'Show tips from SEBI registered advisors only'}
                           </div>
                         </div>
                         <ArrowUpRight size={14} className="ml-auto text-muted-foreground" />
@@ -5099,17 +4750,35 @@ export default function TipScreen() {
           <SheetContent side="right" className="max-h-[100vh] w-full lg:w-[50%] overflow-y-auto">
             {selectedTipForMobile && (
               <div className="space-y-6 p-2">
-                {/* Header */}
+                {/* Header - Dual Template */}
                 <div className="p-2 border-b border-border">
-                  <div className="flex items-center gap-3 text-lg font-semibold mb-3">
-                    <div className="p-2 rounded-lg bg-primary/10">
-                      <Target size={20} className="text-primary" />
-                    </div>
-                    Investment Advisory
-                  </div>
-                  <div className="text-sm text-muted-foreground leading-relaxed">
-                    Copy this exact configuration to achieve the projected results. Professional analysis with precise entry, exit, and risk parameters for {selectedTipForMobile.symbol}.
-                  </div>
+                  {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? (
+                    // SEBI Registered Advisor Template - Professional Advisory
+                    <>
+                      <div className="flex items-center gap-3 text-lg font-semibold mb-3">
+                        <div className="p-2 rounded-lg bg-primary/10">
+                          <Target size={20} className="text-primary" />
+                        </div>
+                        Investment Advisory
+                      </div>
+                      <div className="text-sm text-muted-foreground leading-relaxed">
+                        Copy this exact configuration to achieve the projected results. Professional analysis with precise entry, exit, and risk parameters for {selectedTipForMobile.symbol}.
+                      </div>
+                    </>
+                  ) : (
+                    // Researcher Template - Educational Content
+                    <>
+                      <div className="flex items-center gap-3 text-lg font-semibold mb-3">
+                        <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-950/20">
+                          <BookOpen size={20} className="text-blue-600" />
+                        </div>
+                        Investment Research
+                      </div>
+                      <div className="text-sm text-muted-foreground leading-relaxed">
+                        Educational analysis for learning purposes. Study these price levels and market dynamics to understand potential {selectedTipForMobile.symbol} opportunities.
+                      </div>
+                    </>
+                  )}
                 </div>
                   
 
@@ -5152,11 +4821,11 @@ export default function TipScreen() {
                     </div>
                   </div>
 
-                  {/* Investment Strategy Section */}
+                  {/* Investment Strategy Section - Dual Template */}
                   <div className="space-y-4 p-2">
                     <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
                       <BookOpen size={14} />
-                      Investment Strategy
+                      {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Investment Strategy' : 'Research Analysis'}
                     </h3>
                     
                     <div className="rounded-xl border border-border bg-card overflow-hidden">
@@ -5185,7 +4854,9 @@ export default function TipScreen() {
                             <div className="font-semibold text-sm">{selectedTipForMobile.sector}</div>
                           </div>
                           <div className="space-y-2">
-                            <div className="text-xs text-muted-foreground">Trade Style</div>
+                            <div className="text-xs text-muted-foreground">
+                              {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Trade Style' : 'Study Period'}
+                            </div>
                             <div className="font-semibold text-sm">{selectedTipForMobile.holding || 'Swing'}</div>
                           </div>
                         </div>
@@ -5193,7 +4864,9 @@ export default function TipScreen() {
                         <div className="p-4 rounded-lg bg-muted/30 border border-dashed border-border">
                           <div className="flex items-start gap-2 mb-2">
                             <BookOpen size={14} className="text-primary mt-0.5" />
-                            <span className="text-sm font-medium">Investment Thesis</span>
+                            <span className="text-sm font-medium">
+                              {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Investment Thesis' : 'Research Findings'}
+                            </span>
                           </div>
                           <div className="text-sm text-muted-foreground leading-relaxed">
                             {selectedTipForMobile.tip}
@@ -5204,15 +4877,18 @@ export default function TipScreen() {
                       {/* Footer */}
                       <div className="px-4 py-2 bg-muted/20 border-t border-border">
                         <div className="text-xs text-muted-foreground text-center">
-                          Research-backed investment opportunity with clear rationale
+                          {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered 
+                            ? 'Professional investment advisory with actionable trade setup' 
+                            : 'Educational research for learning - not direct investment advice'
+                          }
                         </div>
                       </div>
                     </div>
-                  </div>                    {/* Trade Configuration Section */}
+                  </div>                    {/* Trade Configuration Section - Dual Template */}
                     <div className="space-y-4  p-2">
                       <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
                         <Target size={14} />
-                        Trade Configuration
+                        {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Trade Configuration' : 'Price Analysis'}
                       </h3>
                       
                       {/* Price Targets Card */}
@@ -5220,7 +4896,9 @@ export default function TipScreen() {
                         <div className="px-4 py-3 bg-muted/40 border-b border-border">
                           <div className="flex items-center gap-2">
                             <Target size={16} className="text-green-600" />
-                            <span className="text-sm font-medium">Price Targets</span>
+                            <span className="text-sm font-medium">
+                              {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Price Targets' : 'Price Levels Study'}
+                            </span>
                           </div>
                         </div>
                         
@@ -5229,7 +4907,9 @@ export default function TipScreen() {
                             <Popover>
                               <PopoverTrigger asChild>
                                 <div className="text-center p-3 rounded-lg bg-green-50 border border-green-200 cursor-pointer hover:bg-green-100 transition-colors">
-                                  <div className="text-xs text-green-700 mb-1">Entry Point</div>
+                                  <div className="text-xs text-green-700 mb-1">
+                                    {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Entry Point' : 'Study Level'}
+                                  </div>
                                   <div className="font-bold text-lg text-green-700">${selectedTipForMobile.entry_price}</div>
                                 </div>
                               </PopoverTrigger>
@@ -5237,13 +4917,20 @@ export default function TipScreen() {
                                 <div className="space-y-3">
                                   <div className="flex items-center gap-2">
                                     <Target size={16} className="text-green-600" />
-                                    <h4 className="font-semibold text-sm">Entry Price</h4>
+                                    <h4 className="font-semibold text-sm">
+                                      {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Entry Price' : 'Entry Analysis'}
+                                    </h4>
                                   </div>
                                   <p className="text-sm text-muted-foreground leading-relaxed">
-                                    The optimal price level to enter this investment based on technical and fundamental analysis. This represents the best risk-reward entry point identified by the advisor.
+                                    {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered 
+                                      ? 'The optimal price level to enter this investment based on technical and fundamental analysis. This represents the best risk-reward entry point identified by the advisor.'
+                                      : 'Study this price level as a potential entry point based on technical and fundamental analysis. This represents an interesting risk-reward level for educational purposes.'
+                                    }
                                   </p>
                                   <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
-                                    <strong>Recommended Entry:</strong> ${selectedTipForMobile.entry_price}
+                                    <strong>
+                                      {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Recommended Entry:' : 'Study Level:'}
+                                    </strong> ${selectedTipForMobile.entry_price}
                                   </div>
                                 </div>
                               </PopoverContent>
@@ -5252,7 +4939,9 @@ export default function TipScreen() {
                             <Popover>
                               <PopoverTrigger asChild>
                                 <div className="text-center p-3 rounded-lg bg-blue-50 border border-blue-200 cursor-pointer hover:bg-blue-100 transition-colors">
-                                  <div className="text-xs text-blue-700 mb-1">Target Price</div>
+                                  <div className="text-xs text-blue-700 mb-1">
+                                    {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Target Price' : 'Price Target Study'}
+                                  </div>
                                   <div className="font-bold text-lg text-blue-700">${selectedTipForMobile.exit_price}</div>
                                 </div>
                               </PopoverTrigger>
@@ -5260,13 +4949,20 @@ export default function TipScreen() {
                                 <div className="space-y-3">
                                   <div className="flex items-center gap-2">
                                     <Target size={16} className="text-blue-600" />
-                                    <h4 className="font-semibold text-sm">Target Price</h4>
+                                    <h4 className="font-semibold text-sm">
+                                      {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Target Price' : 'Target Analysis'}
+                                    </h4>
                                   </div>
                                   <p className="text-sm text-muted-foreground leading-relaxed">
-                                    The price level where you should consider taking profits. This target is based on valuation analysis, technical resistance levels, and expected price appreciation.
+                                    {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered 
+                                      ? 'The price level where you should consider taking profits. This target is based on valuation analysis, technical resistance levels, and expected price appreciation.'
+                                      : 'Study this price level as a potential profit-taking area. This target represents valuation analysis, technical resistance levels, and expected price appreciation for learning purposes.'
+                                    }
                                   </p>
                                   <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
-                                    <strong>Profit Target:</strong> ${selectedTipForMobile.exit_price}
+                                    <strong>
+                                      {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Profit Target:' : 'Target Study:'}
+                                    </strong> ${selectedTipForMobile.exit_price}
                                   </div>
                                 </div>
                               </PopoverContent>
@@ -5275,7 +4971,9 @@ export default function TipScreen() {
                             <Popover>
                               <PopoverTrigger asChild>
                                 <div className="text-center p-3 rounded-lg bg-red-50 border border-red-200 cursor-pointer hover:bg-red-100 transition-colors">
-                                  <div className="text-xs text-red-700 mb-1">Stop Loss</div>
+                                  <div className="text-xs text-red-700 mb-1">
+                                    {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Stop Loss' : 'Risk Level Study'}
+                                  </div>
                                   <div className="font-bold text-lg text-red-700">${selectedTipForMobile.stop_loss}</div>
                                 </div>
                               </PopoverTrigger>
@@ -5283,13 +4981,20 @@ export default function TipScreen() {
                                 <div className="space-y-3">
                                   <div className="flex items-center gap-2">
                                     <Shield size={16} className="text-red-600" />
-                                    <h4 className="font-semibold text-sm">Stop Loss</h4>
+                                    <h4 className="font-semibold text-sm">
+                                      {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Stop Loss' : 'Risk Analysis'}
+                                    </h4>
                                   </div>
                                   <p className="text-sm text-muted-foreground leading-relaxed">
-                                    The price level where you should exit to limit losses if the investment moves against you. This is a crucial risk management tool to protect your capital.
+                                    {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered 
+                                      ? 'The price level where you should exit to limit losses if the investment moves against you. This is a crucial risk management tool to protect your capital.'
+                                      : 'Study this price level as a potential risk management point. This represents where losses might be limited if the investment moves unfavorably, for educational analysis.'
+                                    }
                                   </p>
                                   <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
-                                    <strong>Risk Limit:</strong> ${selectedTipForMobile.stop_loss}
+                                    <strong>
+                                      {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Risk Limit:' : 'Risk Study:'}
+                                    </strong> ${selectedTipForMobile.stop_loss}
                                   </div>
                                 </div>
                               </PopoverContent>
@@ -5299,17 +5004,22 @@ export default function TipScreen() {
                         
                         <div className="px-4 py-2 bg-muted/20 border-t border-border">
                           <div className="text-xs text-muted-foreground text-center">
-                            Execute trades at these precise price levels for optimal results
+                            {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered 
+                              ? 'Execute trades at these precise price levels for optimal results' 
+                              : 'Study these price levels to understand market dynamics and risk-reward scenarios'
+                            }
                           </div>
                         </div>
                       </div>
 
-                      {/* Position Management Card */}
+                      {/* Position Management Card - Dual Template */}
                       <div className="rounded-xl border border-border bg-card overflow-hidden">
                         <div className="px-4 py-3 bg-muted/40 border-b border-border">
                           <div className="flex items-center gap-2">
                             <PieChart size={16} className="text-purple-600" />
-                            <span className="text-sm font-medium">Position Management</span>
+                            <span className="text-sm font-medium">
+                              {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Position Management' : 'Portfolio Study'}
+                            </span>
                           </div>
                         </div>
                         
@@ -5318,7 +5028,9 @@ export default function TipScreen() {
                             <Popover>
                               <PopoverTrigger asChild>
                                 <div className="text-center p-3 rounded-lg bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors">
-                                  <div className="text-xs text-muted-foreground mb-1">Expected Return</div>
+                                  <div className="text-xs text-muted-foreground mb-1">
+                                    {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Expected Return' : 'Return Analysis'}
+                                  </div>
                                   <div className="font-bold text-sm text-green-600">{selectedTipForMobile.expected_return}</div>
                                 </div>
                               </PopoverTrigger>
@@ -5326,13 +5038,20 @@ export default function TipScreen() {
                                 <div className="space-y-3">
                                   <div className="flex items-center gap-2">
                                     <TrendingUp size={16} className="text-green-600" />
-                                    <h4 className="font-semibold text-sm">Expected Return</h4>
+                                    <h4 className="font-semibold text-sm">
+                                      {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Expected Return' : 'Return Analysis'}
+                                    </h4>
                                   </div>
                                   <p className="text-sm text-muted-foreground leading-relaxed">
-                                    The anticipated percentage return if the investment reaches its target price. This is calculated based on the difference between entry and exit prices.
+                                    {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered 
+                                      ? 'The anticipated percentage return if the investment reaches its target price. This is calculated based on the difference between entry and exit prices.'
+                                      : 'Study this anticipated percentage return if the price reaches its target level. This calculation is based on the difference between entry and exit prices for educational analysis.'
+                                    }
                                   </p>
                                   <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
-                                    <strong>Projected Return:</strong> {selectedTipForMobile.expected_return}
+                                    <strong>
+                                      {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Projected Return:' : 'Study Return:'}
+                                    </strong> {selectedTipForMobile.expected_return}
                                   </div>
                                 </div>
                               </PopoverContent>
@@ -5341,7 +5060,9 @@ export default function TipScreen() {
                             <Popover>
                               <PopoverTrigger asChild>
                                 <div className="text-center p-3 rounded-lg bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors">
-                                  <div className="text-xs text-muted-foreground mb-1">Portfolio Allocation</div>
+                                  <div className="text-xs text-muted-foreground mb-1">
+                                    {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Portfolio Allocation' : 'Allocation Study'}
+                                  </div>
                                   <div className="font-bold text-sm">{selectedTipForMobile.allocation}%</div>
                                 </div>
                               </PopoverTrigger>
@@ -5349,13 +5070,20 @@ export default function TipScreen() {
                                 <div className="space-y-3">
                                   <div className="flex items-center gap-2">
                                     <PieChart size={16} className="text-purple-600" />
-                                    <h4 className="font-semibold text-sm">Portfolio Allocation</h4>
+                                    <h4 className="font-semibold text-sm">
+                                      {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Portfolio Allocation' : 'Allocation Study'}
+                                    </h4>
                                   </div>
                                   <p className="text-sm text-muted-foreground leading-relaxed">
-                                    The recommended percentage of your total portfolio to allocate to this investment. This is based on the risk level and expected returns of the position.
+                                    {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered 
+                                      ? 'The recommended percentage of your total portfolio to allocate to this investment. This is based on the risk level and expected returns of the position.'
+                                      : 'Study this suggested percentage allocation for educational purposes. This is based on risk level analysis and expected returns for learning about portfolio construction.'
+                                    }
                                   </p>
                                   <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
-                                    <strong>Recommended Allocation:</strong> {selectedTipForMobile.allocation}%
+                                    <strong>
+                                      {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Recommended Allocation:' : 'Study Allocation:'}
+                                    </strong> {selectedTipForMobile.allocation}%
                                   </div>
                                 </div>
                               </PopoverContent>
@@ -5364,7 +5092,9 @@ export default function TipScreen() {
                             <Popover>
                               <PopoverTrigger asChild>
                                 <div className="text-center p-3 rounded-lg bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors">
-                                  <div className="text-xs text-muted-foreground mb-1">Investment Duration</div>
+                                  <div className="text-xs text-muted-foreground mb-1">
+                                    {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Investment Duration' : 'Duration Study'}
+                                  </div>
                                   <div className="font-bold text-sm">{selectedTipForMobile.duration}</div>
                                 </div>
                               </PopoverTrigger>
@@ -5372,13 +5102,20 @@ export default function TipScreen() {
                                 <div className="space-y-3">
                                   <div className="flex items-center gap-2">
                                     <Clock size={16} className="text-blue-600" />
-                                    <h4 className="font-semibold text-sm">Investment Duration</h4>
+                                    <h4 className="font-semibold text-sm">
+                                      {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Investment Duration' : 'Duration Analysis'}
+                                    </h4>
                                   </div>
                                   <p className="text-sm text-muted-foreground leading-relaxed">
-                                    The recommended time period to hold this investment. This duration is based on the fundamental analysis and expected time for the investment thesis to play out.
+                                    {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered 
+                                      ? 'The recommended time period to hold this investment. This duration is based on the fundamental analysis and expected time for the investment thesis to play out.'
+                                      : 'Study this suggested time period for educational analysis. This duration represents the fundamental analysis timeframe and expected period for the thesis to develop.'
+                                    }
                                   </p>
                                   <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
-                                    <strong>Hold Period:</strong> {selectedTipForMobile.duration}
+                                    <strong>
+                                      {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Hold Period:' : 'Study Period:'}
+                                    </strong> {selectedTipForMobile.duration}
                                   </div>
                                 </div>
                               </PopoverContent>
@@ -5388,17 +5125,20 @@ export default function TipScreen() {
                         
                         <div className="px-4 py-2 bg-muted/20 border-t border-border">
                           <div className="text-xs text-muted-foreground text-center">
-                            Follow allocation guidelines for risk-adjusted returns
+                            {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered 
+                              ? 'Follow allocation guidelines for risk-adjusted returns' 
+                              : 'Study allocation concepts for educational understanding of risk management'
+                            }
                           </div>
                         </div>
                       </div>
                     </div>
 
-                    {/* Market Intelligence Section */}
+                    {/* Market Intelligence Section - Dual Template */}
                     <div className="space-y-4 p-2">
                       <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
                         <BarChart2 size={14} />
-                        Market Intelligence
+                        {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Market Intelligence' : 'Market Research'}
                       </h3>
                       
                       {/* Fundamental & Technical Analysis Card */}
@@ -5406,7 +5146,9 @@ export default function TipScreen() {
                         <div className="px-4 py-3 bg-muted/40 border-b border-border">
                           <div className="flex items-center gap-2">
                             <Activity size={16} className="text-orange-600" />
-                            <span className="text-sm font-medium">Fundamental & Technical Analysis</span>
+                            <span className="text-sm font-medium">
+                              {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Fundamental & Technical Analysis' : 'Analysis Study'}
+                            </span>
                           </div>
                         </div>
                         
@@ -5427,13 +5169,20 @@ export default function TipScreen() {
                                 <div className="space-y-3">
                                   <div className="flex items-center gap-2">
                                     <Zap size={16} className="text-yellow-600" />
-                                    <h4 className="font-semibold text-sm">Investment Catalyst</h4>
+                                    <h4 className="font-semibold text-sm">
+                                      {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Investment Catalyst' : 'Catalyst Study'}
+                                    </h4>
                                   </div>
                                   <p className="text-sm text-muted-foreground leading-relaxed">
-                                    The key event or factor that is expected to drive the price movement. Catalysts can include earnings reports, product launches, regulatory changes, or market events that create investment opportunities.
+                                    {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered 
+                                      ? 'The key event or factor that is expected to drive the price movement. Catalysts can include earnings reports, product launches, regulatory changes, or market events that create investment opportunities.'
+                                      : 'Study this key event or factor that could potentially drive price movement. Catalysts include earnings reports, product launches, regulatory changes, or market events for educational analysis.'
+                                    }
                                   </p>
                                   <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
-                                    <strong>Key Driver:</strong> {selectedTipForMobile.catalyst}
+                                    <strong>
+                                      {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Key Driver:' : 'Study Driver:'}
+                                    </strong> {selectedTipForMobile.catalyst}
                                   </div>
                                 </div>
                               </PopoverContent>
@@ -5443,7 +5192,9 @@ export default function TipScreen() {
                               <PopoverTrigger asChild>
                                 <div className="p-3 rounded-lg bg-muted/30 border border-dashed border-border cursor-pointer hover:bg-muted/50 transition-colors">
                                   <div className="flex items-center justify-between mb-2">
-                                    <span className="text-xs text-muted-foreground">Valuation Method</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Valuation Method' : 'Valuation Study'}
+                                    </span>
                                     <DollarSign size={12} className="text-green-600" />
                                   </div>
                                   <div className="font-medium text-sm">{selectedTipForMobile.valuation}</div>
@@ -5453,13 +5204,20 @@ export default function TipScreen() {
                                 <div className="space-y-3">
                                   <div className="flex items-center gap-2">
                                     <DollarSign size={16} className="text-green-600" />
-                                    <h4 className="font-semibold text-sm">Valuation Analysis</h4>
+                                    <h4 className="font-semibold text-sm">
+                                      {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Valuation Analysis' : 'Valuation Study'}
+                                    </h4>
                                   </div>
                                   <p className="text-sm text-muted-foreground leading-relaxed">
-                                    The method used to determine if the investment is fairly valued, undervalued, or overvalued. This includes metrics like P/E ratios, DCF analysis, or comparative valuation methods.
+                                    {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered 
+                                      ? 'The method used to determine if the investment is fairly valued, undervalued, or overvalued. This includes metrics like P/E ratios, DCF analysis, or comparative valuation methods.'
+                                      : 'Study the method used to analyze if an investment appears fairly valued, undervalued, or overvalued. Learn about metrics like P/E ratios, DCF analysis, or comparative valuation methods.'
+                                    }
                                   </p>
                                   <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
-                                    <strong>Valuation Approach:</strong> {selectedTipForMobile.valuation}
+                                    <strong>
+                                      {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Valuation Approach:' : 'Study Approach:'}
+                                    </strong> {selectedTipForMobile.valuation}
                                   </div>
                                 </div>
                               </PopoverContent>
@@ -5469,7 +5227,9 @@ export default function TipScreen() {
                               <PopoverTrigger asChild>
                                 <div className="p-3 rounded-lg bg-muted/30 border border-dashed border-border cursor-pointer hover:bg-muted/50 transition-colors">
                                   <div className="flex items-center justify-between mb-2">
-                                    <span className="text-xs text-muted-foreground">Technical Setup</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Technical Setup' : 'Technical Study'}
+                                    </span>
                                     <Activity size={12} className="text-blue-600" />
                                   </div>
                                   <div className="font-medium text-sm">{selectedTipForMobile.technical}</div>
@@ -5479,13 +5239,20 @@ export default function TipScreen() {
                                 <div className="space-y-3">
                                   <div className="flex items-center gap-2">
                                     <Activity size={16} className="text-blue-600" />
-                                    <h4 className="font-semibold text-sm">Technical Analysis</h4>
+                                    <h4 className="font-semibold text-sm">
+                                      {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Technical Analysis' : 'Technical Study'}
+                                    </h4>
                                   </div>
                                   <p className="text-sm text-muted-foreground leading-relaxed">
-                                    The technical indicators and chart patterns that support this investment decision. This includes trend analysis, support/resistance levels, and momentum indicators.
+                                    {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered 
+                                      ? 'The technical indicators and chart patterns that support this investment decision. This includes trend analysis, support/resistance levels, and momentum indicators.'
+                                      : 'Study the technical indicators and chart patterns for educational purposes. Learn about trend analysis, support/resistance levels, and momentum indicators.'
+                                    }
                                   </p>
                                   <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
-                                    <strong>Technical Signal:</strong> {selectedTipForMobile.technical}
+                                    <strong>
+                                      {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Technical Signal:' : 'Study Signal:'}
+                                    </strong> {selectedTipForMobile.technical}
                                   </div>
                                 </div>
                               </PopoverContent>
@@ -5496,7 +5263,9 @@ export default function TipScreen() {
                                 <PopoverTrigger asChild>
                                   <div className="p-3 rounded-lg bg-muted/30 border border-dashed border-border cursor-pointer hover:bg-muted/50 transition-colors">
                                     <div className="flex items-center justify-between mb-2">
-                                      <span className="text-xs text-muted-foreground">ESG Rating</span>
+                                      <span className="text-xs text-muted-foreground">
+                                        {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'ESG Rating' : 'ESG Study'}
+                                      </span>
                                       <Leaf size={12} className="text-green-600" />
                                     </div>
                                     <div className="font-medium text-sm">{selectedTipForMobile.esg_rating}</div>
@@ -5506,13 +5275,20 @@ export default function TipScreen() {
                                   <div className="space-y-3">
                                     <div className="flex items-center gap-2">
                                       <Leaf size={16} className="text-green-600" />
-                                      <h4 className="font-semibold text-sm">ESG Rating</h4>
+                                      <h4 className="font-semibold text-sm">
+                                        {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'ESG Rating' : 'ESG Analysis'}
+                                      </h4>
                                     </div>
                                     <p className="text-sm text-muted-foreground leading-relaxed">
-                                      Environmental, Social, and Governance (ESG) rating measures the company's sustainability practices, social responsibility, and corporate governance quality. Higher ratings indicate better ESG practices.
+                                      {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered 
+                                        ? 'Environmental, Social, and Governance (ESG) rating measures the company\'s sustainability practices, social responsibility, and corporate governance quality. Higher ratings indicate better ESG practices.'
+                                        : 'Study Environmental, Social, and Governance (ESG) factors for educational purposes. Learn how sustainability practices, social responsibility, and corporate governance quality are measured and analyzed.'
+                                      }
                                     </p>
                                     <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
-                                      <strong>ESG Score:</strong> {selectedTipForMobile.esg_rating}
+                                      <strong>
+                                        {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'ESG Score:' : 'Study Score:'}
+                                      </strong> {selectedTipForMobile.esg_rating}
                                     </div>
                                   </div>
                                 </PopoverContent>
@@ -5524,7 +5300,9 @@ export default function TipScreen() {
                                 <PopoverTrigger asChild>
                                   <div className="p-3 rounded-lg bg-muted/30 border border-dashed border-border cursor-pointer hover:bg-muted/50 transition-colors">
                                     <div className="flex items-center justify-between mb-2">
-                                      <span className="text-xs text-muted-foreground">Strategy</span>
+                                      <span className="text-xs text-muted-foreground">
+                                        {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Strategy' : 'Strategy Study'}
+                                      </span>
                                       <Target size={12} className="text-indigo-600" />
                                     </div>
                                     <div className="font-medium text-sm">{selectedTipForMobile.strategy}</div>
@@ -5534,13 +5312,20 @@ export default function TipScreen() {
                                   <div className="space-y-3">
                                     <div className="flex items-center gap-2">
                                       <Target size={16} className="text-indigo-600" />
-                                      <h4 className="font-semibold text-sm">Investment Strategy</h4>
+                                      <h4 className="font-semibold text-sm">
+                                        {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Investment Strategy' : 'Strategy Analysis'}
+                                      </h4>
                                     </div>
                                     <p className="text-sm text-muted-foreground leading-relaxed">
-                                      The investment approach or strategy used for this recommendation. This could include value investing, growth investing, momentum trading, or other systematic approaches.
+                                      {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered 
+                                        ? 'The investment approach or strategy used for this recommendation. This could include value investing, growth investing, momentum trading, or other systematic approaches.'
+                                        : 'Study the investment approach or strategy for educational purposes. Learn about value investing, growth investing, momentum trading, or other systematic approaches.'
+                                      }
                                     </p>
                                     <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
-                                      <strong>Strategy Type:</strong> {selectedTipForMobile.strategy}
+                                      <strong>
+                                        {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Strategy Type:' : 'Study Type:'}
+                                      </strong> {selectedTipForMobile.strategy}
                                     </div>
                                   </div>
                                 </PopoverContent>
@@ -5551,17 +5336,22 @@ export default function TipScreen() {
                         
                         <div className="px-4 py-2 bg-muted/20 border-t border-border">
                           <div className="text-xs text-muted-foreground text-center">
-                            Core fundamental and technical analysis factors
+                            {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered 
+                              ? 'Core fundamental and technical analysis factors' 
+                              : 'Educational analysis of fundamental and technical factors'
+                            }
                           </div>
                         </div>
                       </div>
 
-                      {/* Other Important Metrics Card */}
+                      {/* Other Important Metrics Card - Dual Template */}
                       <div className="rounded-xl border border-border bg-card overflow-hidden">
                         <div className="px-4 py-3 bg-muted/40 border-b border-border">
                           <div className="flex items-center gap-2">
                             <LineChart size={16} className="text-purple-600" />
-                            <span className="text-sm font-medium">Market Snapshot</span>
+                            <span className="text-sm font-medium">
+                              {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Market Snapshot' : 'Market Study'}
+                            </span>
                           </div>
                         </div>
                         
@@ -5583,13 +5373,20 @@ export default function TipScreen() {
                                   <div className="space-y-3">
                                     <div className="flex items-center gap-2">
                                       <Activity size={16} className="text-orange-600" />
-                                      <h4 className="font-semibold text-sm">Price Volatility</h4>
+                                      <h4 className="font-semibold text-sm">
+                                        {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Price Volatility' : 'Volatility Study'}
+                                      </h4>
                                     </div>
                                     <p className="text-sm text-muted-foreground leading-relaxed">
-                                      Measures how much the price is expected to fluctuate. Higher volatility means larger price swings, which can create both opportunities and risks.
+                                      {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered 
+                                        ? 'Measures how much the price is expected to fluctuate. Higher volatility means larger price swings, which can create both opportunities and risks.'
+                                        : 'Study how much the price might fluctuate for educational purposes. Learn how volatility creates price swings that represent both opportunities and risks.'
+                                      }
                                     </p>
                                     <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
-                                      <strong>Volatility Level:</strong> {selectedTipForMobile.volatility}
+                                      <strong>
+                                        {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Volatility Level:' : 'Study Level:'}
+                                      </strong> {selectedTipForMobile.volatility}
                                     </div>
                                   </div>
                                 </PopoverContent>
@@ -5603,7 +5400,9 @@ export default function TipScreen() {
                                     <div className="flex items-center justify-center mb-2">
                                       <Droplet size={14} className="text-cyan-600" />
                                     </div>
-                                    <div className="text-xs text-muted-foreground mb-1">Liquidity</div>
+                                    <div className="text-xs text-muted-foreground mb-1">
+                                      {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Liquidity' : 'Liquidity Study'}
+                                    </div>
                                     <div className="font-medium text-xs">{selectedTipForMobile.liquidity}</div>
                                   </div>
                                 </PopoverTrigger>
@@ -5611,13 +5410,20 @@ export default function TipScreen() {
                                   <div className="space-y-3">
                                     <div className="flex items-center gap-2">
                                       <Droplet size={16} className="text-cyan-600" />
-                                      <h4 className="font-semibold text-sm">Market Liquidity</h4>
+                                      <h4 className="font-semibold text-sm">
+                                        {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Market Liquidity' : 'Liquidity Analysis'}
+                                      </h4>
                                     </div>
                                     <p className="text-sm text-muted-foreground leading-relaxed">
-                                      Shows how easily you can buy or sell this investment without significantly affecting its price. Higher liquidity means faster execution and tighter spreads.
+                                      {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered 
+                                        ? 'Shows how easily you can buy or sell this investment without significantly affecting its price. Higher liquidity means faster execution and tighter spreads.'
+                                        : 'Study how easily one might buy or sell this investment for educational purposes. Learn how liquidity affects execution speed and price spreads.'
+                                      }
                                     </p>
                                     <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
-                                      <strong>Liquidity Level:</strong> {selectedTipForMobile.liquidity}
+                                      <strong>
+                                        {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Liquidity Level:' : 'Study Level:'}
+                                      </strong> {selectedTipForMobile.liquidity}
                                     </div>
                                   </div>
                                 </PopoverContent>
@@ -5963,11 +5769,11 @@ export default function TipScreen() {
 
                   
 
-                      {/* Advisor Information Section */}
+                      {/* Advisor Information Section - Dual Template */}
                     <div className="space-y-4 p-2">
                       <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
                         <User size={14} />
-                        Investment Advisor
+                        {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Investment Advisor' : 'Research Analyst'}
                       </h3>
                       
                       <div className="rounded-xl border border-border bg-card overflow-hidden">
@@ -5975,7 +5781,9 @@ export default function TipScreen() {
                         <div className="px-4 py-3 bg-muted/40 border-b border-border">
                           <div className="flex items-center gap-2">
                             <ShieldCheck size={16} className="text-green-600" />
-                            <span className="text-sm font-medium">Professional Credentials</span>
+                            <span className="text-sm font-medium">
+                              {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Professional Credentials' : 'Research Credentials'}
+                            </span>
                           </div>
                         </div>
                         
@@ -5998,12 +5806,17 @@ export default function TipScreen() {
                                 {selectedTipForMobile.advisor_name}
                               </div>
                               <div className="text-sm text-muted-foreground mb-2">
-                                {selectedTipForMobile.advisor_title || 'Certified Financial Advisor'}
+                                {selectedTipForMobile.advisor_title || (selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Certified Financial Advisor' : 'Research Analyst')}
                               </div>
-                              {selectedTipForMobile.advisor_sebi_registered && (
+                              {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? (
                                 <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-200">
                                   <ShieldCheck size={12} className="mr-1" />
                                   SEBI Registered
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                                  <BookOpen size={12} className="mr-1" />
+                                  Research Analyst
                                 </Badge>
                               )}
                             </div>
@@ -6023,7 +5836,9 @@ export default function TipScreen() {
                               }}
                             >
                               <div className="font-bold text-lg text-primary">{selectedTipForMobile.advisor_total_tips || '127'}</div>
-                              <div className="text-xs text-muted-foreground mt-1">Total Tips</div>
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Total Tips' : 'Research Posts'}
+                              </div>
                               <ArrowUpRight 
                                 size={14} 
                                 className="absolute top-2 right-2 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer hover:text-primary" 
@@ -6038,7 +5853,9 @@ export default function TipScreen() {
                             </div>
                             <div className="text-center p-3 rounded-lg bg-muted/30">
                               <div className="font-bold text-lg text-green-600">{selectedTipForMobile.advisor_win_rate *100 || selectedTipForMobile.win_rate*100 || '84'}%</div>
-                              <div className="text-xs text-muted-foreground mt-1">Success Rate</div>
+                              <div className="text-xs text-muted-foreground mt-1">
+                                {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? 'Success Rate' : 'Accuracy Rate'}
+                              </div>
                             </div>
                             <div className="text-center p-3 rounded-lg bg-muted/30">
                               <div className="font-bold text-lg text-blue-600">{selectedTipForMobile.experience || '7'}+</div>
@@ -6050,21 +5867,42 @@ export default function TipScreen() {
                         {/* Footer */}
                         <div className="px-4 py-2 bg-muted/20 border-t border-border">
                           <div className="text-xs text-muted-foreground text-center">
-                            Verified professional with proven track record
+                            {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered 
+                              ? 'Verified professional with proven track record' 
+                              : 'Educational researcher with market analysis expertise'
+                            }
                           </div>
                         </div>
                       </div>
                     </div>
                 
-                {/* Footer */}
+                {/* Footer - Dual Template */}
                 <div className="py-4 border-t  bg-muted/20 ">
                   <div className="flex items-center justify-center gap-2 mb-2">
-                    <Target size={14} className="text-primary" />
-                    <span className="text-sm font-medium">Professional Investment Advisory</span>
+                    {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? (
+                      <>
+                        <Target size={14} className="text-primary" />
+                        <span className="text-sm font-medium">Professional Investment Advisory</span>
+                      </>
+                    ) : (
+                      <>
+                        <BookOpen size={14} className="text-blue-600" />
+                        <span className="text-sm font-medium">Educational Research Content</span>
+                      </>
+                    )}
                   </div>
                   <div className="text-xs text-center text-muted-foreground leading-relaxed">
-                    This configuration is designed for optimal risk-adjusted returns.<br />
-                    <span className="font-medium">Always conduct your own due diligence before investing.</span>
+                    {selectedTipForMobile.advisor_sebi_registered || selectedTipForMobile.sebi_registered ? (
+                      <>
+                        This configuration is designed for optimal risk-adjusted returns.<br />
+                        <span className="font-medium">Always conduct your own due diligence before investing.</span>
+                      </>
+                    ) : (
+                      <>
+                        This content is for educational research and learning purposes only.<br />
+                        <span className="font-medium">Not financial advice - consult a qualified advisor before investing.</span>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -6390,53 +6228,97 @@ export default function TipScreen() {
                 </div>
                 
                 <div className="space-y-3">
-                  <div className="p-3 rounded-lg border bg-green-50 dark:bg-gold-950 border-green-200 dark:border-green-800">
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-2">
-                        <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-4 h-4" />
-                        <span>Base unlock</span>
-                      </div>
-                      <span className="font-medium">1</span>
-                    </div>
-                  </div>
-                  
-                  <div className="p-3 rounded-lg border bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-2">
-                        <div className="flex gap-1">
-                          <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-4 h-4" />
-                          <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-4 h-4" />
+                  {(() => {
+                    const requiredLollipops = selectedPaywallTip?.lollipopsRequired || 3;
+                    const isSebiRegistered = selectedPaywallTip?.advisor_sebi_registered || selectedPaywallTip?.sebi_registered;
+                    const successRate = parseInt(selectedPaywallTip?.successRate || selectedPaywallTip?.success_rate || '0');
+                    
+                    // Dynamic pricing structure
+                    const pricingComponents = [];
+                    let totalCost = 0;
+                    
+                    // Base cost (always 1)
+                    pricingComponents.push({
+                      title: "Base unlock",
+                      description: "Standard credit for accessing investment tips",
+                      cost: 1,
+                      iconCount: 1
+                    });
+                    totalCost += 1;
+                    
+                    // SEBI registration premium
+                    if (isSebiRegistered && requiredLollipops > 1) {
+                      const sebiCost = Math.min(2, requiredLollipops - totalCost);
+                      if (sebiCost > 0) {
+                        pricingComponents.push({
+                          title: "SEBI Registered",
+                          description: "Premium for tips from SEBI registered advisors",
+                          cost: sebiCost,
+                          iconCount: sebiCost
+                        });
+                        totalCost += sebiCost;
+                      }
+                    }
+                    
+                    // High performance premium
+                    if (successRate > 65 && totalCost < requiredLollipops) {
+                      const performanceCost = Math.min(2, requiredLollipops - totalCost);
+                      if (performanceCost > 0) {
+                        pricingComponents.push({
+                          title: `${selectedPaywallTip?.successRate || successRate + '%'} Success Rate`,
+                          description: "Extra charge for high-performing advisor recommendations",
+                          cost: performanceCost,
+                          iconCount: performanceCost
+                        });
+                        totalCost += performanceCost;
+                      }
+                    }
+                    
+                    // Additional premium if still under required amount
+                    if (totalCost < requiredLollipops) {
+                      const remainingCost = requiredLollipops - totalCost;
+                      const winRate = selectedPaywallTip?.successRate || selectedPaywallTip?.success_rate || '0';
+                      pricingComponents.push({
+                        title: `${winRate || 72}% Win Rate`,
+                        description: `Advisors with win rates above 50% qualify for premium pricing.`,
+                        cost: remainingCost,
+                        iconCount: remainingCost
+                      });
+                    }
+                    
+                    return pricingComponents.map((component, index) => (
+                      <div key={index} className="p-3 rounded-lg border bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center gap-2">
+                            <div className="flex gap-1">
+                              {[...Array(component.iconCount)].map((_, i) => (
+                                <img key={i} src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-4 h-4" />
+                              ))}
+                            </div>
+                            <span>{component.title}</span>
+                          </div>
+                          <span className="font-medium">{component.cost}</span>
                         </div>
-                        <span>SEBI Registered</span>
+                        {component.description && (
+                          <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                            {component.description}
+                          </p>
+                        )}
                       </div>
-                      <span className="font-medium">2</span>
-                    </div>
-                  </div>
-                  
-                  <div className="p-3 rounded-lg border bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center gap-2">
-                        <div className="flex gap-1">
-                          <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-4 h-4" />
-                          <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-4 h-4" />
-                        </div>
-                        <span>{selectedPaywallTip?.successRate || '68%'} Success Rate</span>
-                      </div>
-                      <span className="font-medium">2</span>
-                    </div>
-                  </div>
+                    ));
+                  })()}
                   
                   <div className="p-4 rounded-lg border bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900 dark:to-emerald-900 border-green-300 dark:border-green-700">
                     <div className="flex items-center justify-between font-medium">
                       <div className="flex-col items-center gap-2">
                         <div className="flex gap-1">
-                          {[...Array(5)].map((_, i) => (
+                          {[...Array(selectedPaywallTip?.lollipopsRequired || 3)].map((_, i) => (
                             <img key={i} src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-4 h-4" />
                           ))}
                         </div>
                         <span>Total Investment</span>
                       </div>
-                      <span className="text-lg font-bold text-green-600">5 Lollipops</span>
+                      <span className="text-lg font-bold text-green-600">{selectedPaywallTip?.lollipopsRequired || 3} Lollipops</span>
                     </div>
                     
                     <div className="mt-3 pt-3 border-t border-green-200 dark:border-green-700">
@@ -6453,9 +6335,10 @@ export default function TipScreen() {
                           <Button 
                             className="w-full font-medium relative"
                             size="lg"
-                            variant={userData?.credits >= 5 ? "default" : "outline"}
+                            variant={userData?.credits >= (selectedPaywallTip?.lollipopsRequired || 3) ? "default" : "outline"}
                             onClick={async () => {
-                              if (userData?.credits >= 5) {
+                              const requiredLollipops = selectedPaywallTip?.lollipopsRequired || 3;
+                              if (userData?.credits >= requiredLollipops) {
                                 const unlockSuccess = await handleUnlockTip(selectedPaywallTip);
                                 if (unlockSuccess) {
                                   setShowPaywallSheet(false);
@@ -6468,16 +6351,16 @@ export default function TipScreen() {
                                   });
                                 }
                               } else {
-                                toast("Not enough Lollipops! You need 5 Lollipops to unlock this tip.", {
+                                toast(`Not enough Lollipops! You need ${requiredLollipops} Lollipops to unlock this tip.`, {
                                   duration: 3000,
                                   position: "top-center",
                                 });
                               }
                             }}
-                            disabled={userData?.credits < 5}
+                            disabled={userData?.credits < (selectedPaywallTip?.lollipopsRequired || 3)}
                           >
                             <div className="flex items-center justify-center gap-2">
-                              {userData?.credits >= 5 ? (
+                              {userData?.credits >= (selectedPaywallTip?.lollipopsRequired || 3) ? (
                                 <>
                                   <LockOpenIcon className="w-4 h-4" />
                                   <span>Unlock Investment Tip</span>

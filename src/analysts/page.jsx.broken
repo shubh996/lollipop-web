@@ -1,0 +1,2667 @@
+import { useEffect, useState, useRef } from "react";
+import supabase from "@/lib/supabaseClient";
+import { formatDistanceToNow } from "date-fns";
+import { 
+  Search, 
+  RefreshCw, 
+  Info, 
+  Sun, 
+  Moon, 
+  Bell, 
+  User,
+  TrendingUp, 
+  TrendingDown, 
+  Minus, 
+  ArrowLeft,
+  Loader2,
+  X,
+  Plus,
+  Eye,
+  Lock,
+  Trash,
+  MessageSquare,
+  ArrowUpRight,
+  Calendar,
+  Clock,
+  BarChart2,
+  Target,
+  ChevronDown,
+  MoreHorizontal,
+  Activity,
+  Building,
+  DollarSign,
+  Shield,
+  Briefcase,
+  Package,
+  Laptop,
+  AlertTriangle,
+  Gauge,
+  Globe,
+  FileText,
+  Leaf,
+  Droplets,
+  Shuffle,
+  Trophy,
+  LineChart,
+  Zap,
+  Calculator,
+  Banknote,
+  Upload,
+  Settings,
+  Edit2,
+  Save,
+  Building2,
+  MapPin,
+  PieChart,
+  Award,
+  LogIn,
+  Lightbulb,
+  Rocket,
+  Percent,
+  GitBranch,
+  Home,
+  Users,
+  Factory,
+  Radio,
+  Speaker,
+  Settings2,
+  
+} from "lucide-react";
+
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { 
+  Accordion, 
+  AccordionContent, 
+  AccordionItem, 
+  AccordionTrigger 
+} from '@/components/ui/accordion';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Badge } from '@/components/ui/badge';
+import { Card, CardTitle, CardContent, CardHeader, CardFooter } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { toast } from "sonner";
+
+import LollipopSVG from '../assets/icons/lollipop.svg';
+import LollipopSVGWhite from '../assets/icons/lollipop-white.svg';
+
+// Master filter configuration inspired by TipScreen
+const MASTER_FILTERS = {
+  assets: [
+    { name: 'Equity', Icon: BarChart2, desc: 'Individual company stocks and shares' },
+    { name: 'Forex', Icon: DollarSign, desc: 'Foreign exchange currency pairs' },
+    { name: 'ETF', Icon: Package, desc: 'Exchange-traded funds tracking indexes or sectors' },
+    { name: 'Crypto', Icon: Shield, desc: 'Digital currencies and blockchain tokens' },
+    { name: 'F&O', Icon: Target, desc: 'Futures and options derivatives' },
+    { name: 'Bonds', Icon: Shield, desc: 'Government and corporate debt securities' },
+    { name: 'Commodities', Icon: Package, desc: 'Physical goods like gold, oil, agricultural products' },
+    { name: 'REITs', Icon: Home, desc: 'Real estate investment trusts' },
+    { name: 'Mutual Funds', Icon: PieChart, desc: 'Professionally managed investment funds' },
+    { name: 'Index Funds', Icon: BarChart2, desc: 'Funds tracking market indexes' },
+  ],
+  sectors: [
+    { name: 'Technology', Icon: Laptop, desc: 'Software, hardware, and tech services companies' },
+    { name: 'Finance', Icon: Building, desc: 'Banks, insurance, and financial services' },
+    { name: 'Healthcare', Icon: Plus, desc: 'Pharmaceuticals, medical devices, and healthcare providers' },
+    { name: 'Energy', Icon: Zap, desc: 'Oil, gas, renewable energy, and utilities' },
+    { name: 'Consumer', Icon: Users, desc: 'Consumer retail and e-commerce companies' },
+    { name: 'Industrials', Icon: Factory, desc: 'Manufacturing, aerospace, and industrial equipment' },
+    { name: 'Real Estate', Icon: Home, desc: 'Property investments and development' },
+    { name: 'Utilities', Icon: Zap, desc: 'Electric, gas, water, and waste management services' },
+    { name: 'Materials', Icon: Package, desc: 'Basic materials, chemicals, and mining companies' },
+    { name: 'Telecommunications', Icon: Radio, desc: 'Phone, internet, and communication infrastructure' },
+    { name: 'Consumer Discretionary', Icon: Users, desc: 'Non-essential consumer goods and services' },
+    { name: 'Consumer Staples', Icon: Package, desc: 'Essential consumer goods and services' },
+  ],
+  risk: [
+    { name: 'Very Low', Icon: Shield, desc: 'Extremely safe investments like government bonds' },
+    { name: 'Low', Icon: Shield, desc: 'Conservative investments with minimal risk of loss' },
+    { name: 'Medium', Icon: Gauge, desc: 'Moderate risk with balanced return potential' },
+    { name: 'High', Icon: AlertTriangle, desc: 'Aggressive investments with significant risk' },
+    { name: 'Very High', Icon: AlertTriangle, desc: 'Speculative investments with potential for major losses' },
+  ],
+  strategies: [
+    { name: 'Growth', Icon: TrendingUp, desc: 'Invest in companies with high growth potential' },
+    { name: 'Value', Icon: Banknote, desc: 'Buy undervalued assets trading below intrinsic value' },
+    { name: 'Momentum', Icon: Gauge, desc: 'Buy assets showing strong price trends and momentum' },
+    { name: 'Income', Icon: DollarSign, desc: 'Focus on dividend-paying assets for regular income' },
+    { name: 'Defensive', Icon: Shield, desc: 'Conservative approach to preserve capital' },
+    { name: 'Contrarian', Icon: RefreshCw, desc: 'Go against popular market sentiment' },
+    { name: 'Swing Trading', Icon: Activity, desc: 'Short to medium-term trading strategy' },
+    { name: 'Position Trading', Icon: Target, desc: 'Long-term position holding strategy' },
+  ],
+  conviction: [
+    { name: 'Speculative', Icon: AlertTriangle, desc: 'Weak conviction, just a hunch' },
+    { name: 'Low', Icon: Minus, desc: 'Low conviction, not very confident' },
+    { name: 'Moderate', Icon: Target, desc: 'Moderate conviction, some confidence' },
+    { name: 'Strong', Icon: Award, desc: 'Strong conviction, confident' },
+    { name: 'Very Strong', Icon: Trophy, desc: 'Very strong conviction, highly confident' },
+  ],
+  sentiment: [
+    { name: 'Very Bullish', Icon: TrendingUp, desc: 'Extremely positive outlook' },
+    { name: 'Bullish', Icon: TrendingUp, desc: 'Positive outlook' },
+    { name: 'Neutral', Icon: Minus, desc: 'Balanced outlook' },
+    { name: 'Bearish', Icon: TrendingDown, desc: 'Negative outlook' },
+    { name: 'Very Bearish', Icon: TrendingDown, desc: 'Extremely negative outlook' },
+  ],
+  holding: [
+    { name: 'Intraday', Icon: Clock, desc: 'Same day trading' },
+    { name: '1W', Icon: Calendar, desc: 'One week holding period' },
+    { name: '1M', Icon: Calendar, desc: 'One month holding period' },
+    { name: '3M', Icon: Calendar, desc: 'Three months holding period' },
+    { name: '6M', Icon: Calendar, desc: 'Six months holding period' },
+    { name: '1Y', Icon: Calendar, desc: 'One year holding period' },
+    { name: 'Long-Term', Icon: Calendar, desc: 'More than one year' },
+  ],
+  regions: [
+    { name: 'India', Icon: Globe, desc: 'Indian markets' },
+    { name: 'US', Icon: Globe, desc: 'United States markets' },
+    { name: 'Europe', Icon: Globe, desc: 'European markets' },
+    { name: 'Asia', Icon: Globe, desc: 'Asian markets' },
+    { name: 'Global', Icon: Globe, desc: 'International markets' },
+    { name: 'Emerging Markets', Icon: Globe, desc: 'Developing countries markets' },
+  ],
+  marketCap: [
+    { name: 'Large Cap', Icon: Building, desc: 'Companies with market cap > ₹20,000 Cr' },
+    { name: 'Mid Cap', Icon: Building, desc: 'Companies with market cap ₹5,000-20,000 Cr' },
+    { name: 'Small Cap', Icon: Building, desc: 'Companies with market cap < ₹5,000 Cr' },
+    { name: 'Micro Cap', Icon: Building, desc: 'Very small companies' },
+  ],
+  analysisType: [
+    { name: 'Fundamental', Icon: FileText, desc: 'Based on company fundamentals' },
+    { name: 'Technical', Icon: LineChart, desc: 'Based on price and volume patterns' },
+    { name: 'Quantitative', Icon: Calculator, desc: 'Based on mathematical models' },
+    { name: 'Macro', Icon: Globe, desc: 'Based on macroeconomic factors' },
+    { name: 'Event-Driven', Icon: Zap, desc: 'Based on specific events or catalysts' },
+  ],
+};
+
+export default function Page() {
+  // State management
+  const [posts, setPosts] = useState([]);
+  const [filteredPosts, setFilteredPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [showProfileSetup, setShowProfileSetup] = useState(false);
+  const [profileForm, setProfileForm] = useState({ name: '', profile_photo_url: '' });
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
+  
+  // Search and filters
+  const [search, setSearch] = useState("");
+  const [selectedAssets, setSelectedAssets] = useState([]);
+  const [selectedSectors, setSelectedSectors] = useState([]);
+  const [selectedRisk, setSelectedRisk] = useState([]);
+  const [selectedStrategies, setSelectedStrategies] = useState([]);
+  const [selectedConviction, setSelectedConviction] = useState([]);
+  const [showOnlyRecent, setShowOnlyRecent] = useState(false);
+  
+  // UI states
+  const [isDarkTheme, setIsDarkTheme] = useState(() => {
+    // Initialize theme from localStorage or default to system preference
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('theme');
+      if (saved) return saved === 'dark';
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return false;
+  });
+  const [showNewTipForm, setShowNewTipForm] = useState(false);
+  const [selectedTip, setSelectedTip] = useState(null);
+  const [showTipDetails, setShowTipDetails] = useState(false);
+  const [showFiltersSheet, setShowFiltersSheet] = useState(false);
+  const [editingTip, setEditingTip] = useState(null);
+  
+  // New tip form state
+  const [newTip, setNewTip] = useState({
+    // Core tip information
+    tip: '',
+    symbol: '',
+    asset: '',
+    sector: '',
+    
+    // Advisor information (will be populated from user profile)
+    advisor_name: '',
+    advisor_avatar: '',
+    advisor_sebi_registered: false,
+    
+    // Investment analysis
+    sentiment: '',
+    strategy: '',
+    risk: '',
+    expected_return: '',
+    holding: '',
+    duration: '',
+    conviction: '',
+    
+    // Market data
+    market_cap: '',
+    dividend_yield: '',
+    region: '',
+    volatility: '',
+    liquidity: '',
+    win_rate: '',
+    allocation: '',
+    
+    // Valuation metrics
+    valuation_metric: '',
+    growth_metric: '',
+    valuation: '',
+    
+    // Technical analysis
+    technical_indicator: '',
+    technical: '',
+    
+    // ESG and other ratings
+    esg_rating: '',
+    analysis_type: '',
+    
+    // Investment thesis
+    catalyst: '',
+    diversification: '',
+    performance: '',
+    
+    // Price targets
+    entry_price: '',
+    exit_price: '',
+    stop_loss: '',
+  });
+  const [submitting, setSubmitting] = useState(false);
+
+  // Initialize and fetch data
+  useEffect(() => {
+    console.log("🚀 [USE_EFFECT] Starting fetchUserAndPosts...");
+    
+    async function fetchUserAndPosts() {
+      console.log("📋 [FETCH_USER_POSTS] Function started");
+      console.log("⏳ [LOADING] Setting loading to true");
+      setLoading(true);
+      
+      console.log("🔐 [AUTH] Getting user from Supabase auth...");
+      const { data: authData } = await supabase.auth.getUser();
+      console.log("🔐 [AUTH] Auth data received:", authData);
+      console.log("👤 [USER] Setting user:", authData.user);
+      setUser(authData.user);
+      
+      if (authData.user) {
+        console.log("✅ [USER_EXISTS] User is authenticated, user ID:", authData.user.id);
+        
+        // Fetch user profile
+        console.log("📊 [PROFILE] Fetching user profile from database...");
+        const { data: profileData } = await supabase
+          .from('users')
+          .select('profile_photo_url, name, email')
+          .eq('id', authData.user.id)
+          .single();
+        
+        console.log("📊 [PROFILE] Profile data received:", profileData);
+        console.log("📊 [PROFILE] Setting profile state:", profileData);
+        setProfile(profileData);
+        
+        // Check if profile setup is needed
+        console.log("🔍 [PROFILE_CHECK] Checking if profile setup is needed...");
+        console.log("🔍 [PROFILE_CHECK] Profile name:", profileData?.name);
+        console.log("🔍 [PROFILE_CHECK] Profile photo URL:", profileData?.profile_photo_url);
+        
+        if (!profileData?.name || !profileData?.profile_photo_url) {
+          console.log("⚠️ [PROFILE_SETUP] Profile incomplete, showing setup dialog");
+          setShowProfileSetup(true);
+          const formData = {
+            name: profileData?.name || '',
+            profile_photo_url: profileData?.profile_photo_url || ''
+          };
+          console.log("📝 [PROFILE_FORM] Setting profile form data:", formData);
+          setProfileForm(formData);
+        } else {
+          console.log("✅ [PROFILE_COMPLETE] Profile is complete, no setup needed");
+        }
+        
+        // Fetch user's tips
+        console.log("💡 [TIPS] Fetching user's investment tips...");
+        console.log("💡 [TIPS] Query parameters - user_id:", authData.user.id);
+        const { data: postsData } = await supabase
+          .from("investment_tips")
+          .select("*")
+          .eq("user_id", authData.user.id)
+          .order("created_at", { ascending: false });
+        
+        console.log("💡 [TIPS] Tips data received:", postsData);
+        console.log("💡 [TIPS] Number of tips found:", postsData?.length || 0);
+        console.log("💡 [TIPS] Setting posts state:", postsData || []);
+        setPosts(postsData || []);
+      } else {
+        console.log("❌ [NO_USER] No authenticated user found");
+        console.log("❌ [NO_USER] Setting profile to null");
+        setProfile(null);
+        console.log("❌ [NO_USER] Setting posts to empty array");
+        setPosts([]);
+      }
+      
+      console.log("⏳ [LOADING] Setting loading to false");
+      setLoading(false);
+      console.log("✅ [FETCH_USER_POSTS] Function completed successfully");
+    }
+    
+    fetchUserAndPosts();
+    console.log("🏁 [USE_EFFECT] fetchUserAndPosts function called");
+  }, []);
+
+  // Theme persistence effect
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('theme', isDarkTheme ? 'dark' : 'light');
+      
+      // Apply theme to document root for global CSS custom properties
+      if (isDarkTheme) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+  }, [isDarkTheme]);
+
+  // Toggle theme function
+  const toggleTheme = () => {
+    setIsDarkTheme(prev => !prev);
+  };
+
+  // Filter posts based on search and filters
+  useEffect(() => {
+    console.log("🔍 [FILTER_EFFECT] Starting filter effect...");
+    console.log("🔍 [FILTER_EFFECT] Total posts:", posts.length);
+    console.log("🔍 [FILTER_EFFECT] Search term:", search);
+    console.log("🔍 [FILTER_EFFECT] Selected assets:", selectedAssets);
+    console.log("🔍 [FILTER_EFFECT] Selected sectors:", selectedSectors);
+    console.log("🔍 [FILTER_EFFECT] Selected risk:", selectedRisk);
+    console.log("🔍 [FILTER_EFFECT] Selected strategies:", selectedStrategies);
+    console.log("🔍 [FILTER_EFFECT] Selected conviction:", selectedConviction);
+    console.log("🔍 [FILTER_EFFECT] Show only recent:", showOnlyRecent);
+    
+    let filtered = [...posts];
+    console.log("🔍 [FILTER_EFFECT] Initial filtered array length:", filtered.length);
+
+    // Search filter
+    if (search.trim()) {
+      console.log("🔍 [SEARCH_FILTER] Applying search filter...");
+      const searchTerm = search.toLowerCase();
+      console.log("🔍 [SEARCH_FILTER] Search term (lowercase):", searchTerm);
+      
+      const beforeSearch = filtered.length;
+      filtered = filtered.filter(tip => 
+        tip.tip?.toLowerCase().includes(searchTerm) ||
+        tip.symbol?.toLowerCase().includes(searchTerm) ||
+        tip.sector?.toLowerCase().includes(searchTerm) ||
+        tip.strategy?.toLowerCase().includes(searchTerm)
+      );
+      console.log("🔍 [SEARCH_FILTER] Posts after search filter:", filtered.length, "(was", beforeSearch, ")");
+    }
+
+    // Asset filter
+    if (selectedAssets.length > 0) {
+      console.log("🔍 [ASSET_FILTER] Applying asset filter...");
+      const beforeAsset = filtered.length;
+      filtered = filtered.filter(tip => selectedAssets.includes(tip.asset));
+      console.log("🔍 [ASSET_FILTER] Posts after asset filter:", filtered.length, "(was", beforeAsset, ")");
+    }
+
+    // Sector filter
+    if (selectedSectors.length > 0) {
+      console.log("🔍 [SECTOR_FILTER] Applying sector filter...");
+      const beforeSector = filtered.length;
+      filtered = filtered.filter(tip => selectedSectors.includes(tip.sector));
+      console.log("🔍 [SECTOR_FILTER] Posts after sector filter:", filtered.length, "(was", beforeSector, ")");
+    }
+
+    // Risk filter
+    if (selectedRisk.length > 0) {
+      console.log("🔍 [RISK_FILTER] Applying risk filter...");
+      const beforeRisk = filtered.length;
+      filtered = filtered.filter(tip => selectedRisk.includes(tip.risk));
+      console.log("🔍 [RISK_FILTER] Posts after risk filter:", filtered.length, "(was", beforeRisk, ")");
+    }
+
+    // Strategy filter
+    if (selectedStrategies.length > 0) {
+      console.log("🔍 [STRATEGY_FILTER] Applying strategy filter...");
+      const beforeStrategy = filtered.length;
+      filtered = filtered.filter(tip => selectedStrategies.includes(tip.strategy));
+      console.log("🔍 [STRATEGY_FILTER] Posts after strategy filter:", filtered.length, "(was", beforeStrategy, ")");
+    }
+
+    // Conviction filter
+    if (selectedConviction.length > 0) {
+      console.log("🔍 [CONVICTION_FILTER] Applying conviction filter...");
+      const beforeConviction = filtered.length;
+      filtered = filtered.filter(tip => selectedConviction.includes(tip.conviction));
+      console.log("🔍 [CONVICTION_FILTER] Posts after conviction filter:", filtered.length, "(was", beforeConviction, ")");
+    }
+
+    // Recent filter (last 7 days)
+    if (showOnlyRecent) {
+      console.log("🔍 [RECENT_FILTER] Applying recent filter (last 7 days)...");
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      console.log("🔍 [RECENT_FILTER] Seven days ago date:", sevenDaysAgo);
+      
+      const beforeRecent = filtered.length;
+      filtered = filtered.filter(tip => new Date(tip.created_at) > sevenDaysAgo);
+      console.log("🔍 [RECENT_FILTER] Posts after recent filter:", filtered.length, "(was", beforeRecent, ")");
+    }
+
+    console.log("🔍 [FILTER_EFFECT] Final filtered posts:", filtered.length);
+    console.log("🔍 [FILTER_EFFECT] Filtered posts array:", filtered);
+    console.log("🔍 [FILTER_EFFECT] Setting filteredPosts state...");
+    setFilteredPosts(filtered);
+    console.log("🔍 [FILTER_EFFECT] Filter effect completed");
+  }, [posts, search, selectedAssets, selectedSectors, selectedRisk, selectedStrategies, selectedConviction, showOnlyRecent]);
+
+  // Profile image upload handler
+  const handleProfileImageUpload = async (e) => {
+    console.log("🖼️ [IMAGE_UPLOAD] Starting profile image upload...");
+    console.log("🖼️ [IMAGE_UPLOAD] Event target:", e.target);
+    
+    const file = e.target.files[0];
+    console.log("🖼️ [IMAGE_UPLOAD] Selected file:", file);
+    
+    if (!file) {
+      console.log("❌ [IMAGE_UPLOAD] No file selected, returning");
+      return;
+    }
+    
+    console.log("📁 [IMAGE_UPLOAD] File details:");
+    console.log("📁 [IMAGE_UPLOAD] - Name:", file.name);
+    console.log("📁 [IMAGE_UPLOAD] - Size:", file.size, "bytes");
+    console.log("📁 [IMAGE_UPLOAD] - Type:", file.type);
+    console.log("📁 [IMAGE_UPLOAD] - Last modified:", new Date(file.lastModified));
+    
+    console.log("⏳ [IMAGE_UPLOAD] Setting isUploading to true");
+    setIsUploading(true);
+    
+    try {
+      const fileName = `${Date.now()}_${file.name}`;
+      console.log("📝 [IMAGE_UPLOAD] Generated filename:", fileName);
+      
+      console.log("☁️ [STORAGE] Uploading to Supabase storage...");
+      console.log("☁️ [STORAGE] Bucket: post-images");
+      console.log("☁️ [STORAGE] Filename:", fileName);
+      
+      const { error: uploadError } = await supabase.storage
+        .from('post-images')
+        .upload(fileName, file);
+      
+      console.log("☁️ [STORAGE] Upload completed");
+      console.log("☁️ [STORAGE] Upload error (if any):", uploadError);
+      
+      if (uploadError) {
+        console.log("❌ [STORAGE] Upload failed, throwing error");
+        throw uploadError;
+      }
+      
+      console.log("✅ [STORAGE] Upload successful, getting public URL...");
+      const { data: { publicUrl } } = supabase.storage
+        .from('post-images')
+        .getPublicUrl(fileName);
+      
+      console.log("🔗 [URL] Public URL generated:", publicUrl);
+      
+      console.log("📋 [FORM_UPDATE] Updating profile form with new image URL");
+      console.log("📋 [FORM_UPDATE] Current profile form:", profileForm);
+      
+      setProfileForm(prev => {
+        const updatedForm = {
+          ...prev,
+          profile_photo_url: publicUrl
+        };
+        console.log("📋 [FORM_UPDATE] Updated profile form:", updatedForm);
+        return updatedForm;
+      });
+      
+      console.log("🎉 [IMAGE_UPLOAD] Image upload completed successfully!");
+    } catch (error) {
+      console.log("❌ [IMAGE_UPLOAD] Error occurred during upload:");
+      console.error('Error uploading image:', error);
+      console.log("❌ [IMAGE_UPLOAD] Error message:", error.message);
+      console.log("❌ [IMAGE_UPLOAD] Error code:", error.code);
+      console.log("❌ [IMAGE_UPLOAD] Error details:", error.details);
+      console.log("🚨 [IMAGE_UPLOAD] Showing error toast");
+      toast.error('Failed to upload image');
+    } finally {
+      console.log("⏳ [IMAGE_UPLOAD] Setting isUploading to false");
+      setIsUploading(false);
+      console.log("🏁 [IMAGE_UPLOAD] Image upload process completed");
+    }
+  };
+
+  // Profile submit handler
+  const handleProfileSubmit = async (e) => {
+    console.log("👤 [PROFILE_SUBMIT] Starting profile submission...");
+    console.log("👤 [PROFILE_SUBMIT] Event:", e);
+    
+    e.preventDefault();
+    console.log("👤 [PROFILE_SUBMIT] Default prevented");
+    
+    console.log("👤 [PROFILE_SUBMIT] Current profileForm state:", profileForm);
+    console.log("👤 [PROFILE_SUBMIT] Name:", profileForm.name);
+    console.log("👤 [PROFILE_SUBMIT] Name trimmed:", profileForm.name.trim());
+    console.log("👤 [PROFILE_SUBMIT] Profile photo URL:", profileForm.profile_photo_url);
+    
+    console.log("🔍 [VALIDATION] Checking name field...");
+    if (!profileForm.name.trim()) {
+      console.log("❌ [VALIDATION] Name validation failed - empty name");
+      toast.error('Please enter your name');
+      return;
+    }
+    console.log("✅ [VALIDATION] Name validation passed");
+    
+    console.log("🔍 [VALIDATION] Checking profile photo URL...");
+    if (!profileForm.profile_photo_url) {
+      console.log("❌ [VALIDATION] Photo validation failed - no photo URL");
+      toast.error('Please upload a profile picture');
+      return;
+    }
+    console.log("✅ [VALIDATION] Photo validation passed");
+    
+    try {
+      console.log("💾 [PROFILE_UPDATE] Starting database update...");
+      console.log("💾 [PROFILE_UPDATE] User ID:", user.id);
+      
+      const updateData = {
+        id: user.id,
+        name: profileForm.name.trim(),
+        profile_photo_url: profileForm.profile_photo_url,
+      };
+      
+      console.log("💾 [PROFILE_UPDATE] Update data:", updateData);
+      console.log("💾 [PROFILE_UPDATE] Upserting to users table...");
+      
+      const { error } = await supabase
+        .from('users')
+        .upsert(updateData, {
+          onConflict: 'id'
+        });
+      
+      console.log("💾 [PROFILE_UPDATE] Database operation completed");
+      console.log("💾 [PROFILE_UPDATE] Error (if any):", error);
+      
+      if (error) {
+        console.log("❌ [PROFILE_UPDATE] Database error occurred, throwing...");
+        throw error;
+      }
+      
+      console.log("✅ [PROFILE_UPDATE] Database update successful!");
+      console.log("📋 [STATE_UPDATE] Updating profile state...");
+      console.log("📋 [STATE_UPDATE] Current profile:", profile);
+      
+      const newProfileData = {
+        ...profile,
+        name: profileForm.name.trim(),
+        profile_photo_url: profileForm.profile_photo_url
+      };
+      
+      console.log("📋 [STATE_UPDATE] New profile data:", newProfileData);
+      setProfile(newProfileData);
+      
+      console.log("🔄 [UI_UPDATE] Closing profile setup dialog");
+      setShowProfileSetup(false);
+      
+      console.log("🎉 [SUCCESS] Showing success toast");
+      toast.success('Profile updated successfully');
+      
+      console.log("✅ [PROFILE_SUBMIT] Profile submission completed successfully");
+    } catch (error) {
+      console.log("❌ [PROFILE_SUBMIT] Error occurred during submission:");
+      console.error('Error updating profile:', error);
+      console.log("❌ [PROFILE_SUBMIT] Error message:", error.message);
+      console.log("❌ [PROFILE_SUBMIT] Error code:", error.code);
+      console.log("❌ [PROFILE_SUBMIT] Error details:", error.details);
+      console.log("🚨 [PROFILE_SUBMIT] Showing error toast");
+      toast.error('Failed to update profile');
+    }
+    
+    console.log("🏁 [PROFILE_SUBMIT] Profile submission process completed");
+  };
+
+  // New tip form handlers
+  const handleNewTipChange = (field, value) => {
+    setNewTip(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleSubmitNewTip = async () => {
+    console.log("🚀 [TIP_SUBMIT] Starting tip submission process...");
+    console.log("📝 [TIP_SUBMIT] Current newTip state:", newTip);
+    
+    console.log("🔍 [VALIDATION] Checking required fields...");
+    console.log("🔍 [VALIDATION] Symbol:", newTip.symbol);
+    console.log("🔍 [VALIDATION] Tip:", newTip.tip);
+    
+    if (!newTip.symbol || !newTip.tip) {
+      console.log("❌ [VALIDATION] Validation failed - missing required fields");
+      console.log("❌ [VALIDATION] Symbol present:", !!newTip.symbol);
+      console.log("❌ [VALIDATION] Tip present:", !!newTip.tip);
+      toast.error('Please fill in required fields (Symbol and Investment Tip)');
+      return;
+    }
+
+    console.log("✅ [VALIDATION] Validation passed");
+    console.log("⏳ [SUBMIT] Setting submitting state to true");
+    setSubmitting(true);
+    
+    console.log("📊 [USER_CHECK] Current user:", user);
+    console.log("📊 [USER_CHECK] User ID:", user?.id);
+    console.log("📊 [PROFILE_CHECK] Current profile:", profile);
+    console.log("📊 [PROFILE_CHECK] Profile photo URL:", profile?.profile_photo_url);
+    console.log("📊 [PROFILE_CHECK] Profile name:", profile?.name);
+    console.log("📊 [PROFILE_CHECK] User metadata photo:", user?.user_metadata?.profile_photo_url);
+    console.log("📊 [PROFILE_CHECK] User metadata name:", user?.user_metadata?.name);
+    
+    const tipData = {
+      ...newTip,
+      user_id: user.id,
+      advisor_name: profile?.name || user?.user_metadata?.name || '',
+      advisor_avatar: profile?.profile_photo_url || user?.user_metadata?.profile_photo_url || '',
+      advisor_sebi_registered: profile?.sebi_registered || false,
+      created_at: new Date().toISOString(),
+    };
+
+    console.log("📋 [TIP_DATA] Final tip data to be inserted:", tipData);
+    console.log("📋 [TIP_DATA] User ID:", tipData.user_id);
+    console.log("📋 [TIP_DATA] Avatar URL:", tipData.avatar);
+    console.log("📋 [TIP_DATA] Name:", tipData.name);
+    console.log("📋 [TIP_DATA] Created at:", tipData.created_at);
+    console.log("📋 [TIP_DATA] Symbol:", tipData.symbol);
+    console.log("📋 [TIP_DATA] Tip content:", tipData.tip);
+
+    console.log("💾 [DATABASE] Inserting tip into Supabase...");
+    const { data, error } = await supabase.from('investment_tips').insert([tipData]);
+    
+    console.log("💾 [DATABASE] Insert operation completed");
+    console.log("💾 [DATABASE] Returned data:", data);
+    console.log("💾 [DATABASE] Error (if any):", error);
+    
+    if (!error) {
+      console.log("✅ [SUCCESS] Tip inserted successfully!");
+      console.log("📋 [STATE_UPDATE] Adding tip to posts state...");
+      console.log("📋 [STATE_UPDATE] Current posts length:", posts.length);
+      
+      setPosts(prev => {
+        const newPosts = [tipData, ...prev];
+        console.log("📋 [STATE_UPDATE] New posts array length:", newPosts.length);
+        console.log("📋 [STATE_UPDATE] New posts array:", newPosts);
+        return newPosts;
+      });
+      
+      console.log("🔄 [UI_RESET] Closing form dialog");
+      setShowNewTipForm(false);
+      
+      const resetTipData = {
+        // Core tip information
+        tip: '',
+        symbol: '',
+        asset: '',
+        sector: '',
+        
+        // Advisor information (will be populated from user profile)
+        advisor_name: '',
+        advisor_avatar: '',
+        advisor_sebi_registered: false,
+        
+        // Investment analysis
+        sentiment: '',
+        strategy: '',
+        risk: '',
+        expected_return: '',
+        holding: '',
+        duration: '',
+        conviction: '',
+        
+        // Market data
+        market_cap: '',
+        dividend_yield: '',
+        region: '',
+        volatility: '',
+        liquidity: '',
+        win_rate: '',
+        allocation: '',
+        
+        // Valuation metrics
+        valuation_metric: '',
+        growth_metric: '',
+        valuation: '',
+        
+        // Technical analysis
+        technical_indicator: '',
+        technical: '',
+        
+        // ESG and other ratings
+        esg_rating: '',
+        analysis_type: '',
+        
+        // Investment thesis
+        catalyst: '',
+        diversification: '',
+        performance: '',
+        
+        // Price targets
+        entry_price: '',
+        exit_price: '',
+        stop_loss: '',
+      };
+      
+      console.log("🔄 [UI_RESET] Resetting newTip form to:", resetTipData);
+      setNewTip(resetTipData);
+      
+      console.log("🎉 [SUCCESS] Showing success toast");
+      toast.success('Tip created successfully!');
+    } else {
+      console.log("❌ [ERROR] Failed to insert tip");
+      console.log("❌ [ERROR] Error details:", error);
+      console.log("❌ [ERROR] Error message:", error.message);
+      console.log("❌ [ERROR] Error code:", error.code);
+      console.log("❌ [ERROR] Error details:", error.details);
+      console.log("🚨 [ERROR] Showing error toast");
+      toast.error('Failed to create tip');
+    }
+    
+    console.log("⏳ [SUBMIT] Setting submitting state to false");
+    setSubmitting(false);
+    console.log("🏁 [TIP_SUBMIT] Tip submission process completed");
+  };
+
+  // Delete tip handler
+  const handleDeleteTip = async (tip) => {
+    if (!confirm('Are you sure you want to delete this tip?')) return;
+    
+    const { error } = await supabase
+      .from('investment_tips')
+      .delete()
+      .eq('id', tip.id);
+    
+    if (!error) {
+      setPosts(prev => prev.filter(p => p.id !== tip.id));
+      toast.success('Tip deleted successfully');
+    } else {
+      toast.error('Failed to delete tip');
+    }
+  };
+
+  // Filter toggle helper
+  const toggleFilter = (filterArray, setFilter, value) => {
+    if (filterArray.includes(value)) {
+      setFilter(filterArray.filter(x => x !== value));
+    } else {
+      setFilter([...filterArray, value]);
+    }
+  };
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setSelectedAssets([]);
+    setSelectedSectors([]);
+    setSelectedRisk([]);
+    setSelectedStrategies([]);
+    setSelectedConviction([]);
+    setShowOnlyRecent(false);
+    setSearch('');
+  };
+
+  // Get active filter count
+  const getActiveFilterCount = () => {
+    return selectedAssets.length + selectedSectors.length + selectedRisk.length + 
+           selectedStrategies.length + selectedConviction.length + (showOnlyRecent ? 1 : 0);
+  };
+
+  return (
+    <div className={isDarkTheme ? 'dark' : ''}>
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800/50 text-foreground transition-colors duration-300">
+        
+        {/* Profile Setup Dialog */}
+        <Dialog open={showProfileSetup} onOpenChange={setShowProfileSetup}>
+          <DialogContent className="sm:max-w-md bg-background/95 dark:bg-slate-900/95 backdrop-blur-md border-2 border-border dark:border-slate-700">
+            <DialogHeader>
+              <DialogTitle className="text-foreground">Complete Your Profile</DialogTitle>
+            </DialogHeader>
+            <form onSubmit={handleProfileSubmit} className="space-y-4">
+              <div className="flex flex-col items-center space-y-4">
+                <div className="relative group">
+                  <Avatar className="h-24 w-24 ring-4 ring-primary/20 dark:ring-primary/30">
+                    <AvatarImage src={profileForm.profile_photo_url} />
+                    <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 dark:from-primary/30 dark:to-primary/20">
+                      {isUploading ? (
+                        <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                      ) : (
+                        <span className="text-2xl font-bold text-primary">
+                          {profileForm.name ? profileForm.name.charAt(0).toUpperCase() : 'U'}
+                        </span>
+                      )}
+                    </AvatarFallback>
+                  </Avatar>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute -bottom-2 -right-2 bg-gradient-to-r from-primary to-primary/90 text-primary-foreground p-2 rounded-full hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all duration-200"
+                  >
+                    <Upload className="h-4 w-4" />
+                  </button>
+                  <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleProfileImageUpload}
+                    accept="image/*"
+                    className="hidden"
+                  />
+                </div>
+                
+                <div className="w-full space-y-2">
+                  <Label htmlFor="name" className="text-foreground font-medium">Full Name</Label>
+                  <Input
+                    id="name"
+                    value={profileForm.name}
+                    onChange={(e) => setProfileForm(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Enter your full name"
+                    required
+                    className="bg-background/50 dark:bg-slate-800/50 border-2 border-border dark:border-slate-600 focus:border-primary"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button 
+                  type="submit" 
+                  disabled={isUploading}
+                  className="bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-xl transition-all duration-200"
+                >
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : 'Save Profile'}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+
+        {/* Header */}
+        <header className="w-full border-b border-border/40 dark:border-slate-700/50 bg-gradient-to-r from-background/95 via-background/98 to-background/95 dark:from-slate-900/95 dark:via-slate-800/98 dark:to-slate-900/95 backdrop-blur-xl sticky top-0 z-40 transition-all duration-300">
+          <div className="w-full px-4 py-3">
+            <div className="flex items-center justify-between">
+              {/* Left: New Tip Button */}
+              <div className="flex items-center">
+                <Button 
+                  onClick={() => setShowNewTipForm(true)} 
+                  className="flex items-center gap-2 h-9 bg-gradient-to-r from-primary via-primary/95 to-primary/90 hover:from-primary/95 hover:via-primary/90 hover:to-primary/85 transition-all duration-200 rounded-xl px-4 font-semibold text-xs hover:scale-105"
+                >
+                  <Plus size={14} />
+                  <span>New Tip</span>
+                </Button>
+              </div>
+
+              {/* Center: Logo */}
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 rounded-xl border border-primary/15 dark:border-primary/25 hover:scale-105 transition-all duration-200">
+                  <img src={isDarkTheme ? LollipopSVGWhite : LollipopSVG} alt="Lollipop" className="w-7 h-7" />
+                </div>
+                <div className="space-y-0">
+                  <h1 className="text-xl font-bold bg-gradient-to-r from-primary via-primary/90 to-primary/70 bg-clip-text text-transparent tracking-tight">LOLLIPOP</h1>
+                  <p className="text-xs text-muted-foreground font-medium">Investment Analytics Dashboard</p>
+                </div>
+              </div>
+
+              {/* Right: Theme, Notifications, Profile */}
+              <div className="flex items-center gap-2">
+                {/* Theme Toggle */}
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={toggleTheme}
+                        className="h-9 w-9 p-0 rounded-xl bg-background/50 dark:bg-slate-800/50 border border-border/50 dark:border-slate-600/70 hover:border-primary/30 hover:bg-primary/5 hover:scale-105 transition-all duration-200"
+                      >
+                        {isDarkTheme ? (
+                          <Sun size={16} className="text-yellow-500 dark:text-yellow-400" />
+                        ) : (
+                          <Moon size={16} className="text-slate-600 dark:text-slate-400" />
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="p-0 border-2 border-foreground dark:border-border bg-background rounded-xl overflow-hidden">
+                      <div className="px-4 py-3">
+                        <div className="text-sm font-semibold text-foreground mb-1">
+                          Switch to {isDarkTheme ? 'Light' : 'Dark'} Mode
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Toggle between light and dark themes
+                        </div>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+
+                {/* Notifications */}
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-9 w-9 p-0 rounded-xl bg-background/50 dark:bg-slate-800/50 border border-border/50 dark:border-slate-600/70 hover:border-primary/30 hover:bg-primary/5 transition-all duration-200"
+                >
+                  <Bell size={16} className="text-muted-foreground hover:text-foreground" />
+                </Button>
+
+                {/* User Profile */}
+                <div className="flex items-center gap-2 bg-background/50 dark:bg-slate-800/50 border border-border/50 dark:border-slate-600/70 rounded-xl p-1.5 hover:border-primary/30 hover:bg-primary/5 transition-all duration-200">
+                  {profile?.profile_photo_url ? (
+                    <Avatar className="h-7 w-7 ring-2 ring-primary/20 dark:ring-primary/30">
+                      <AvatarImage src={profile.profile_photo_url} />
+                      <AvatarFallback className="bg-gradient-to-br from-primary/20 to-primary/10 dark:from-primary/30 dark:to-primary/20 text-primary font-bold text-xs">
+                        {(profile?.name || 'U').charAt(0).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                  ) : (
+                    <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 flex items-center justify-center">
+                      <User size={16} className="text-primary" />
+                    </div>
+                  )}
+                  <div className="hidden sm:block">
+                    <p className="text-xs font-semibold text-foreground leading-tight">{profile?.name || 'User'}</p>
+                    <p className="text-xs text-muted-foreground leading-tight">{(profile?.email || user?.email)?.slice(0, 15)}...</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+        
+          </div>
+        </header>
+        <main className="w-full px-6 py-8 bg-gradient-to-br from-background via-background to-muted/10 dark:from-slate-950 dark:via-slate-900 dark:to-slate-800/50 min-h-screen">
+          {loading ? (
+            <div className="flex items-center justify-center h-64">
+              <div className="text-center space-y-4">
+                <Loader2 className="w-8 h-8 animate-spin mx-auto text-muted-foreground" />
+                <p className="text-muted-foreground">Loading your investment tips...</p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {/* Stats cards */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="bg-background/60 dark:bg-slate-900/60 border border-border/50 dark:border-slate-700/50 rounded-2xl p-6 backdrop-blur-sm hover:border-primary/30 transition-all duration-200 hover:bg-background/80 dark:hover:bg-slate-900/80">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 rounded-xl">
+                      <MessageSquare className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-foreground">{posts.length}</div>
+                      <p className="text-xs text-muted-foreground">Total Tips</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Investment recommendations</p>
+                </div>
+
+                <div className="bg-background/60 dark:bg-slate-900/60 border border-border/50 dark:border-slate-700/50 rounded-2xl p-6 backdrop-blur-sm hover:border-primary/30 transition-all duration-200 hover:bg-background/80 dark:hover:bg-slate-900/80">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-gradient-to-br from-blue-100 to-blue-50 dark:from-blue-900/30 dark:to-blue-800/20 rounded-xl">
+                      <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-foreground">
+                        {posts.filter(tip => {
+                          const tipDate = new Date(tip.created_at);
+                          const sevenDaysAgo = new Date();
+                          sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+                          return tipDate > sevenDaysAgo;
+                        }).length}
+                      </div>
+                      <p className="text-xs text-muted-foreground">This Week</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Recent tips</p>
+                </div>
+
+                <div className="bg-background/60 dark:bg-slate-900/60 border border-border/50 dark:border-slate-700/50 rounded-2xl p-6 backdrop-blur-sm hover:border-primary/30 transition-all duration-200 hover:bg-background/80 dark:hover:bg-slate-900/80">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-gradient-to-br from-green-100 to-green-50 dark:from-green-900/30 dark:to-green-800/20 rounded-xl">
+                      <PieChart className="h-5 w-5 text-green-600 dark:text-green-400" />
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-foreground">
+                        {(() => {
+                          const sectorCounts = posts.reduce((acc, tip) => {
+                            if (tip.sector) {
+                              acc[tip.sector] = (acc[tip.sector] || 0) + 1;
+                            }
+                            return acc;
+                          }, {});
+                          const topSector = Object.entries(sectorCounts).sort(([,a], [,b]) => b - a)[0];
+                          return topSector ? topSector[0] : 'N/A';
+                        })()}
+                      </div>
+                      <p className="text-xs text-muted-foreground">Top Sector</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Most covered sector</p>
+                </div>
+
+                <div className="bg-background/60 dark:bg-slate-900/60 border border-border/50 dark:border-slate-700/50 rounded-2xl p-6 backdrop-blur-sm hover:border-primary/30 transition-all duration-200 hover:bg-background/80 dark:hover:bg-slate-900/80">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="p-3 bg-gradient-to-br from-amber-100 to-amber-50 dark:from-amber-900/30 dark:to-amber-800/20 rounded-xl">
+                      <Trophy className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-foreground">
+                        {posts.filter(tip => tip.conviction === 'Strong' || tip.conviction === 'Very Strong').length}
+                      </div>
+                      <p className="text-xs text-muted-foreground">High Conviction</p>
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground">Strong conviction tips</p>
+                </div>
+              </div>
+
+              {/* Search and Filters Section */}
+              <div className="bg-background/60 dark:bg-slate-900/60 border border-border/50 dark:border-slate-700/50 rounded-2xl p-6 backdrop-blur-sm">
+                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                  <div className="flex-1 max-w-md">
+                    <Label className="text-sm font-semibold text-foreground mb-2 block">Search Tips</Label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
+                      <Input
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        placeholder="Search tips, symbols, sectors..."
+                        className="pl-10 pr-4 bg-background/80 dark:bg-slate-800/80 border border-border/30 dark:border-slate-600/50 rounded-xl font-medium placeholder:text-muted-foreground/70 focus:border-primary/50"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    {/* Filters */}
+                    <Sheet open={showFiltersSheet} onOpenChange={setShowFiltersSheet}>
+                      <SheetTrigger asChild>
+                        <Button 
+                          variant="outline" 
+                          className="bg-background/80 dark:bg-slate-800/80 border border-border/50 dark:border-slate-600/70 hover:bg-primary/10 hover:border-primary/40 transition-all duration-200 rounded-xl px-4 relative"
+                        >
+                          <Settings size={16} className="mr-2 text-primary" />
+                          <span className="font-medium">Filters</span>
+                          {getActiveFilterCount() > 0 && (
+                            <Badge variant="destructive" className="absolute -top-2 -right-2 h-5 w-5 p-0 text-xs rounded-full">
+                              {getActiveFilterCount()}
+                            </Badge>
+                          )}
+                        </Button>
+                      </SheetTrigger>
+                      <SheetContent side="right" className="w-full sm:w-96">
+                        <SheetHeader>
+                          <SheetTitle>Filter Tips</SheetTitle>
+                          <SheetDescription>
+                            Use filters to find specific types of investment tips.
+                          </SheetDescription>
+                        </SheetHeader>
+                        
+                        <ScrollArea className="h-[calc(100vh-120px)] mt-6">
+                          <div className="space-y-6">
+                            {/* Filter content ... */}
+                          </div>
+                        </ScrollArea>
+                        
+                        <div className="flex gap-2 mt-6 pt-4 border-t">
+                          <Button variant="outline" onClick={clearAllFilters} className="flex-1">
+                            Clear All
+                          </Button>
+                          <Button onClick={() => setShowFiltersSheet(false)} className="flex-1">
+                            Apply Filters
+                          </Button>
+                        </div>
+                      </SheetContent>
+                    </Sheet>
+
+                    {/* Clear filters button (when active) */}
+                    {getActiveFilterCount() > 0 && (
+                      <Button 
+                        variant="ghost" 
+                        onClick={clearAllFilters}
+                        className="bg-background/80 dark:bg-slate-800/80 border border-border/50 dark:border-slate-600/70 hover:bg-destructive/10 hover:border-destructive/40 hover:text-destructive transition-all duration-200 rounded-xl px-3"
+                      >
+                        <X size={14} className="mr-1" />
+                        Clear ({getActiveFilterCount()})
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Tips list */}
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-2xl font-bold text-foreground">
+                    Investment Tips 
+                    {filteredPosts.length !== posts.length && (
+                      <span className="text-muted-foreground ml-2 text-lg font-normal">
+                        ({filteredPosts.length} of {posts.length})
+                      </span>
+                    )}
+                  </h2>
+                </div>
+                    
+                    {/* Filters */}
+                <Sheet open={showFiltersSheet} onOpenChange={setShowFiltersSheet}>
+                  <SheetTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <Settings2 size={16} className="mr-2" />
+                      Filters
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="right" className="w-full sm:w-96">
+                    <SheetHeader>
+                      <SheetTitle>Filter Tips</SheetTitle>
+                      <SheetDescription>
+                        Use filters to find specific types of investment tips.
+                      </SheetDescription>
+                    </SheetHeader>
+                    
+                    <ScrollArea className="h-[calc(100vh-120px)] mt-6">
+                      <div className="space-y-6">
+                        {/* Recent filter */}
+                        <div>
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="checkbox"
+                              id="recent"
+                              checked={showOnlyRecent}
+                              onChange={(e) => setShowOnlyRecent(e.target.checked)}
+                              className="rounded"
+                            />
+                            <Label htmlFor="recent">Show only recent tips (last 7 days)</Label>
+                          </div>
+                        </div>
+
+                        {/* Assets filter */}
+                        <div>
+                          <h4 className="font-medium mb-3 flex items-center gap-2">
+                            <BarChart2 size={16} />
+                            Asset Classes
+                          </h4>
+                          <div className="grid grid-cols-2 gap-2">
+                            {MASTER_FILTERS.assets.map((asset) => (
+                              <TooltipProvider key={asset.name}>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant={selectedAssets.includes(asset.name) ? "default" : "outline"}
+                                      size="sm"
+                                      className="justify-start text-xs h-8"
+                                      onClick={() => toggleFilter(selectedAssets, setSelectedAssets, asset.name)}
+                                    >
+                                      <asset.Icon size={14} className="mr-1" />
+                                      {asset.name}
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="left">
+                                    <p className="max-w-xs">{asset.desc}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Sectors filter */}
+                        <div>
+                          <h4 className="font-medium mb-3 flex items-center gap-2">
+                            <Building size={16} />
+                            Sectors
+                          </h4>
+                          <div className="grid grid-cols-2 gap-2">
+                            {MASTER_FILTERS.sectors.map((sector) => (
+                              <TooltipProvider key={sector.name}>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant={selectedSectors.includes(sector.name) ? "default" : "outline"}
+                                      size="sm"
+                                      className="justify-start text-xs h-8"
+                                      onClick={() => toggleFilter(selectedSectors, setSelectedSectors, sector.name)}
+                                    >
+                                      <sector.Icon size={14} className="mr-1" />
+                                      {sector.name}
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="left">
+                                    <p className="max-w-xs">{sector.desc}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Risk filter */}
+                        <div>
+                          <h4 className="font-medium mb-3 flex items-center gap-2">
+                            <Shield size={16} />
+                            Risk Levels
+                          </h4>
+                          <div className="grid grid-cols-2 gap-2">
+                            {MASTER_FILTERS.risk.map((risk) => (
+                              <TooltipProvider key={risk.name}>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant={selectedRisk.includes(risk.name) ? "default" : "outline"}
+                                      size="sm"
+                                      className="justify-start text-xs h-8"
+                                      onClick={() => toggleFilter(selectedRisk, setSelectedRisk, risk.name)}
+                                    >
+                                      <risk.Icon size={14} className="mr-1" />
+                                      {risk.name}
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="left">
+                                    <p className="max-w-xs">{risk.desc}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Strategies filter */}
+                        <div>
+                          <h4 className="font-medium mb-3 flex items-center gap-2">
+                            <Target size={16} />
+                            Strategies
+                          </h4>
+                          <div className="grid grid-cols-2 gap-2">
+                            {MASTER_FILTERS.strategies.map((strategy) => (
+                              <TooltipProvider key={strategy.name}>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant={selectedStrategies.includes(strategy.name) ? "default" : "outline"}
+                                      size="sm"
+                                      className="justify-start text-xs h-8"
+                                      onClick={() => toggleFilter(selectedStrategies, setSelectedStrategies, strategy.name)}
+                                    >
+                                      <strategy.Icon size={14} className="mr-1" />
+                                      {strategy.name}
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="left">
+                                    <p className="max-w-xs">{strategy.desc}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Conviction filter */}
+                        <div>
+                          <h4 className="font-medium mb-3 flex items-center gap-2">
+                            <Zap size={16} />
+                            Conviction Levels
+                          </h4>
+                          <div className="grid grid-cols-2 gap-2">
+                            {MASTER_FILTERS.conviction.map((conviction) => (
+                              <Button
+                                key={conviction}
+                                variant={selectedConviction.includes(conviction) ? "default" : "outline"}
+                                size="sm"
+                                className="justify-start text-xs h-8"
+                                onClick={() => toggleFilter(selectedConviction, setSelectedConviction, conviction)}
+                              >
+                                {conviction}
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </ScrollArea>
+                    
+                    <div className="flex gap-2 pt-4 border-t">
+                      <Button variant="outline" onClick={clearAllFilters} className="flex-1">
+                        Clear All
+                      </Button>
+                      <Button onClick={() => setShowFiltersSheet(false)} className="flex-1">
+                        Apply Filters
+                      </Button>
+                    </div>
+                  </SheetContent>
+                </Sheet>
+
+                    
+                    <Button variant="outline" size="sm">
+                      <ArrowUpRight size={16} className="mr-2" />
+                      Export
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <RefreshCw size={16} className="mr-2" />
+                      Refresh
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-bold text-foreground">
+                      Investment Tips 
+                      {filteredPosts.length !== posts.length && (
+                        <span className="text-muted-foreground ml-2 text-lg font-normal">
+                          ({filteredPosts.length} of {posts.length})
+                        </span>
+                      )}
+                    </h2>
+                  </div>
+
+                  {filteredPosts.length === 0 ? (
+                    <div className="bg-background/60 dark:bg-slate-900/60 border border-border/50 dark:border-slate-700/50 rounded-2xl p-12 backdrop-blur-sm text-center">
+                      <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                      <h3 className="text-lg font-semibold text-foreground mb-2">No tips found</h3>
+                      <p className="text-muted-foreground mb-4">
+                        {posts.length === 0 ? "No investment tips have been created yet." : "Try adjusting your search or filters."}
+                      </p>
+                      {posts.length === 0 && (
+                        <Button onClick={() => setShowNewTipForm(true)} className="bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 transition-all duration-200">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Create Your First Tip
+                        </Button>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="grid gap-6">
+                      {filteredPosts.map((tip) => (
+                        <Card 
+                          key={tip.id} 
+                          className="bg-background/60 dark:bg-slate-900/60 border border-border/50 dark:border-slate-700/50 rounded-2xl backdrop-blur-sm hover:border-primary/30 hover:bg-background/80 dark:hover:bg-slate-900/80 transition-all duration-200 cursor-pointer group"
+                          onClick={() => {
+                            setSelectedTip(tip);
+                            setShowTipDetails(true);
+                          }}
+                        >
+                          <CardHeader className="pb-4">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3 mb-3">
+                                  <div className="p-3 bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-primary/10 rounded-xl">
+                                    <TrendingUp className="h-5 w-5 text-primary" />
+                                  </div>
+                                  <div>
+                                    <CardTitle className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
+                                      {tip.symbol}
+                                    </CardTitle>
+                                    <p className="text-sm text-muted-foreground">{tip.company_name}</p>
+                                  </div>
+                                </div>
+                                <p className="text-foreground font-medium leading-relaxed line-clamp-2">
+                                  {tip.investment_thesis}
+                                </p>
+                              </div>
+                              <div className="flex flex-col items-end gap-2 ml-4">
+                                <Badge 
+                                  className={`px-3 py-1 text-xs font-semibold rounded-full ${getConvictionColor(tip.conviction)}`}
+                                >
+                                  {tip.conviction || 'Medium'}
+                                </Badge>
+                                <span className="text-xs text-muted-foreground">
+                                  {formatDistanceToNow(new Date(tip.created_at), { addSuffix: true })}
+                                </span>
+                              </div>
+                            </div>
+                          </CardHeader>
+                          
+                          <CardContent className="pt-0">
+                            <div className="flex items-center justify-between text-sm">
+                              <div className="flex items-center gap-4">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-2 h-2 bg-blue-500 dark:bg-blue-400 rounded-full"></div>
+                                  <span className="text-muted-foreground">Sector:</span>
+                                  <span className="font-medium text-foreground">{tip.sector || 'N/A'}</span>
+                                </div>
+                                {tip.target_price && (
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 bg-green-500 dark:bg-green-400 rounded-full"></div>
+                                    <span className="text-muted-foreground">Target:</span>
+                                    <span className="font-medium text-foreground">${tip.target_price}</span>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-2 text-muted-foreground">
+                                <Eye className="h-4 w-4" />
+                                <span className="text-xs">View Details</span>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </main>
+
+        {/* New Tip Form Sheet */}
+                    {filteredPosts.map((tip) => (
+                      <Card 
+                        key={tip.id} 
+                        className="hover:shadow-lg transition-all duration-200 cursor-pointer bg-gradient-to-br from-background to-muted/20 dark:from-slate-900/50 dark:to-slate-800/30 border-2 border-border dark:border-slate-700 hover:border-primary/30"
+                      >
+                        <CardHeader>
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <Badge variant="outline" className="text-xs bg-primary/10 dark:bg-primary/20 border-primary/30 text-primary font-semibold">
+                                  {tip.symbol}
+                                </Badge>
+                                {tip.sentiment && (
+                                  <Badge 
+                                    variant={tip.sentiment === 'Bullish' || tip.sentiment === 'Very Bullish' ? 'default' : 'secondary'}
+                                    className="text-xs"
+                                  >
+                                    {tip.sentiment}
+                                  </Badge>
+                                )}
+                                {tip.risk && (
+                                  <Badge 
+                                    variant={tip.risk === 'High' || tip.risk === 'Very High' ? 'destructive' : 'secondary'}
+                                    className="text-xs"
+                                  >
+                                    Risk: {tip.risk}
+                                  </Badge>
+                                )}
+                              </div>
+                              <CardTitle className="text-lg mb-2 text-foreground">{tip.symbol} - {tip.strategy || 'Investment'}</CardTitle>
+                              <p className="text-sm text-muted-foreground line-clamp-2">
+                                {tip.tip}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2 ml-4">
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedTip(tip);
+                                        setShowTipDetails(true);
+                                      }}
+                                      className="hover:bg-primary/10 hover:text-primary transition-all duration-200"
+                                    >
+                                      <Eye size={16} />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>View details</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                              
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setEditingTip(tip);
+                                        setNewTip(tip);
+                                        setShowNewTipForm(true);
+                                      }}
+                                      className="hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400 transition-all duration-200"
+                                    >
+                                      <Edit2 size={16} />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Edit tip</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteTip(tip);
+                                      }}
+                                      className="text-destructive hover:text-destructive hover:bg-destructive/10 transition-all duration-200"
+                                    >
+                                      <Trash size={16} />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p>Delete tip</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            </div>
+                          </div>
+                        </CardHeader>
+                        <CardFooter className="bg-muted/20 dark:bg-slate-800/20">
+                          <div className="flex items-center justify-between w-full text-sm text-muted-foreground">
+                            <div className="flex items-center gap-4">
+                              {tip.sector && <span>Sector: {tip.sector}</span>}
+                              {tip.holding && <span>Holding: {tip.holding}</span>}
+                              {tip.conviction && <span>Conviction: {tip.conviction}</span>}
+                            </div>
+                            <span>
+                              {tip.created_at && formatDistanceToNow(new Date(tip.created_at), { addSuffix: true })}
+                            </span>
+                          </div>
+                        </CardFooter>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </main>
+
+        {/* New Tip Form Sheet */}
+        <Sheet open={showNewTipForm} onOpenChange={setShowNewTipForm}>
+          <SheetContent side="right" className="max-h-[100vh] min-w-[60vw] lg:w-[60vw] overflow-hidden flex flex-col p-0 from-background to-muted/20">
+            {/* Enhanced Header */}
+            <SheetHeader className="border-b border-border/50 px-8 py-6 bg-gradient-to-r from-primary/5 to-primary/10 backdrop-blur-sm">
+              <SheetTitle className="flex items-center gap-4">
+                <div className="p-3 bg-primary/10 rounded-xl border border-primary/20 shadow-sm">
+                  <Plus size={24} className="text-primary" />
+                </div>
+                <div className="space-y-1">
+                  <div className="text-xl font-bold tracking-tight">
+                    {editingTip ? 'Edit Investment Tip' : 'Create New Investment Tip'}
+                  </div>
+                  <div className="text-sm text-muted-foreground font-normal leading-relaxed">
+                    Share your investment research and analysis with the community
+                  </div>
+                </div>
+              </SheetTitle>
+            </SheetHeader>
+            
+            {/* Enhanced Action Buttons */}
+            <div className="absolute top-6 right-20 flex gap-3 z-20">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => {
+                        setShowNewTipForm(false);
+                        setEditingTip(null);
+                        setNewTip({
+                          tip: '', symbol: '', asset: '', sector: '', advisor_name: '', advisor_avatar: '', advisor_sebi_registered: false,
+                          sentiment: '', strategy: '', risk: '', expected_return: '', holding: '', duration: '', conviction: '',
+                          market_cap: '', dividend_yield: '', region: '', volatility: '', liquidity: '', win_rate: '', allocation: '',
+                          valuation_metric: '', growth_metric: '', valuation: '', technical_indicator: '', technical: '',
+                          esg_rating: '', analysis_type: '', catalyst: '', diversification: '', performance: '',
+                          entry_price: '', exit_price: '', stop_loss: '',
+                        });
+                      }}
+                      className="h-9 px-4 border-2 hover:bg-muted/50 transition-all duration-200 shadow-sm"
+                    >
+                      <X size={16} className="mr-2" />
+                      Cancel
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="p-0 border-2 border-black dark:border-black shadow-lg bg-white dark:bg-background rounded-lg overflow-hidden">
+                    <div className="px-4 py-3">
+                      <div className="text-sm font-medium text-gray-900 dark:text-foreground">Cancel & Close</div>
+                      <div className="text-xs text-gray-600 dark:text-muted-foreground mt-1">Discard changes and return to dashboard</div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      size="sm" 
+                      onClick={handleSubmitNewTip} 
+                      disabled={submitting} 
+                      className="h-9 px-6 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 shadow-lg hover:shadow-xl transition-all duration-200 border-0"
+                    >
+                      {submitting ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          {editingTip ? 'Updating...' : 'Creating...'}
+                        </>
+                      ) : (
+                        <>
+                          <Save className="mr-2 h-4 w-4" />
+                          {editingTip ? 'Update Tip' : 'Publish Tip'}
+                        </>
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="p-0 border-2 border-black dark:border-black shadow-lg bg-white dark:bg-background rounded-lg overflow-hidden">
+                    <div className="px-4 py-3">
+                      <div className="text-sm font-medium text-gray-900 dark:text-foreground">
+                        {editingTip ? 'Update Investment Tip' : 'Publish Investment Tip'}
+                      </div>
+                      <div className="text-xs text-gray-600 dark:text-muted-foreground mt-1">
+                        {editingTip ? 'Save changes to your investment analysis' : 'Share your research with the community'}
+                      </div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            
+            {/* Enhanced Content Area */}
+            <div className="flex-1 overflow-y-auto">
+              <div className="px-8 py-6 space-y-8">
+                
+                {/* Essential Information Section - Grid Style */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4 pb-4 border-b border-border/30">
+                    <div className="p-3 bg-gradient-to-br from-blue-100 to-blue-200 dark:from-blue-950/50 dark:to-blue-900/30 rounded-xl border border-blue-200/50 dark:border-blue-800/30 shadow-sm">
+                      <FileText size={20} className="text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-lg font-bold text-foreground tracking-tight">Essential Information</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">Core details about your investment recommendation</p>
+                    </div>
+                  </div>
+                  
+                  {/* Investment Thesis - Full Width */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <Label htmlFor="tip" className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                        <MessageSquare size={16} className="text-primary" />
+                        Investment Thesis
+                        <span className="text-red-500 text-xs">*</span>
+                      </Label>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info size={16} className="text-muted-foreground hover:text-foreground cursor-help transition-colors" />
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="p-0 border-2 border-black dark:border-black shadow-xl bg-white dark:bg-background rounded-xl overflow-hidden">
+                            <div className="w-80 p-5">
+                              <div className="text-sm font-semibold text-gray-900 dark:text-foreground mb-3">Investment Thesis</div>
+                              <div className="text-xs text-gray-600 dark:text-muted-foreground space-y-2 leading-relaxed">
+                                <p>• Explain your investment reasoning and research</p>
+                                <p>• Include key fundamentals, catalysts, and outlook</p>
+                                <p>• Provide context for why this is a good opportunity</p>
+                                <p>• Be specific about timing and market conditions</p>
+                              </div>
+                            </div>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <Textarea
+                      id="tip"
+                      value={newTip.tip}
+                      onChange={(e) => handleNewTipChange('tip', e.target.value)}
+                      placeholder="Provide detailed analysis of your investment idea, including fundamentals, catalysts, valuation rationale, and market timing..."
+                      className="min-h-[120px] resize-none border-2 focus:border-primary/60 rounded-xl bg-background/50 backdrop-blur-sm shadow-sm transition-all duration-200 focus:shadow-md"
+                    />
+                  </div>
+                  
+                  {/* Grid Cards for Basic Info */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {/* Symbol Card */}
+                    <div className="bg-background/50 border-2 border-border/30 rounded-xl p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-primary/10 rounded-lg">
+                          <BarChart2 size={18} className="text-primary" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-semibold text-foreground">Symbol</Label>
+                          <p className="text-xs text-muted-foreground">Trading ticker</p>
+                        </div>
+                      </div>
+                      <Input
+                        value={newTip.symbol}
+                        onChange={(e) => handleNewTipChange('symbol', e.target.value.toUpperCase())}
+                        placeholder="e.g., AAPL"
+                        className="border-0 bg-muted/30 font-mono font-semibold text-center text-lg h-10 focus:bg-muted/50 transition-colors"
+                      />
+                    </div>
+
+                    {/* Asset Class Card */}
+                    <div className="bg-background/50 border-2 border-border/30 rounded-xl p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-primary/10 rounded-lg">
+                          <Package size={18} className="text-primary" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-semibold text-foreground">Asset Class</Label>
+                          <p className="text-xs text-muted-foreground">Investment type</p>
+                        </div>
+                      </div>
+                      <Select value={newTip.asset} onValueChange={(val) => handleNewTipChange('asset', val)}>
+                        <SelectTrigger className="border-0 bg-muted/30 h-10 font-semibold focus:bg-muted/50">
+                          <SelectValue placeholder="Select type" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-2">
+                          {MASTER_FILTERS.assets.map(opt => (
+                            <SelectItem key={opt.name} value={opt.name} className="rounded-lg">
+                              <div className="flex items-center gap-3 py-1">
+                                <opt.Icon size={16} className="text-muted-foreground" />
+                                <span className="font-medium">{opt.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Sector Card */}
+                    <div className="bg-background/50 border-2 border-border/30 rounded-xl p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-primary/10 rounded-lg">
+                          <Building size={18} className="text-primary" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-semibold text-foreground">Sector</Label>
+                          <p className="text-xs text-muted-foreground">Industry category</p>
+                        </div>
+                      </div>
+                      <Select value={newTip.sector} onValueChange={(val) => handleNewTipChange('sector', val)}>
+                        <SelectTrigger className="border-0 bg-muted/30 h-10 font-semibold focus:bg-muted/50">
+                          <SelectValue placeholder="Select sector" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-2">
+                          {MASTER_FILTERS.sectors.map(opt => (
+                            <SelectItem key={opt.name} value={opt.name} className="rounded-lg">
+                              <div className="flex items-center gap-3 py-1">
+                                <opt.Icon size={16} className="text-muted-foreground" />
+                                <span className="font-medium">{opt.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Price Targets Section */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4 pb-4 border-b border-border/30">
+                    <div className="p-3 bg-gradient-to-br from-red-100 to-red-200 dark:from-red-950/50 dark:to-red-900/30 rounded-xl border border-red-200/50 dark:border-red-800/30 shadow-sm">
+                      <Target size={20} className="text-red-600 dark:text-red-400" />
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-lg font-bold text-foreground tracking-tight">Price Targets</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">Entry, exit, and risk management levels</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    {/* Entry Price Card */}
+                    <div className="bg-background/50 border-2 border-border/30 rounded-xl p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                          <ArrowUpRight size={18} className="text-green-600 dark:text-green-400" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-semibold text-foreground">Entry Price</Label>
+                          <p className="text-xs text-muted-foreground">Buy level</p>
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={newTip.entry_price}
+                          onChange={(e) => handleNewTipChange('entry_price', e.target.value)}
+                          placeholder="150.00"
+                          className="border-0 bg-muted/30 h-10 font-semibold text-center focus:bg-muted/50"
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* Exit Price Card */}
+                    <div className="bg-background/50 border-2 border-border/30 rounded-xl p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                          <TrendingUp size={18} className="text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-semibold text-foreground">Exit Price</Label>
+                          <p className="text-xs text-muted-foreground">Target level</p>
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={newTip.exit_price}
+                          onChange={(e) => handleNewTipChange('exit_price', e.target.value)}
+                          placeholder="180.00"
+                          className="border-0 bg-muted/30 h-10 font-semibold text-center focus:bg-muted/50"
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* Stop Loss Card */}
+                    <div className="bg-background/50 border-2 border-border/30 rounded-xl p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                          <Shield size={18} className="text-red-600 dark:text-red-400" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-semibold text-foreground">Stop Loss</Label>
+                          <p className="text-xs text-muted-foreground">Risk limit</p>
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={newTip.stop_loss}
+                          onChange={(e) => handleNewTipChange('stop_loss', e.target.value)}
+                          placeholder="140.00"
+                          className="border-0 bg-muted/30 h-10 font-semibold text-center focus:bg-muted/50"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Strategy & Risk Grid */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4 pb-4 border-b border-border/30">
+                    <div className="p-3 bg-gradient-to-br from-orange-100 to-orange-200 dark:from-orange-950/50 dark:to-orange-900/30 rounded-xl border border-orange-200/50 dark:border-orange-800/30 shadow-sm">
+                      <Target size={20} className="text-orange-600 dark:text-orange-400" />
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-lg font-bold text-foreground tracking-tight">Strategy & Risk Management</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">Define your investment approach and risk parameters</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Strategy Card */}
+                    <div className="bg-background/50 border-2 border-border/30 rounded-xl p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                          <TrendingUp size={18} className="text-green-600 dark:text-green-400" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-semibold text-foreground">Strategy</Label>
+                          <p className="text-xs text-muted-foreground">Approach</p>
+                        </div>
+                      </div>
+                      <Select value={newTip.strategy} onValueChange={(val) => handleNewTipChange('strategy', val)}>
+                        <SelectTrigger className="border-0 bg-muted/30 h-10 font-semibold focus:bg-muted/50">
+                          <SelectValue placeholder="Strategy" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-2">
+                          {MASTER_FILTERS.strategies.map(opt => (
+                            <SelectItem key={opt.name} value={opt.name} className="rounded-lg">
+                              <div className="flex items-center gap-3 py-1">
+                                <opt.Icon size={16} className="text-muted-foreground" />
+                                <span className="font-medium">{opt.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Risk Card */}
+                    <div className="bg-background/50 border-2 border-border/30 rounded-xl p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg">
+                          <Shield size={18} className="text-red-600 dark:text-red-400" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-semibold text-foreground">Risk Level</Label>
+                          <p className="text-xs text-muted-foreground">Assessment</p>
+                        </div>
+                      </div>
+                      <Select value={newTip.risk} onValueChange={(val) => handleNewTipChange('risk', val)}>
+                        <SelectTrigger className="border-0 bg-muted/30 h-10 font-semibold focus:bg-muted/50">
+                          <SelectValue placeholder="Risk" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-2">
+                          {MASTER_FILTERS.risk.map(opt => (
+                            <SelectItem key={opt.name} value={opt.name} className="rounded-lg">
+                              <div className="flex items-center gap-3 py-1">
+                                <opt.Icon size={16} className="text-muted-foreground" />
+                                <span className="font-medium">{opt.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Sentiment Card */}
+                    <div className="bg-background/50 border-2 border-border/30 rounded-xl p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                          <Activity size={18} className="text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-semibold text-foreground">Sentiment</Label>
+                          <p className="text-xs text-muted-foreground">Outlook</p>
+                        </div>
+                      </div>
+                      <Select value={newTip.sentiment} onValueChange={(val) => handleNewTipChange('sentiment', val)}>
+                        <SelectTrigger className="border-0 bg-muted/30 h-10 font-semibold focus:bg-muted/50">
+                          <SelectValue placeholder="Sentiment" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-2">
+                          {MASTER_FILTERS.sentiment.map(opt => (
+                            <SelectItem key={opt.name} value={opt.name} className="rounded-lg">
+                              <div className="flex items-center gap-3 py-1">
+                                <opt.Icon size={16} className="text-muted-foreground" />
+                                <span className="font-medium">{opt.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Conviction Card */}
+                    <div className="bg-background/50 border-2 border-border/30 rounded-xl p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                          <Award size={18} className="text-purple-600 dark:text-purple-400" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-semibold text-foreground">Conviction</Label>
+                          <p className="text-xs text-muted-foreground">Confidence</p>
+                        </div>
+                      </div>
+                      <Select value={newTip.conviction} onValueChange={(val) => handleNewTipChange('conviction', val)}>
+                        <SelectTrigger className="border-0 bg-muted/30 h-10 font-semibold focus:bg-muted/50">
+                          <SelectValue placeholder="Conviction" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-2">
+                          {MASTER_FILTERS.conviction.map(opt => (
+                            <SelectItem key={opt.name} value={opt.name} className="rounded-lg">
+                              <div className="flex items-center gap-3 py-1">
+                                <opt.Icon size={16} className="text-muted-foreground" />
+                                <span className="font-medium">{opt.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Investment Metrics Grid */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4 pb-4 border-b border-border/30">
+                    <div className="p-3 bg-gradient-to-br from-green-100 to-green-200 dark:from-green-950/50 dark:to-green-900/30 rounded-xl border border-green-200/50 dark:border-green-800/30 shadow-sm">
+                      <Calculator size={20} className="text-green-600 dark:text-green-400" />
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-lg font-bold text-foreground tracking-tight">Investment Metrics</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">Time horizon, returns, and allocation details</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Holding Period Card */}
+                    <div className="bg-background/50 border-2 border-border/30 rounded-xl p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
+                          <Clock size={18} className="text-indigo-600 dark:text-indigo-400" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-semibold text-foreground">Holding Period</Label>
+                          <p className="text-xs text-muted-foreground">Duration</p>
+                        </div>
+                      </div>
+                      <Select value={newTip.holding} onValueChange={(val) => handleNewTipChange('holding', val)}>
+                        <SelectTrigger className="border-0 bg-muted/30 h-10 font-semibold focus:bg-muted/50">
+                          <SelectValue placeholder="Period" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-2">
+                          {MASTER_FILTERS.holding.map(opt => (
+                            <SelectItem key={opt.name} value={opt.name} className="rounded-lg">
+                              <div className="flex items-center gap-3 py-1">
+                                <opt.Icon size={16} className="text-muted-foreground" />
+                                <span className="font-medium">{opt.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Expected Return Card */}
+                    <div className="bg-background/50 border-2 border-border/30 rounded-xl p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
+                          <TrendingUp size={18} className="text-emerald-600 dark:text-emerald-400" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-semibold text-foreground">Expected Return</Label>
+                          <p className="text-xs text-muted-foreground">Target %</p>
+                        </div>
+                      </div>
+                      <Select value={newTip.expected_return} onValueChange={(val) => handleNewTipChange('expected_return', val)}>
+                        <SelectTrigger className="border-0 bg-muted/30 h-10 font-semibold focus:bg-muted/50">
+                          <SelectValue placeholder="Return %" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-2">
+                          {['<5%', '5-10%', '10-20%', '20-30%', '30-50%', '50%+'].map(opt => (
+                            <SelectItem key={opt} value={opt} className="rounded-lg font-medium">{opt}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Allocation Card */}
+                    <div className="bg-background/50 border-2 border-border/30 rounded-xl p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                          <PieChart size={18} className="text-yellow-600 dark:text-yellow-400" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-semibold text-foreground">Allocation</Label>
+                          <p className="text-xs text-muted-foreground">Portfolio %</p>
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <Input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          max="100"
+                          value={newTip.allocation}
+                          onChange={(e) => handleNewTipChange('allocation', e.target.value)}
+                          placeholder="5.0"
+                          className="border-0 bg-muted/30 h-10 font-semibold text-center focus:bg-muted/50"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Win Rate Card */}
+                    <div className="bg-background/50 border-2 border-border/30 rounded-xl p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+                          <Trophy size={18} className="text-amber-600 dark:text-amber-400" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-semibold text-foreground">Win Rate</Label>
+                          <p className="text-xs text-muted-foreground">Success %</p>
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <Input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          max="100"
+                          value={newTip.win_rate}
+                          onChange={(e) => handleNewTipChange('win_rate', e.target.value)}
+                          placeholder="75.0"
+                          className="border-0 bg-muted/30 h-10 font-semibold text-center focus:bg-muted/50"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Financial Metrics Section */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4 pb-4 border-b border-border/30">
+                    <div className="p-3 bg-gradient-to-br from-purple-100 to-purple-200 dark:from-purple-950/50 dark:to-purple-900/30 rounded-xl border border-purple-200/50 dark:border-purple-800/30 shadow-sm">
+                      <DollarSign size={20} className="text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-lg font-bold text-foreground tracking-tight">Financial Metrics</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">Additional financial and market data points</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Dividend Yield Card */}
+                    <div className="bg-background/50 border-2 border-border/30 rounded-xl p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-green-100 dark:bg-green-900/30 rounded-lg">
+                          <Percent size={18} className="text-green-600 dark:text-green-400" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-semibold text-foreground">Dividend Yield</Label>
+                          <p className="text-xs text-muted-foreground">Annual %</p>
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={newTip.dividend_yield}
+                          onChange={(e) => handleNewTipChange('dividend_yield', e.target.value)}
+                          placeholder="2.5"
+                          className="border-0 bg-muted/30 h-10 font-semibold text-center focus:bg-muted/50"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Volatility Card */}
+                    <div className="bg-background/50 border-2 border-border/30 rounded-xl p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                          <Activity size={18} className="text-orange-600 dark:text-orange-400" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-semibold text-foreground">Volatility</Label>
+                          <p className="text-xs text-muted-foreground">Price swings</p>
+                        </div>
+                      </div>
+                      <Select value={newTip.volatility} onValueChange={(val) => handleNewTipChange('volatility', val)}>
+                        <SelectTrigger className="border-0 bg-muted/30 h-10 font-semibold focus:bg-muted/50">
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-2">
+                          {['Very Low', 'Low', 'Medium', 'High', 'Very High'].map(opt => (
+                            <SelectItem key={opt} value={opt} className="rounded-lg font-medium">{opt}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Liquidity Card */}
+                    <div className="bg-background/50 border-2 border-border/30 rounded-xl p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                          <Droplets size={18} className="text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-semibold text-foreground">Liquidity</Label>
+                          <p className="text-xs text-muted-foreground">Trading ease</p>
+                        </div>
+                      </div>
+                      <Select value={newTip.liquidity} onValueChange={(val) => handleNewTipChange('liquidity', val)}>
+                        <SelectTrigger className="border-0 bg-muted/30 h-10 font-semibold focus:bg-muted/50">
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-2">
+                          {['Very High', 'High', 'Medium', 'Low', 'Very Low'].map(opt => (
+                            <SelectItem key={opt} value={opt} className="rounded-lg font-medium">{opt}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* ESG Rating Card */}
+                    <div className="bg-background/50 border-2 border-border/30 rounded-xl p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                      <div className="flex items-center gap-3 mb-3">
+                        <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
+                          <Leaf size={18} className="text-emerald-600 dark:text-emerald-400" />
+                        </div>
+                        <div>
+                          <Label className="text-sm font-semibold text-foreground">ESG Rating</Label>
+                          <p className="text-xs text-muted-foreground">Sustainability</p>
+                        </div>
+                      </div>
+                      <Select value={newTip.esg_rating} onValueChange={(val) => handleNewTipChange('esg_rating', val)}>
+                        <SelectTrigger className="border-0 bg-muted/30 h-10 font-semibold focus:bg-muted/50">
+                          <SelectValue placeholder="Rating" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl border-2">
+                          {['AAA', 'AA', 'A', 'BBB', 'BB', 'B', 'CCC'].map(opt => (
+                            <SelectItem key={opt} value={opt} className="rounded-lg font-medium">{opt}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Valuation & Technical Analysis Section */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-4 pb-4 border-b border-border/30">
+                    <div className="p-3 bg-gradient-to-br from-indigo-100 to-indigo-200 dark:from-indigo-950/50 dark:to-indigo-900/30 rounded-xl border border-indigo-200/50 dark:border-indigo-800/30 shadow-sm">
+                      <LineChart size={20} className="text-indigo-600 dark:text-indigo-400" />
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-lg font-bold text-foreground tracking-tight">Valuation & Technical Analysis</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">Fundamental metrics and technical indicators</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Valuation Metrics */}
+                    <div className="space-y-4">
+                      <h4 className="text-base font-semibold text-foreground flex items-center gap-2">
+                        <Calculator size={16} className="text-primary" />
+                        Valuation Metrics
+                      </h4>
+                      
+                      <div className="grid gap-4">
+                        {/* Valuation Metric Card */}
+                        <div className="bg-background/50 border-2 border-border/30 rounded-xl p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="p-2 bg-cyan-100 dark:bg-cyan-900/30 rounded-lg">
+                              <Banknote size={18} className="text-cyan-600 dark:text-cyan-400" />
+                            </div>
+                            <div>
+                              <Label className="text-sm font-semibold text-foreground">Valuation Metric</Label>
+                              <p className="text-xs text-muted-foreground">Primary metric</p>
+                            </div>
+                          </div>
+                          <Select value={newTip.valuation_metric} onValueChange={(val) => handleNewTipChange('valuation_metric', val)}>
+                            <SelectTrigger className="border-0 bg-muted/30 h-10 font-semibold focus:bg-muted/50">
+                              <SelectValue placeholder="Select metric" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl border-2">
+                              {['P/E Ratio', 'P/B Ratio', 'EV/EBITDA', 'P/S Ratio', 'PEG Ratio', 'Dividend Yield', 'Price/Cash Flow'].map(opt => (
+                                <SelectItem key={opt} value={opt} className="rounded-lg font-medium">{opt}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Growth Metric Card */}
+                        <div className="bg-background/50 border-2 border-border/30 rounded-xl p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="p-2 bg-teal-100 dark:bg-teal-900/30 rounded-lg">
+                              <TrendingUp size={18} className="text-teal-600 dark:text-teal-400" />
+                            </div>
+                            <div>
+                              <Label className="text-sm font-semibold text-foreground">Growth Metric</Label>
+                              <p className="text-xs text-muted-foreground">Growth measure</p>
+                            </div>
+                          </div>
+                          <Select value={newTip.growth_metric} onValueChange={(val) => handleNewTipChange('growth_metric', val)}>
+                            <SelectTrigger className="border-0 bg-muted/30 h-10 font-semibold focus:bg-muted/50">
+                              <SelectValue placeholder="Select metric" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl border-2">
+                              {['Revenue Growth', 'Earnings Growth', 'EBITDA Growth', 'Free Cash Flow Growth', 'ROE', 'ROA', 'ROIC'].map(opt => (
+                                <SelectItem key={opt} value={opt} className="rounded-lg font-medium">{opt}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Valuation Notes */}
+                        <div className="bg-background/50 border-2 border-border/30 rounded-xl p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg">
+                              <FileText size={18} className="text-slate-600 dark:text-slate-400" />
+                            </div>
+                            <div>
+                              <Label className="text-sm font-semibold text-foreground">Valuation Notes</Label>
+                              <p className="text-xs text-muted-foreground">Analysis details</p>
+                            </div>
+                          </div>
+                          <Textarea
+                            value={newTip.valuation}
+                            onChange={(e) => handleNewTipChange('valuation', e.target.value)}
+                            placeholder="Detailed valuation analysis..."
+                            className="min-h-[80px] border-0 bg-muted/30 focus:bg-muted/50 resize-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Technical Analysis */}
+                    <div className="space-y-4">
+                      <h4 className="text-base font-semibold text-foreground flex items-center gap-2">
+                        <BarChart2 size={16} className="text-primary" />
+                        Technical Analysis
+                      </h4>
+                      
+                      <div className="grid gap-4">
+                        {/* Technical Indicator Card */}
+                        <div className="bg-background/50 border-2 border-border/30 rounded-xl p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="p-2 bg-rose-100 dark:bg-rose-900/30 rounded-lg">
+                              <Activity size={18} className="text-rose-600 dark:text-rose-400" />
+                            </div>
+                            <div>
+                              <Label className="text-sm font-semibold text-foreground">Technical Indicator</Label>
+                              <p className="text-xs text-muted-foreground">Primary signal</p>
+                            </div>
+                          </div>
+                          <Select value={newTip.technical_indicator} onValueChange={(val) => handleNewTipChange('technical_indicator', val)}>
+                            <SelectTrigger className="border-0 bg-muted/30 h-10 font-semibold focus:bg-muted/50">
+                              <SelectValue placeholder="Select indicator" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl border-2">
+                              {['RSI', 'MACD', 'Moving Averages', 'Bollinger Bands', 'Stochastic', 'Williams %R', 'Volume', 'Support/Resistance'].map(opt => (
+                                <SelectItem key={opt} value={opt} className="rounded-lg font-medium">{opt}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Technical Analysis Notes */}
+                        <div className="bg-background/50 border-2 border-border/30 rounded-xl p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                          <div className="flex items-center gap-3 mb-3">
+                            <div className="p-2 bg-violet-100 dark:bg-violet-900/30 rounded-lg">
+                              <LineChart size={18} className="text-violet-600 dark:text-violet-400" />
+                            </div>
+                            <div>
+                              <Label className="text-sm font-semibold text-foreground">Technical Analysis</Label>
+                              <p className="text-xs text-muted-foreground">Chart patterns</p>
+                            </div>
+                          </div>
+                          <Textarea
+                            value={newTip.technical}
+                            onChange={(e) => handleNewTipChange('technical', e.target.value)}
+                            placeholder="Technical analysis notes, chart patterns, support/resistance levels..."
+                            className="min-h-[80px] border-0 bg-muted/30 focus:bg-muted/50 resize-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Investment Catalyst & Additional Details Section */}
+                <div className="space-y-6 pb-6">
+                  <div className="flex items-center gap-4 pb-4 border-b border-border/30">
+                    <div className="p-3 bg-gradient-to-br from-amber-100 to-amber-200 dark:from-amber-950/50 dark:to-amber-900/30 rounded-xl border border-amber-200/50 dark:border-amber-800/30 shadow-sm">
+                      <Lightbulb size={20} className="text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="text-lg font-bold text-foreground tracking-tight">Investment Catalyst & Context</h3>
+                      <p className="text-sm text-muted-foreground leading-relaxed">Key drivers and additional investment details</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-6">
+                    {/* Investment Catalyst - Full Width */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <Label className="text-sm font-semibold flex items-center gap-2 text-foreground">
+                          <Rocket size={16} className="text-primary" />
+                          Investment Catalyst
+                        </Label>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info size={16} className="text-muted-foreground hover:text-foreground cursor-help transition-colors" />
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="p-0 border-2 border-black dark:border-black shadow-xl bg-white dark:bg-background rounded-xl overflow-hidden">
+                              <div className="w-80 p-5">
+                                <div className="text-sm font-semibold text-gray-900 dark:text-foreground mb-3">Key Investment Catalyst</div>
+                                <div className="text-xs text-gray-600 dark:text-muted-foreground space-y-2 leading-relaxed">
+                                  <p>What will drive the stock price higher?</p>
+                                  <p>• Earnings growth, new product launch</p>
+                                  <p>• Regulatory approval, market expansion</p>
+                                  <p>• Management change, strategic initiatives</p>
+                                  <p>• Sector rotation, economic conditions</p>
+                                </div>
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                      <Textarea
+                        value={newTip.catalyst}
+                        onChange={(e) => handleNewTipChange('catalyst', e.target.value)}
+                        placeholder="Describe the key catalyst that will drive price appreciation (e.g., upcoming earnings beat, product launch, regulatory approval...)"
+                        className="min-h-[100px] resize-none border-2 focus:border-primary/60 rounded-xl bg-background/50 backdrop-blur-sm shadow-sm transition-all duration-200 focus:shadow-md"
+                      />
+                    </div>
+
+                    {/* Additional Details Grid */}
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      {/* Region & Market Cap */}
+                      <div className="space-y-4">
+                        <h4 className="text-base font-semibold text-foreground flex items-center gap-2">
+                          <Globe size={16} className="text-primary" />
+                          Market Context
+                        </h4>
+                        
+                        <div className="grid gap-4">
+                          {/* Region Card */}
+                          <div className="bg-background/50 border-2 border-border/30 rounded-xl p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="p-2 bg-sky-100 dark:bg-sky-900/30 rounded-lg">
+                                <Globe size={18} className="text-sky-600 dark:text-sky-400" />
+                              </div>
+                              <div>
+                                <Label className="text-sm font-semibold text-foreground">Region</Label>
+                                <p className="text-xs text-muted-foreground">Market geography</p>
+                              </div>
+                            </div>
+                            <Select value={newTip.region} onValueChange={(val) => handleNewTipChange('region', val)}>
+                              <SelectTrigger className="border-0 bg-muted/30 h-10 font-semibold focus:bg-muted/50">
+                                <SelectValue placeholder="Select region" />
+                              </SelectTrigger>
+                              <SelectContent className="rounded-xl border-2">
+                                {MASTER_FILTERS.regions.map(opt => (
+                                  <SelectItem key={opt.name} value={opt.name} className="rounded-lg">
+                                    <div className="flex items-center gap-3 py-1">
+                                      <opt.Icon size={16} className="text-muted-foreground" />
+                                      <span className="font-medium">{opt.name}</span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {/* Market Cap Card */}
+                          <div className="bg-background/50 border-2 border-border/30 rounded-xl p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="p-2 bg-slate-100 dark:bg-slate-800/50 rounded-lg">
+                                <Building2 size={18} className="text-slate-600 dark:text-slate-400" />
+                              </div>
+                              <div>
+                                <Label className="text-sm font-semibold text-foreground">Market Cap</Label>
+                                <p className="text-xs text-muted-foreground">Company size</p>
+                              </div>
+                            </div>
+                            <Select value={newTip.market_cap} onValueChange={(val) => handleNewTipChange('market_cap', val)}>
+                              <SelectTrigger className="border-0 bg-muted/30 h-10 font-semibold focus:bg-muted/50">
+                                <SelectValue placeholder="Select size" />
+                              </SelectTrigger>
+                              <SelectContent className="rounded-xl border-2">
+                                {MASTER_FILTERS.marketCap.map(opt => (
+                                  <SelectItem key={opt.name} value={opt.name} className="rounded-lg">
+                                    <div className="flex items-center gap-3 py-1">
+                                      <opt.Icon size={16} className="text-muted-foreground" />
+                                      <span className="font-medium">{opt.name}</span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Investment Details */}
+                      <div className="space-y-4">
+                        <h4 className="text-base font-semibold text-foreground flex items-center gap-2">
+                          <Briefcase size={16} className="text-primary" />
+                          Investment Details
+                        </h4>
+                        
+                        <div className="grid gap-4">
+                          {/* Analysis Type Card */}
+                          <div className="bg-background/50 border-2 border-border/30 rounded-xl p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="p-2 bg-pink-100 dark:bg-pink-900/30 rounded-lg">
+                                <Calculator size={18} className="text-pink-600 dark:text-pink-400" />
+                              </div>
+                              <div>
+                                <Label className="text-sm font-semibold text-foreground">Analysis Type</Label>
+                                <p className="text-xs text-muted-foreground">Method used</p>
+                              </div>
+                            </div>
+                            <Select value={newTip.analysis_type} onValueChange={(val) => handleNewTipChange('analysis_type', val)}>
+                              <SelectTrigger className="border-0 bg-muted/30 h-10 font-semibold focus:bg-muted/50">
+                                <SelectValue placeholder="Select type" />
+                              </SelectTrigger>
+                              <SelectContent className="rounded-xl border-2">
+                                {MASTER_FILTERS.analysisType.map(opt => (
+                                  <SelectItem key={opt.name} value={opt.name} className="rounded-lg">
+                                    <div className="flex items-center gap-3 py-1">
+                                      <opt.Icon size={16} className="text-muted-foreground" />
+                                      <span className="font-medium">{opt.name}</span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+
+                          {/* Diversification Card */}
+                          <div className="bg-background/50 border-2 border-border/30 rounded-xl p-4 hover:border-primary/30 transition-all duration-200 hover:shadow-md">
+                            <div className="flex items-center gap-3 mb-3">
+                              <div className="p-2 bg-teal-100 dark:bg-teal-900/30 rounded-lg">
+                                <GitBranch size={18} className="text-teal-600 dark:text-teal-400" />
+                              </div>
+                              <div>
+                                <Label className="text-sm font-semibold text-foreground">Diversification</Label>
+                                <p className="text-xs text-muted-foreground">Portfolio role</p>
+                              </div>
+                            </div>
+                            <Input
+                              value={newTip.diversification}
+                              onChange={(e) => handleNewTipChange('diversification', e.target.value)}
+                              placeholder="e.g., Core holding, Satellite position"
+                              className="border-0 bg-muted/30 h-10 font-semibold focus:bg-muted/50"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+
+        {/* Tip Details Dialog */}
+        <Dialog open={showTipDetails} onOpenChange={setShowTipDetails}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <BarChart2 size={20} />
+                {selectedTip?.symbol} - Investment Details
+              </DialogTitle>
+            </DialogHeader>
+            
+            {selectedTip && (
+              <div className="space-y-6">
+                {/* Investment Description */}
+                <div>
+                  <h4 className="font-semibold mb-2">Investment Thesis</h4>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {selectedTip.tip}
+                  </p>
+                </div>
+
+                {/* Key Metrics */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="text-center p-3 bg-muted/50 rounded-lg">
+                    <div className="text-sm text-muted-foreground">Risk Level</div>
+                    <div className="font-semibold">{selectedTip.risk || 'N/A'}</div>
+                  </div>
+                  <div className="text-center p-3 bg-muted/50 rounded-lg">
+                    <div className="text-sm text-muted-foreground">Conviction</div>
+                    <div className="font-semibold">{selectedTip.conviction || 'N/A'}</div>
+                  </div>
+                  <div className="text-center p-3 bg-muted/50 rounded-lg">
+                    <div className="text-sm text-muted-foreground">Strategy</div>
+                    <div className="font-semibold">{selectedTip.strategy || 'N/A'}</div>
+                  </div>
+                  <div className="text-center p-3 bg-muted/50 rounded-lg">
+                    <div className="text-sm text-muted-foreground">Holding</div>
+                    <div className="font-semibold">{selectedTip.holding || 'N/A'}</div>
+                  </div>
+                </div>
+
+                {/* Price Targets */}
+                {(selectedTip.entry_price || selectedTip.exit_price || selectedTip.stop_loss) && (
+                  <div>
+                    <h4 className="font-semibold mb-3">Price Targets</h4>
+                    <div className="grid grid-cols-3 gap-4">
+                      {selectedTip.entry_price && (
+                        <div className="text-center p-3 border rounded-lg">
+                          <div className="text-sm text-muted-foreground">Entry</div>
+                          <div className="font-semibold text-green-600">${selectedTip.entry_price}</div>
+                        </div>
+                      )}
+                      {selectedTip.exit_price && (
+                        <div className="text-center p-3 border rounded-lg">
+                          <div className="text-sm text-muted-foreground">Target</div>
+                          <div className="font-semibold text-blue-600">${selectedTip.exit_price}</div>
+                        </div>
+                      )}
+                      {selectedTip.stop_loss && (
+                        <div className="text-center p-3 border rounded-lg">
+                          <div className="text-sm text-muted-foreground">Stop Loss</div>
+                          <div className="font-semibold text-red-600">${selectedTip.stop_loss}</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Additional Details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  {selectedTip.sector && (
+                    <div>
+                      <span className="text-muted-foreground">Sector:</span>
+                      <span className="ml-2 font-medium">{selectedTip.sector}</span>
+                    </div>
+                  )}
+                  {selectedTip.sentiment && (
+                    <div>
+                      <span className="text-muted-foreground">Sentiment:</span>
+                      <span className="ml-2 font-medium">{selectedTip.sentiment}</span>
+                    </div>
+                  )}
+                  {selectedTip.expected_return && (
+                    <div>
+                      <span className="text-muted-foreground">Expected Return:</span>
+                      <span className="ml-2 font-medium">{selectedTip.expected_return}</span>
+                    </div>
+                  )}
+                  {selectedTip.created_at && (
+                    <div>
+                      <span className="text-muted-foreground">Created:</span>
+                      <span className="ml-2 font-medium">
+                        {formatDistanceToNow(new Date(selectedTip.created_at), { addSuffix: true })}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+      </div>
+    </div>
+  );
+}
